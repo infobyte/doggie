@@ -480,6 +480,18 @@ mod tests {
     }
 
     #[test]
+    fn test_standard_frame_t_invalid_id() {
+        let mut parser = Slcan::new();
+        // t1230 : can_id 0x123, can_dlc 0, no data
+        assert_eq!(parser.from_byte(b't'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'1'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'2'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'X'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'0'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'\r'), Err(SlcanError::InvalidCommand));
+    }
+
+    #[test]
     fn test_standard_frame_t_len_0_valid_data() {
         let mut parser = Slcan::new();
         // t1230 : can_id 0x123, can_dlc 0, no data
@@ -538,7 +550,7 @@ mod tests {
     }
 
     #[test]
-    fn test_standard_frame_t_len_3_invalid_data() {
+    fn test_standard_frame_t_len_3_invalid_data_len() {
         let mut parser = Slcan::new();
         // t4563112233 : can_id 0x456, can_dlc 3, data 0x11
         assert_eq!(parser.from_byte(b't'), Ok(SlcanCommand::IncompleteMessage));
@@ -547,6 +559,46 @@ mod tests {
         assert_eq!(parser.from_byte(b'6'), Ok(SlcanCommand::IncompleteMessage));
         assert_eq!(parser.from_byte(b'3'), Ok(SlcanCommand::IncompleteMessage));
         assert_eq!(parser.from_byte(b'1'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'1'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'\r'), Err(SlcanError::InvalidCommand));
+    }
+
+    #[test]
+    fn test_standard_frame_t_invalid_hex_in_len() {
+        let mut parser = Slcan::new();
+        // t1230 : can_id 0x123, can_dlc 0, no data
+        assert_eq!(parser.from_byte(b't'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'1'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'2'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'3'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'X'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'\r'), Err(SlcanError::InvalidCommand));
+    }
+
+    #[test]
+    fn test_standard_frame_t_invalid_len() {
+        let mut parser = Slcan::new();
+        // t1230 : can_id 0x123, can_dlc 0, no data
+        assert_eq!(parser.from_byte(b't'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'1'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'2'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'3'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'f'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'1'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'1'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'\r'), Err(SlcanError::InvalidCommand));
+    }
+
+    #[test]
+    fn test_standard_frame_t_invalid_hex_in_data() {
+        let mut parser = Slcan::new();
+        // t1230 : can_id 0x123, can_dlc 0, no data
+        assert_eq!(parser.from_byte(b't'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'1'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'2'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'3'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'1'), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(parser.from_byte(b'X'), Ok(SlcanCommand::IncompleteMessage));
         assert_eq!(parser.from_byte(b'1'), Ok(SlcanCommand::IncompleteMessage));
         assert_eq!(parser.from_byte(b'\r'), Err(SlcanError::InvalidCommand));
     }
