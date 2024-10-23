@@ -20,8 +20,8 @@ fn hex_char_to_u8(hex_char: u8) -> Option<u8> {
     }
 }
 
-fn u8slice2u32(slice: &[u8]) -> Option<u32> {
-    if slice.len() > 4 {
+fn hex_char_slice_to_u32(slice: &[u8]) -> Option<u32> {
+    if slice.len() > 8 {
         return None;
     }
     let mut res: u32 = 0;
@@ -44,7 +44,7 @@ pub struct CanFrame {
 }
 
 impl CanFrame {
-    fn new_from_hex_data(id: impl Into<Id>, data: &[u8]) -> Option<Self> {
+    fn new_from_hex_data(id: impl Into<Id>, is_remote: bool, data: &[u8]) -> Option<Self> {
         let len = data.len();
         if len > 16 {
             return None;
@@ -58,7 +58,7 @@ impl CanFrame {
 
         let mut frame = CanFrame {
             id: id.into(),
-            is_remote: false,
+            is_remote: is_remote,
             dlc: len,
             data: [0; 8],
         };
@@ -330,10 +330,10 @@ impl SlcanSerializer {
             b'L' => self.deserialize_listen(),
             b'S' => self.deserialize_set_bitrate(),
             b's' => Err(SlcanError::CommandNotImplemented),
-            b't' => self.deserialize_standard_frame_t(),
-            b'T' => Err(SlcanError::CommandNotImplemented),
-            b'r' => Err(SlcanError::CommandNotImplemented),
-            b'R' => Err(SlcanError::CommandNotImplemented),
+            b't' => self.deserialize_standard_frame(false),
+            b'T' => self.deserialize_extended_frame(false),
+            b'r' => self.deserialize_standard_frame(true),
+            b'R' => self.deserialize_extended_frame(true),
             b'm' => Err(SlcanError::CommandNotImplemented),
             b'M' => Err(SlcanError::CommandNotImplemented),
             b'Z' => Err(SlcanError::CommandNotImplemented),
@@ -376,11 +376,11 @@ impl SlcanSerializer {
         }
     }
     
-    fn deserialize_standard_frame_t(&self) -> Result<SlcanCommand, SlcanError> {
+    fn deserialize_standard_frame(&self, is_remote: bool) -> Result<SlcanCommand, SlcanError> {
         if self.msg_len < 6 {
             return Err(SlcanError::InvalidCommand);
         }
-        let Some(id) = u8slice2u32(&self.msg_buffer[1..4]) else {
+        let Some(id) = hex_char_slice_to_u32(&self.msg_buffer[1..4]) else {
             return Err(SlcanError::InvalidCommand);
         };
         let Some(dlc) = hex_char_to_u8(self.msg_buffer[4]) else {
@@ -397,10 +397,36 @@ impl SlcanSerializer {
             return Err(SlcanError::InvalidCommand);
         };
 
-        let Some(new_frame) = CanFrame::new_from_hex_data(standard_id, &self.msg_buffer[5..5 + dlc * 2]) else {
+        let Some(new_frame) = CanFrame::new_from_hex_data(standard_id, is_remote, &self.msg_buffer[5..5 + dlc * 2]) else {
+            return Err(SlcanError::InvalidCommand);
+        };
+        Ok(SlcanCommand::Frame(new_frame))
+    }
+
+    fn deserialize_extended_frame(&self, is_remote: bool) -> Result<SlcanCommand, SlcanError> {
+        if self.msg_len < 11 {
+            return Err(SlcanError::InvalidCommand);
+        }
+        let Some(id) = hex_char_slice_to_u32(&self.msg_buffer[1..9]) else {
+            return Err(SlcanError::InvalidCommand);
+        };
+        let Some(dlc) = hex_char_to_u8(self.msg_buffer[9]) else {
+            return Err(SlcanError::InvalidCommand);
+        };
+        
+        let dlc = dlc as usize;
+
+        if self.msg_len != dlc * 2 + 11 {
+            return Err(SlcanError::InvalidCommand);
+        }
+
+        let Some(extended_id) = ExtendedId::new(id) else {
             return Err(SlcanError::InvalidCommand);
         };
 
+        let Some(new_frame) = CanFrame::new_from_hex_data(extended_id, is_remote, &self.msg_buffer[10..10 + dlc * 2]) else {
+            return Err(SlcanError::InvalidCommand);
+        };
         Ok(SlcanCommand::Frame(new_frame))
     }
     
@@ -939,6 +965,93 @@ mod tests {
                 })
             ).unwrap(),
             res
+        );
+    }
+
+    #[test]
+    fn test_deserialize_standard_frame_r_len_3_valid_data() {
+        let mut serializer = SlcanSerializer::new();
+        // t4563112233 : can_id 0x456, can_dlc 3, data 0x11 0x22 0x33
+        assert_eq!(
+            serializer.from_bytes(b"r4563112233\r"),
+            Ok(SlcanCommand::Frame(
+                CanFrame {
+                    id: Id::Standard(StandardId::new(0x456).unwrap()), 
+                    data: [0x11, 0x22, 0x33, 0x00, 0x00, 0x00, 0x00, 0x00],
+                    dlc: 3, 
+                    is_remote: true,
+                }
+            ))
+        );
+    }
+
+    #[test]
+    fn test_deserialize_extended_frame_t_invalid_id_no_hex() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(serializer.from_bytes(b"T12X0\r"), Err(SlcanError::InvalidCommand));
+    }
+
+    #[test]
+    fn test_deserialize_extended_frame_t_invalid_id_too_high() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(serializer.from_bytes(b"TF2ABCDEF0\r"), Err(SlcanError::InvalidCommand));
+    }
+
+    #[test]
+    fn test_deserialize_extended_frame_t_len_3_valid_data() {
+        let mut serializer = SlcanSerializer::new();
+        // T12ABCDEF2AA55 : extended can_id 0x12ABCDEF, can_dlc 2, data 0xAA 0x55
+        assert_eq!(
+            serializer.from_bytes(b"T12ABCDEF2AA55\r"),
+            Ok(SlcanCommand::Frame(
+                CanFrame {
+                    id: Id::Extended(ExtendedId::new(0x12ABCDEF).unwrap()), 
+                    data: [0xAA, 0x55, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+                    dlc: 2, 
+                    is_remote: false,
+                }
+            ))
+        );
+    }
+
+    #[test]
+    fn test_deserialize_extended_frame_t_len_3_invalid_data_len() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(serializer.from_bytes(b"T12ABCDEF311\r"), Err(SlcanError::InvalidCommand));
+    }
+
+    #[test]
+    fn test_deserialize_extended_frame_t_invalid_hex_in_data() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(serializer.from_bytes(b"T12ABCDEF1X1\r"), Err(SlcanError::InvalidCommand));
+    }
+
+    #[test]
+    fn test_deserialize_extended_frame_t_invalid_hex_in_dlc() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(serializer.from_bytes(b"T12ABCDEFX11\r"), Err(SlcanError::InvalidCommand));
+    }
+
+    #[test]
+    fn test_deserialize_extended_frame_t_invalid_hex_in_id() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(serializer.from_bytes(b"T12ABXDEF111\r"), Err(SlcanError::InvalidCommand));
+    }
+
+    #[test]
+    fn test_deserialize_extended_frame_r_len_3_valid_data() {
+        let mut serializer = SlcanSerializer::new();
+        // T12ABCDEF2AA55 : extended can_id 0x12ABCDEF, can_dlc 2, data 0xAA 0x55
+        assert_eq!(
+            serializer.from_bytes(b"R12ABCDEF2AA55\r"),
+            Ok(SlcanCommand::Frame(
+                CanFrame {
+                    id: Id::Extended(ExtendedId::new(0x12ABCDEF).unwrap()), 
+                    data: [0xAA, 0x55, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+                    dlc: 2, 
+                    is_remote: true,
+                }
+            ))
         );
     }
 }
