@@ -26,6 +26,9 @@ static_cell = "2.0.0"
 
 slcan = { version = "0.1.0", path = "../slcan"}
 
+mcp2515 = "0.3.0"
+embedded-can = "0.4.1"
+
 [patch.crates-io]
 embassy-stm32 = { git = "https://github.com/embassy-rs/embassy", rev = "d7692b1ae8775723e54de8574a190df4864aa854" }
 embassy-sync = { git = "https://github.com/embassy-rs/embassy", rev = "d7692b1ae8775723e54de8574a190df4864aa854" }
