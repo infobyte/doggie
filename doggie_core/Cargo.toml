@@ -1,0 +1,22 @@
+[package]
+edition = "2021"
+name = "doggie_core"
+version = "0.1.0"
+
+[dependencies]
+# Change stm32f103c8 to your chip name, if necessary.
+
+embassy-time = { version = "0.3.2", features = ["defmt", "defmt-timestamp-uptime", "tick-hz-32_768"] }
+embedded-hal = "1.0.0"
+embedded-can = "0.4.1"
+embedded-io = "0.6.1"
+slcan = { version = "0.1.0", path = "../slcan"}
+
+# [patch.crates-io]
+# embassy-time = { git = "https://github.com/embassy-rs/embassy", rev = "d7692b1ae8775723e54de8574a190df4864aa854" }
+
+[profile.dev]
+opt-level = "s"
+
+[profile.release]
+debug = 2
