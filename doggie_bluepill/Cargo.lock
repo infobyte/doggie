@@ -252,6 +252,7 @@ dependencies = [
 name = "doggie_core"
 version = "0.1.0"
 dependencies = [
+ "defmt",
  "embassy-time",
  "embedded-can",
  "embedded-hal 1.0.0",
@@ -819,6 +820,9 @@ dependencies = [
 [[package]]
 name = "slcan"
 version = "0.1.0"
+dependencies = [
+ "embedded-can",
+]
 
 [[package]]
 name = "ssmarshal"

@@ -4,8 +4,10 @@ mod bsp;
 
 pub use bsp::Bsp;
 
+use defmt::{error, info, println};
 use embassy_time::Timer;
-use embedded_can::{blocking::Can, ExtendedId, Frame, Id, StandardId};
+use embedded_can::{blocking::Can, Frame, Id, StandardId};
+
 // use embedded_io::{Read, Write};
 
 // pub struct Core<CAN, SERIAL>
@@ -44,7 +46,7 @@ where
     }
 
     pub async fn run(&mut self) {
-        let mut id: u16 = 0x1FF;
+        let id: u16 = 0x1FF;
 
         loop {
             // Send a message
@@ -56,15 +58,14 @@ where
             .unwrap();
 
             match self.bsp.can.transmit(&frame) {
-                Ok(_) => {}
-                Err(_) => {} // Ok(_) => info!("Sent message!"),
-                             // Err(spi_error) => error!("Error sending message"),
+                Ok(_) => info!("Sent message!"),
+                Err(_) => error!("Error sending message"),
             }
 
             // Read the message back (we are in loopback mode)
             match self.bsp.can.receive() {
                 Ok(frame) => {
-                    // info!("Frame received");
+                    info!("Frame received");
 
                     let id = frame.id(); // CAN ID
                     let id_value = match id {
@@ -77,15 +78,14 @@ where
                     let is_extended = frame.is_extended(); // Check if it's an extended frame
 
                     // Print the CAN frame details
-                    // println!(
-                    //     "ID: {:x}, DLC: {}, Data: {:X}, Extended: {}",
-                    //     id_value, dlc, data, is_extended
-                    // );
+                    println!(
+                        "ID: {:x}, DLC: {}, Data: {:X}, Extended: {}",
+                        id_value, dlc, data, is_extended
+                    );
 
                     Timer::after_millis(1000).await;
                 }
-                Err(_) => {} // Err(Error::NoMessage) => info!("No message to read!"),
-                             // Err(_) => error!("Oh no!"),
+                Err(_) => info!("No message to read!"),
             }
 
             Timer::after_millis(1000).await;

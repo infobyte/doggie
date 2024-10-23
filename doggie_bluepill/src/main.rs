@@ -7,7 +7,7 @@ mod spi_device;
 use soft_timer::SoftTimer;
 use spi_device::CustomSpiDevice;
 
-use defmt::*;
+use defmt::{error, info};
 use doggie_core::{Bsp, Core};
 use embassy_executor::Spawner;
 use embassy_stm32::rcc::*;
