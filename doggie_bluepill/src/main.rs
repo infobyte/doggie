@@ -92,7 +92,7 @@ async fn main(spawner: Spawner) {
 
     // Init UART
     let mut uart_config = usart::Config::default();
-    uart_config.baudrate = 115200;
+    uart_config.baudrate = 921600;
 
     // Initialize UART
     let uart = unsafe {
