@@ -1,0 +1,43 @@
+[package]
+name = "doggie_pico"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+embassy-rp = { version = "0.2.0", features = ["defmt", "unstable-pac", "time-driver", "critical-section-impl", "rp2040"] }
+embassy-sync = { version = "0.6.0", features = ["defmt"] }
+embassy-executor = { version = "0.6.1", features = ["task-arena-size-98304", "arch-cortex-m", "executor-thread", "executor-interrupt", "defmt", "integrated-timers"] }
+embassy-time = { version = "0.3.2", features = ["defmt", "defmt-timestamp-uptime"] }
+embassy-usb = { version = "0.3.0", features = ["defmt"] }
+embassy-futures = { version = "0.1.0" }
+defmt = "0.3.8"
+defmt-rtt = "0.4.1"
+panic-probe = "0.3.2"
+cortex-m-rt = "0.7.3"
+static_cell = "2.1"
+portable-atomic = { version = "1.5", features = ["critical-section"] }
+embedded-io-async = { version = "0.6.1", features = ["defmt-03"] }
+mcp2515 = "0.3.0"
+embedded-hal = "1.0.0"
+cortex-m = "0.7.7"
+
+doggie_core = { version = "0.1.0", path = "../doggie_core"}
+
+
+[profile.release]
+debug = 2
+lto = true
+opt-level = 'z'
+
+[profile.dev]
+debug = 2
+lto = true
+opt-level = "z"
+
+[patch.crates-io]
+embassy-rp = { git = "https://github.com/embassy-rs/embassy", rev = "d7692b1ae8775723e54de8574a190df4864aa854" }
+embassy-sync = { git = "https://github.com/embassy-rs/embassy", rev = "d7692b1ae8775723e54de8574a190df4864aa854" }
+embassy-executor = { git = "https://github.com/embassy-rs/embassy", rev = "d7692b1ae8775723e54de8574a190df4864aa854" }
+embassy-time = { git = "https://github.com/embassy-rs/embassy", rev = "d7692b1ae8775723e54de8574a190df4864aa854" }
+embassy-usb = { git = "https://github.com/embassy-rs/embassy", rev = "d7692b1ae8775723e54de8574a190df4864aa854" }
+embassy-futures = { git = "https://github.com/embassy-rs/embassy", rev = "d7692b1ae8775723e54de8574a190df4864aa854" }
