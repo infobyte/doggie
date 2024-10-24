@@ -72,18 +72,25 @@ name = "doggie_core"
 version = "0.1.0"
 dependencies = [
  "defmt",
+ "embassy-futures",
  "embassy-time",
  "embedded-can",
  "embedded-hal 1.0.0",
  "embedded-io",
+ "embedded-io-async",
+ "heapless",
  "slcan",
 ]
 
 [[package]]
+name = "embassy-futures"
+version = "0.1.1"
+source = "git+https://github.com/embassy-rs/embassy?rev=d7692b1ae8775723e54de8574a190df4864aa854#d7692b1ae8775723e54de8574a190df4864aa854"
+
+[[package]]
 name = "embassy-time"
 version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "158080d48f824fad101d7b2fae2d83ac39e3f7a6fa01811034f7ab8ffc6e7309"
+source = "git+https://github.com/embassy-rs/embassy?rev=d7692b1ae8775723e54de8574a190df4864aa854#d7692b1ae8775723e54de8574a190df4864aa854"
 dependencies = [
  "cfg-if",
  "critical-section",
@@ -101,8 +108,7 @@ dependencies = [
 [[package]]
 name = "embassy-time-driver"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e0c214077aaa9206958b16411c157961fb7990d4ea628120a78d1a5a28aed24"
+source = "git+https://github.com/embassy-rs/embassy?rev=d7692b1ae8775723e54de8574a190df4864aa854#d7692b1ae8775723e54de8574a190df4864aa854"
 dependencies = [
  "document-features",
 ]
@@ -110,8 +116,7 @@ dependencies = [
 [[package]]
 name = "embassy-time-queue-driver"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1177859559ebf42cd24ae7ba8fe6ee707489b01d0bf471f8827b7b12dcb0bc0"
+source = "git+https://github.com/embassy-rs/embassy?rev=d7692b1ae8775723e54de8574a190df4864aa854#d7692b1ae8775723e54de8574a190df4864aa854"
 
 [[package]]
 name = "embedded-can"
@@ -152,6 +157,15 @@ name = "embedded-io"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "edd0f118536f44f5ccd48bcb8b111bdc3de888b58c74639dfb034a357d0f206d"
+
+[[package]]
+name = "embedded-io-async"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3ff09972d4073aa8c299395be75161d582e7629cd663171d62af73c8d50dba3f"
+dependencies = [
+ "embedded-io",
+]
 
 [[package]]
 name = "futures-core"

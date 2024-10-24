@@ -240,6 +240,7 @@ dependencies = [
  "embassy-usb",
  "embedded-hal 1.0.0",
  "embedded-io",
+ "embedded-io-async",
  "heapless",
  "mcp2515",
  "nb 1.1.0",
@@ -253,10 +254,13 @@ name = "doggie_core"
 version = "0.1.0"
 dependencies = [
  "defmt",
+ "embassy-futures",
  "embassy-time",
  "embedded-can",
  "embedded-hal 1.0.0",
  "embedded-io",
+ "embedded-io-async",
+ "heapless",
  "slcan",
 ]
 

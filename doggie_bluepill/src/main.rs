@@ -12,14 +12,24 @@ use doggie_core::{Bsp, Core};
 use embassy_executor::Spawner;
 use embassy_stm32::rcc::*;
 use embassy_stm32::{
+    bind_interrupts,
     gpio::{Level, Output, Pull, Speed},
-    spi,
+    peripherals, spi,
     spi::MODE_0,
     time::Hertz,
+    usart,
+    usart::BufferedUart,
     Config as StmConfig,
 };
 use mcp2515::{regs::OpMode, CanSpeed, McpSpeed, MCP2515};
 use {defmt_rtt as _, panic_probe as _};
+
+static mut UART2_BUF_TX: &mut [u8; 64] = &mut [0; 64];
+static mut UART2_BUF_RX: &mut [u8; 64] = &mut [0; 64];
+
+bind_interrupts!(struct UartIrqs {
+    USART2 => usart::BufferedInterruptHandler<peripherals::USART2>;
+});
 
 fn init_bluepill() -> embassy_stm32::Peripherals {
     let mut config = StmConfig::default();
@@ -80,7 +90,28 @@ async fn main(_spawner: Spawner) {
         Err(_) => error!("MCP2515 Init Failed"),
     }
 
-    let bsp = Bsp::new(can);
+    // Init UART
+    let mut uart_config = usart::Config::default();
+    uart_config.baudrate = 115200;
+
+    // Initialize UART
+    let uart = unsafe {
+        BufferedUart::new(
+            p.USART2,
+            UartIrqs,
+            p.PA3,
+            p.PA2,
+            UART2_BUF_TX,
+            UART2_BUF_RX,
+            uart_config,
+        )
+        .unwrap()
+    };
+
+    // Create the Bsp
+    let bsp = Bsp::new(can, uart);
+
+    // Create and run the Doggie core
     let mut core = Core::new(bsp);
 
     core.run().await;
