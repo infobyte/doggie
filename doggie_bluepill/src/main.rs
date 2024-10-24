@@ -10,7 +10,6 @@ use spi_device::CustomSpiDevice;
 use defmt::{error, info};
 use doggie_core::{Bsp, Core};
 use embassy_executor::Spawner;
-use embassy_stm32::rcc::*;
 use embassy_stm32::{
     bind_interrupts,
     gpio::{Level, Output, Pull, Speed},
@@ -21,6 +20,7 @@ use embassy_stm32::{
     usart::BufferedUart,
     Config as StmConfig,
 };
+use embassy_stm32::{mode, rcc::*};
 use mcp2515::{regs::OpMode, CanSpeed, McpSpeed, MCP2515};
 use {defmt_rtt as _, panic_probe as _};
 
@@ -56,7 +56,7 @@ fn init_bluepill() -> embassy_stm32::Peripherals {
 }
 
 #[embassy_executor::main]
-async fn main(_spawner: Spawner) {
+async fn main(spawner: Spawner) {
     let p = init_bluepill();
 
     // let mut led = Output::new(p.PC13, Level::High, Speed::Low);
@@ -112,7 +112,28 @@ async fn main(_spawner: Spawner) {
     let bsp = Bsp::new(can, uart);
 
     // Create and run the Doggie core
-    let mut core = Core::new(bsp);
+    let core = Core::new(spawner, bsp);
 
-    core.run().await;
+    // TODO: This should be replaced with a macro
+    // core_run!(core)
+
+    let serial = core.bsp.serial.replace(None).unwrap();
+    let can = core.bsp.can.replace(None).unwrap();
+
+    core.spawner.spawn(echo_task(serial)).unwrap();
+    core.spawner.spawn(can_task(can)).unwrap();
+}
+
+// TODO: create tasks macro
+// create_core_tasks!(CoreType)
+
+#[embassy_executor::task]
+async fn echo_task(serial: BufferedUart<'static>) {
+    Core::<MCP2515<CustomSpiDevice<mode::Blocking>>, BufferedUart<'_>>::echo(serial).await;
+}
+
+#[embassy_executor::task]
+async fn can_task(can: MCP2515<CustomSpiDevice<'static, mode::Blocking>>) {
+    Core::<MCP2515<CustomSpiDevice<'_, embassy_stm32::mode::Blocking>>, BufferedUart<'_>>::can(can)
+        .await;
 }

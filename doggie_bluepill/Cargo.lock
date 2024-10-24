@@ -254,7 +254,9 @@ name = "doggie_core"
 version = "0.1.0"
 dependencies = [
  "defmt",
+ "embassy-executor",
  "embassy-futures",
+ "embassy-sync",
  "embassy-time",
  "embedded-can",
  "embedded-hal 1.0.0",
