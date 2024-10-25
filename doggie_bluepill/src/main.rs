@@ -8,7 +8,9 @@ use soft_timer::SoftTimer;
 use spi_device::CustomSpiDevice;
 
 use defmt::{error, info};
-use doggie_core::{Bsp, Core};
+use doggie_core::{
+    core_create_tasks, core_run, Bsp, CanChannel, CanChannelReceiver, CanChannelSender, Core,
+};
 use embassy_executor::Spawner;
 use embassy_stm32::{
     bind_interrupts,
@@ -114,26 +116,51 @@ async fn main(spawner: Spawner) {
     // Create and run the Doggie core
     let core = Core::new(spawner, bsp);
 
-    // TODO: This should be replaced with a macro
-    // core_run!(core)
+    core_run!(core);
 
-    let serial = core.bsp.serial.replace(None).unwrap();
-    let can = core.bsp.can.replace(None).unwrap();
-
-    core.spawner.spawn(echo_task(serial)).unwrap();
-    core.spawner.spawn(can_task(can)).unwrap();
+    // // Unpack all the peripherals
+    // let serial = core.bsp.serial.replace(None).unwrap();
+    // let can = core.bsp.can.replace(None).unwrap();
+    //
+    // // Create Channels
+    // static SERIAL_CHANNEL: CanChannel = CanChannel::new();
+    // static CAN_CHANNEL: CanChannel = CanChannel::new();
+    //
+    // // Spawn tasks
+    // core.spawner
+    //     .spawn(slcan_task(
+    //         serial,
+    //         SERIAL_CHANNEL.receiver(),
+    //         CAN_CHANNEL.sender(),
+    //     ))
+    //     .unwrap();
+    // core.spawner
+    //     .spawn(can_task(
+    //         can,
+    //         CAN_CHANNEL.receiver(),
+    //         SERIAL_CHANNEL.sender(),
+    //     ))
+    //     .unwrap();
 }
 
-// TODO: create tasks macro
-// create_core_tasks!(CoreType)
+core_create_tasks!(
+    BufferedUart<'static>,
+    MCP2515<CustomSpiDevice<'static, mode::Blocking>>
+);
 
-#[embassy_executor::task]
-async fn echo_task(serial: BufferedUart<'static>) {
-    Core::<MCP2515<CustomSpiDevice<mode::Blocking>>, BufferedUart<'_>>::echo(serial).await;
-}
-
-#[embassy_executor::task]
-async fn can_task(can: MCP2515<CustomSpiDevice<'static, mode::Blocking>>) {
-    Core::<MCP2515<CustomSpiDevice<'_, embassy_stm32::mode::Blocking>>, BufferedUart<'_>>::can(can)
-        .await;
-}
+// type SerialType = BufferedUart<'static>;
+// type CanType = MCP2515<CustomSpiDevice<'static, mode::Blocking>>;
+//
+// #[embassy_executor::task]
+// async fn slcan_task(
+//     serial: SerialType,
+//     channel_in: CanChannelReceiver,
+//     channel_out: CanChannelSender,
+// ) {
+//     Core::<CanType, SerialType>::slcan_task(serial, channel_in, channel_out).await;
+// }
+//
+// #[embassy_executor::task]
+// async fn can_task(can: CanType, channel_in: CanChannelReceiver, channel_out: CanChannelSender) {
+//     Core::<CanType, SerialType>::can_task(can, channel_in, channel_out).await;
+// }
