@@ -2,34 +2,23 @@
 
 mod bsp;
 mod macros;
+mod types;
 
 pub use bsp::Bsp;
-// pub use macros::{core_create_tasks, core_run};
+pub use types::*;
 
-use embassy_futures::yield_now;
 use slcan::{SlcanCommand, SlcanError};
 
 use defmt::{error, info, println};
 
-use embassy_futures::select::select;
-
 use embassy_executor::Spawner;
+use embassy_futures::select::select;
+use embassy_futures::select::Either;
+use embassy_futures::yield_now;
 use embassy_time::Timer;
 
-use embassy_futures::select::Either;
-
-use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
-use embassy_sync::channel::{Channel, Receiver, Sender};
 use embedded_can::{blocking::Can, Frame, Id, StandardId};
 use embedded_io_async::{Read, Write};
-
-const CAN_CHANNEL_SIZE: usize = 16;
-
-pub type CanChannel = Channel<CriticalSectionRawMutex, SlcanCommand, CAN_CHANNEL_SIZE>;
-pub type CanChannelSender =
-    Sender<'static, CriticalSectionRawMutex, SlcanCommand, CAN_CHANNEL_SIZE>;
-pub type CanChannelReceiver =
-    Receiver<'static, CriticalSectionRawMutex, SlcanCommand, CAN_CHANNEL_SIZE>;
 
 pub struct Core<CAN, SERIAL>
 where
@@ -69,9 +58,10 @@ where
             match select(serial_future, can_future).await {
                 // n bytes has ben received from serial
                 Either::First(serial_recv_size) => {
-                    match slcan_serializer.from_bytes(&serial_in_buf[0..serial_recv_size.unwrap()])
-                    {
+                    let size = serial_recv_size.unwrap();
+                    match slcan_serializer.from_bytes(&serial_in_buf[0..size]) {
                         Ok(SlcanCommand::Frame(frame)) => {
+                            info!("New frame parsed correctlly");
                             out_channel.send(SlcanCommand::Frame(frame)).await;
                         }
                         Ok(SlcanCommand::IncompleteMessage) => {
@@ -82,6 +72,7 @@ where
                         }
                         Err(SlcanError::InvalidCommand) => {
                             // Do nothing too
+                            error!("InvalidMessage");
                         }
                         Err(_) => {
                             // TODO: Complete all the cases
@@ -117,6 +108,7 @@ where
             // Try to receive a message
             match can.receive() {
                 Ok(frame) => {
+                    info!("New frame received");
                     let new_frame =
                         slcan::CanFrame::new(frame.id(), frame.is_remote_frame(), frame.data())
                             .unwrap();
@@ -131,7 +123,10 @@ where
             if !in_channel.is_empty() {
                 match in_channel.receive().await {
                     SlcanCommand::Frame(frame) => {
-                        let new_frame = CAN::Frame::new(frame.id, &frame.data).unwrap();
+                        info!("Sending new frame");
+
+                        let new_frame =
+                            CAN::Frame::new(frame.id, &frame.data[0..frame.dlc]).unwrap();
 
                         can.transmit(&new_frame).unwrap();
                     }

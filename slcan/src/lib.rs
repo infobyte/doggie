@@ -38,7 +38,7 @@ fn hex_char_slice_to_u32(slice: &[u8]) -> Option<u32> {
 pub struct CanFrame {
     pub id: Id,
     pub data: [u8; 8],
-    dlc: usize,
+    pub dlc: usize,
     is_remote: bool,
 }
 
@@ -323,7 +323,8 @@ impl SlcanSerializer {
                 return res;
             }
         }
-        Err(SlcanError::InvalidCommand)
+        Ok(SlcanCommand::IncompleteMessage)
+        // Err(SlcanError::InvalidCommand)
     }
 
     pub fn from_byte(&mut self, byte: u8) -> Result<SlcanCommand, SlcanError> {
@@ -1141,4 +1142,3 @@ mod tests {
         );
     }
 }
-
