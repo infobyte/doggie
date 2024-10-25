@@ -31,9 +31,6 @@ pub type CanChannelSender =
 pub type CanChannelReceiver =
     Receiver<'static, CriticalSectionRawMutex, SlcanCommand, CAN_CHANNEL_SIZE>;
 
-// static mut channel: CanChannel =
-// CanChannel::new();
-
 pub struct Core<CAN, SERIAL>
 where
     CAN: Can,
@@ -71,8 +68,9 @@ where
             // TODO: Check if no packets are dropped
             match select(serial_future, can_future).await {
                 // n bytes has ben received from serial
-                Either::First(_serial_recv_size) => {
-                    match slcan_serializer.from_bytes(&serial_in_buf) {
+                Either::First(serial_recv_size) => {
+                    match slcan_serializer.from_bytes(&serial_in_buf[0..serial_recv_size.unwrap()])
+                    {
                         Ok(SlcanCommand::Frame(frame)) => {
                             out_channel.send(SlcanCommand::Frame(frame)).await;
                         }
