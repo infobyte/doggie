@@ -263,6 +263,7 @@ dependencies = [
  "embedded-io",
  "embedded-io-async",
  "heapless",
+ "mcp2515",
  "slcan",
 ]
 

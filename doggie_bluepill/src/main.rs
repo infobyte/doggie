@@ -23,7 +23,7 @@ use embassy_stm32::{
     Config as StmConfig,
 };
 use embassy_stm32::{mode, rcc::*};
-use mcp2515::{regs::OpMode, CanSpeed, McpSpeed, MCP2515};
+use mcp2515::MCP2515;
 use {defmt_rtt as _, panic_probe as _};
 
 static mut UART2_BUF_TX: &mut [u8; 64] = &mut [0; 64];
@@ -66,7 +66,7 @@ async fn main(spawner: Spawner) {
     // Setup SPI
     let mut spi_config = spi::Config::default();
     spi_config.mode = MODE_0;
-    spi_config.frequency = Hertz(1_000_000);
+    spi_config.frequency = Hertz(10_000_000);
     spi_config.miso_pull = Pull::Down;
 
     let stm_spi = spi::Spi::new_blocking(p.SPI1, p.PA5, p.PA7, p.PA6, spi_config);
@@ -75,22 +75,8 @@ async fn main(spawner: Spawner) {
 
     let spi = CustomSpiDevice::new(stm_spi, cs);
 
-    // MCP2515 initialization
-    let mut can = MCP2515::new(spi);
-    let mut delay = SoftTimer {};
-
-    match can.init(
-        &mut delay,
-        mcp2515::Settings {
-            mode: OpMode::Normal,         // Loopback for testing and example
-            can_speed: CanSpeed::Kbps250, // Many options supported.
-            mcp_speed: McpSpeed::MHz8,    // Currently 16MHz and 8MHz chips are supported.
-            clkout_en: false,
-        },
-    ) {
-        Ok(_) => info!("MCP2515 Init success"),
-        Err(_) => error!("MCP2515 Init Failed"),
-    }
+    // Delay for the MCP2515
+    let delay = SoftTimer {};
 
     // Init UART
     let mut uart_config = usart::Config::default();
@@ -111,56 +97,15 @@ async fn main(spawner: Spawner) {
     };
 
     // Create the Bsp
-    let bsp = Bsp::new(can, uart);
+    let bsp = Bsp::new_with_mcp2515(spi, delay, uart);
 
     // Create and run the Doggie core
     let core = Core::new(spawner, bsp);
 
     core_run!(core);
-
-    // // Unpack all the peripherals
-    // let serial = core.bsp.serial.replace(None).unwrap();
-    // let can = core.bsp.can.replace(None).unwrap();
-    //
-    // // Create Channels
-    // static SERIAL_CHANNEL: CanChannel = CanChannel::new();
-    // static CAN_CHANNEL: CanChannel = CanChannel::new();
-    //
-    // // Spawn tasks
-    // core.spawner
-    //     .spawn(slcan_task(
-    //         serial,
-    //         SERIAL_CHANNEL.receiver(),
-    //         CAN_CHANNEL.sender(),
-    //     ))
-    //     .unwrap();
-    // core.spawner
-    //     .spawn(can_task(
-    //         can,
-    //         CAN_CHANNEL.receiver(),
-    //         SERIAL_CHANNEL.sender(),
-    //     ))
-    //     .unwrap();
 }
 
 core_create_tasks!(
     BufferedUart<'static>,
     MCP2515<CustomSpiDevice<'static, mode::Blocking>>
 );
-
-// type SerialType = BufferedUart<'static>;
-// type CanType = MCP2515<CustomSpiDevice<'static, mode::Blocking>>;
-//
-// #[embassy_executor::task]
-// async fn slcan_task(
-//     serial: SerialType,
-//     channel_in: CanChannelReceiver,
-//     channel_out: CanChannelSender,
-// ) {
-//     Core::<CanType, SerialType>::slcan_task(serial, channel_in, channel_out).await;
-// }
-//
-// #[embassy_executor::task]
-// async fn can_task(can: CanType, channel_in: CanChannelReceiver, channel_out: CanChannelSender) {
-//     Core::<CanType, SerialType>::can_task(can, channel_in, channel_out).await;
-// }

@@ -180,17 +180,18 @@ pub enum SlcanError {
     CommandNotImplemented,
 }
 
+#[repr(u16)]
 #[derive(Debug, Eq, PartialEq)]
 pub enum SlcanBitrates {
-    CAN10KB,
-    CAN20KB,
-    CAN50KB,
-    CAN100KB,
-    CAN125KB,
-    CAN250KB,
-    CAN500KB,
-    CAN800KB,
-    CAN1000KB,
+    CAN10KB = 10,
+    CAN20KB = 20,
+    CAN50KB = 50,
+    CAN100KB = 100,
+    CAN125KB = 125,
+    CAN250KB = 250,
+    CAN500KB = 500,
+    CAN800KB = 800,
+    CAN1000KB = 1000,
 }
 
 pub struct SlcanSerializer {
@@ -408,7 +409,7 @@ impl SlcanSerializer {
                 };
 
                 Ok(SlcanCommand::FilterId(Id::Standard(standard_id)))
-            },
+            }
             10 => {
                 // Extended Id
                 let Some(id) = hex_char_slice_to_u32(&self.msg_buffer[1..9]) else {
@@ -420,8 +421,8 @@ impl SlcanSerializer {
                 };
 
                 Ok(SlcanCommand::FilterId(Id::Extended(extended_id)))
-            },
-            _ => Err(SlcanError::InvalidCommand)
+            }
+            _ => Err(SlcanError::InvalidCommand),
         }
     }
 
@@ -438,7 +439,7 @@ impl SlcanSerializer {
                 };
 
                 Ok(SlcanCommand::FilterMask(Id::Standard(standard_id)))
-            },
+            }
             10 => {
                 // Extended Id
                 let Some(id) = hex_char_slice_to_u32(&self.msg_buffer[1..9]) else {
@@ -450,8 +451,8 @@ impl SlcanSerializer {
                 };
 
                 Ok(SlcanCommand::FilterMask(Id::Extended(extended_id)))
-            },
-            _ => Err(SlcanError::InvalidCommand)
+            }
+            _ => Err(SlcanError::InvalidCommand),
         }
     }
 
@@ -549,7 +550,10 @@ mod tests {
     #[test]
     fn test_deserialize_from_bytes_incomplete() {
         let mut serializer = SlcanSerializer::new();
-        assert_eq!(serializer.from_bytes(b"O"), Ok(SlcanCommand::IncompleteMessage));
+        assert_eq!(
+            serializer.from_bytes(b"O"),
+            Ok(SlcanCommand::IncompleteMessage)
+        );
     }
 
     #[test]
@@ -1202,7 +1206,9 @@ mod tests {
         // m123 : Filter standard id 0x123
         assert_eq!(
             serializer.from_bytes(b"m123\r"),
-            Ok(SlcanCommand::FilterId(Id::Standard(StandardId::new(0x123).unwrap())))
+            Ok(SlcanCommand::FilterId(Id::Standard(
+                StandardId::new(0x123).unwrap()
+            )))
         )
     }
 
@@ -1212,7 +1218,9 @@ mod tests {
         // m12ABCDEF : Filter extended id 0x12ABCDEF
         assert_eq!(
             serializer.from_bytes(b"m12ABCDEF\r"),
-            Ok(SlcanCommand::FilterId(Id::Extended(ExtendedId::new(0x12ABCDEF).unwrap())))
+            Ok(SlcanCommand::FilterId(Id::Extended(
+                ExtendedId::new(0x12ABCDEF).unwrap()
+            )))
         )
     }
 
@@ -1267,7 +1275,9 @@ mod tests {
         // M123 : Filter standard mask 0x123
         assert_eq!(
             serializer.from_bytes(b"M123\r"),
-            Ok(SlcanCommand::FilterMask(Id::Standard(StandardId::new(0x123).unwrap())))
+            Ok(SlcanCommand::FilterMask(Id::Standard(
+                StandardId::new(0x123).unwrap()
+            )))
         )
     }
 
@@ -1277,7 +1287,9 @@ mod tests {
         // M12ABCDEF : Filter extended mask 0x12ABCDEF
         assert_eq!(
             serializer.from_bytes(b"M12ABCDEF\r"),
-            Ok(SlcanCommand::FilterMask(Id::Extended(ExtendedId::new(0x12ABCDEF).unwrap())))
+            Ok(SlcanCommand::FilterMask(Id::Extended(
+                ExtendedId::new(0x12ABCDEF).unwrap()
+            )))
         )
     }
 

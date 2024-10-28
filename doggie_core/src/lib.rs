@@ -1,10 +1,14 @@
 #![no_std]
 
 mod bsp;
+mod can;
 mod macros;
+mod mcp2515;
 mod types;
 
 pub use bsp::Bsp;
+pub use can::CanDevice;
+use mcp2515::can_speed_from_raw;
 pub use types::*;
 
 use slcan::{SlcanCommand, SlcanError};
@@ -15,14 +19,13 @@ use embassy_executor::Spawner;
 use embassy_futures::select::select;
 use embassy_futures::select::Either;
 use embassy_futures::yield_now;
-use embassy_time::Timer;
 
 use embedded_can::{blocking::Can, Frame, Id, StandardId};
 use embedded_io_async::{Read, Write};
 
 pub struct Core<CAN, SERIAL>
 where
-    CAN: Can,
+    CAN: CanDevice,
     SERIAL: Read + Write,
 {
     pub bsp: Bsp<CAN, SERIAL>,
@@ -31,7 +34,7 @@ where
 
 impl<CAN, SERIAL> Core<CAN, SERIAL>
 where
-    CAN: Can,
+    CAN: CanDevice,
     SERIAL: Read + Write,
 {
     pub fn new(spawner: Spawner, bsp: Bsp<CAN, SERIAL>) -> Self {
@@ -130,8 +133,16 @@ where
 
                         can.transmit(&new_frame).unwrap();
                     }
+                    SlcanCommand::FilterId(id) => can.set_filter(id),
+                    SlcanCommand::FilterMask(mask) => can.set_filter(mask),
+                    SlcanCommand::SetBitrate(bitrate) => {
+                        can.set_bitrate(can::CanBitrates::from(bitrate as u16))
+                    }
+                    SlcanCommand::SetBitTimeRegister(_) => {
+                        // TODO: Implement
+                    }
                     _ => {
-                        // TODO
+                        // We don't expect other message type
                     }
                 }
             }

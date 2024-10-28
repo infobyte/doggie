@@ -20,6 +20,8 @@ embedded-io-async = "0.6.1"
 
 heapless = { version = "0.8", default-features = false }
 
+mcp2515 = "0.3.0"
+
 slcan = { version = "0.1.0", path = "../slcan"}
 
 [patch.crates-io]
