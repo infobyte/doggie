@@ -6,6 +6,8 @@ mod macros;
 mod mcp2515;
 mod types;
 
+use core::time;
+
 pub use bsp::Bsp;
 pub use can::CanDevice;
 use mcp2515::can_speed_from_raw;
@@ -22,6 +24,33 @@ use embassy_futures::yield_now;
 
 use embedded_can::{blocking::Can, Frame, Id, StandardId};
 use embedded_io_async::{Read, Write};
+use embassy_time::Instant;
+
+// Struct to hold timestamp functionality
+pub struct Timestamp {
+    start: Option<Instant>,
+}
+
+impl Timestamp {
+    // Initialize the timestamp with the current time as the start
+    pub fn new() -> Self {
+        Self {
+            start: None,
+        }
+    }
+
+    pub fn start(&mut self) {
+        self.start = Some(Instant::now());
+    }
+
+    // Get the elapsed time in milliseconds since initialization
+    pub fn get_current(&self) -> Option<u16> {
+        match self.start {
+            Some(instant) => Some(instant.elapsed().as_micros() as u16),
+            None => None
+        }
+    }
+}
 
 pub struct Core<CAN, SERIAL>
 where
@@ -51,6 +80,10 @@ where
         // need it now, but i hope in the future
         let mut slcan_serializer = slcan::SlcanSerializer::new();
 
+        let mut listen_only = false;
+        let mut timestamp_enabled = true;
+        let mut timestamp = Timestamp::new();
+
         loop {
             let serial_future = serial.read(&mut serial_in_buf);
             let can_future = in_channel.receive();
@@ -63,30 +96,61 @@ where
                 Either::First(serial_recv_size) => {
                     let size = serial_recv_size.unwrap();
                     match slcan_serializer.from_bytes(&serial_in_buf[0..size]) {
-                        Ok(SlcanCommand::Frame(frame)) => {
-                            info!("New frame parsed correctlly");
-                            out_channel.send(SlcanCommand::Frame(frame)).await;
-                        }
                         Ok(SlcanCommand::IncompleteMessage) => {
                             // Do nothing
                         }
-                        Ok(_) => {
-                            // TODO: Complete all the cases
+                        Ok(SlcanCommand::OpenChannel) => {
+                            serial.write(b"\r").await.unwrap();
+                        },
+                        Ok(SlcanCommand::CloseChannel) => {
+                            serial.write(b"\r").await.unwrap();
+                        },
+                        Ok(SlcanCommand::ReadStatusFlags) => {
+                            serial.write(b"F00\r").await.unwrap();
+                        },
+                        Ok(SlcanCommand::Listen) => {
+                            listen_only = true;
+                            serial.write(b"\r").await.unwrap();
+                        },
+                        Ok(SlcanCommand::Version) => {
+                            serial.write(b"V1337\r").await.unwrap();
+                        },
+                        Ok(SlcanCommand::SerialNo) => {
+                            serial.write(b"N1337\r").await.unwrap();
+                        },
+                        Ok(SlcanCommand::Timestamp(enabled)) => {
+                            if !timestamp_enabled && enabled {
+                                timestamp.start();
+                            }
+                            
+                            timestamp_enabled = enabled;
+                            
+                            serial.write(b"\r").await.unwrap();
+                        },
+                        Ok(cmd) => {
+                            if !listen_only {
+                                out_channel.send(cmd).await;
+                            } else {
+                                error!("Cannot send frame in listen only mode")
+                            }
                         }
-                        Err(SlcanError::InvalidCommand) => {
-                            // Do nothing too
-                            error!("InvalidMessage");
-                        }
-                        Err(_) => {
-                            // TODO: Complete all the cases
+                        Err(e) => {
+                            match e {
+                                SlcanError::InvalidCommand => error!("Invalid slcan command"),
+                                SlcanError::CommandNotImplemented => error!("Command not implemented"),
+                                SlcanError::MessageTooLong => error!("Command to long")
+                            }
                         }
                     };
                 }
 
                 Either::Second(can_cmd) => {
                     match can_cmd {
-                        SlcanCommand::Frame(frame) => {
+                        SlcanCommand::Frame(mut frame) => {
                             // Serialize and send the frame
+                            if timestamp_enabled {
+                                frame.timestamp = timestamp.get_current();
+                            }
                             if let Some(buffer) =
                                 slcan_serializer.to_bytes(SlcanCommand::Frame(frame))
                             {

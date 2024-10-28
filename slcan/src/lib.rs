@@ -39,6 +39,7 @@ pub struct CanFrame {
     pub id: Id,
     pub data: [u8; 8],
     pub dlc: usize,
+    pub timestamp: Option<u16>,
     is_remote: bool,
 }
 
@@ -53,6 +54,7 @@ impl CanFrame {
             id: id.into(),
             is_remote,
             dlc: len,
+            timestamp: None,
             data: [0; 8],
         };
 
@@ -79,6 +81,7 @@ impl CanFrame {
             id: id.into(),
             is_remote: is_remote,
             dlc: len,
+            timestamp: None,
             data: [0; 8],
         };
 
@@ -167,7 +170,7 @@ pub enum SlcanCommand {
     Frame(CanFrame),           // t/r/T/R
     FilterId(Id),              // m
     FilterMask(Id),            // M
-    ToggleTimestamp,           // Z
+    Timestamp(bool),    // Z
     Version,                   // V/v
     SerialNo,                  // N
     IncompleteMessage,
@@ -235,7 +238,19 @@ impl SlcanSerializer {
                     i += 1;
                 }
 
-                res[5 + 2 * i] = b'\r'
+                match frame.timestamp {
+                    Some(t) => {
+                        let t_start = 5 + 2 * i;
+                        res[t_start] = nibble_to_hex_char(((t >> 12) & 0xf) as u8);
+                        res[t_start + 1] = nibble_to_hex_char(((t >> 8) & 0xf) as u8);
+                        res[t_start + 2] = nibble_to_hex_char(((t >> 4) & 0xf) as u8);
+                        res[t_start + 3] = nibble_to_hex_char((t & 0xf) as u8);
+                        res[t_start + 4] = b'\r'
+                    },
+                    None => {
+                        res[5 + 2 * i] = b'\r';
+                    }
+                }
             }
             Id::Extended(id) => {
                 res[0] = b'R';
@@ -257,7 +272,19 @@ impl SlcanSerializer {
                     i += 1;
                 }
 
-                res[10 + 2 * i] = b'\r'
+                match frame.timestamp {
+                    Some(t) => {
+                        let t_start = 10 + 2 * i;
+                        res[t_start] = nibble_to_hex_char(((t >> 12) & 0xf) as u8);
+                        res[t_start + 1] = nibble_to_hex_char(((t >> 8) & 0xf) as u8);
+                        res[t_start + 2] = nibble_to_hex_char(((t >> 4) & 0xf) as u8);
+                        res[t_start + 3] = nibble_to_hex_char((t & 0xf) as u8);
+                        res[t_start + 4] = b'\r'
+                    },
+                    None => {
+                        res[10 + 2 * i] = b'\r'
+                    }
+                }
             }
         }
         res
@@ -281,7 +308,19 @@ impl SlcanSerializer {
                     i += 1;
                 }
 
-                res[5 + 2 * i] = b'\r'
+                match frame.timestamp {
+                    Some(t) => {
+                        let t_start = 5 + 2 * i;
+                        res[t_start] = nibble_to_hex_char(((t >> 12) & 0xf) as u8);
+                        res[t_start + 1] = nibble_to_hex_char(((t >> 8) & 0xf) as u8);
+                        res[t_start + 2] = nibble_to_hex_char(((t >> 4) & 0xf) as u8);
+                        res[t_start + 3] = nibble_to_hex_char((t & 0xf) as u8);
+                        res[t_start + 4] = b'\r'
+                    },
+                    None => {
+                        res[5 + 2 * i] = b'\r';
+                    }
+                }
             }
             Id::Extended(id) => {
                 res[0] = b'T';
@@ -303,7 +342,19 @@ impl SlcanSerializer {
                     i += 1;
                 }
 
-                res[10 + 2 * i] = b'\r'
+                match frame.timestamp {
+                    Some(t) => {
+                        let t_start = 10 + 2 * i;
+                        res[t_start] = nibble_to_hex_char(((t >> 12) & 0xf) as u8);
+                        res[t_start + 1] = nibble_to_hex_char(((t >> 8) & 0xf) as u8);
+                        res[t_start + 2] = nibble_to_hex_char(((t >> 4) & 0xf) as u8);
+                        res[t_start + 3] = nibble_to_hex_char((t & 0xf) as u8);
+                        res[t_start + 4] = b'\r'
+                    },
+                    None => {
+                        res[10 + 2 * i] = b'\r'
+                    }
+                }
             }
         }
         res
@@ -356,11 +407,26 @@ impl SlcanSerializer {
             b'R' => self.deserialize_extended_frame(true),
             b'm' => self.deserialize_filter_id(),
             b'M' => self.deserialize_filter_mask(),
-            b'Z' => Err(SlcanError::CommandNotImplemented),
-            b'V' => Err(SlcanError::CommandNotImplemented),
-            b'v' => Err(SlcanError::CommandNotImplemented),
-            b'N' => Err(SlcanError::CommandNotImplemented),
+            b'Z' => self.deserialize_timestamp(),
+            b'V' => self.deserialize_version(),
+            b'v' => self.deserialize_version(),
+            b'N' => self.deserialize_serial_no(),
             _ => Err(SlcanError::InvalidCommand),
+        }
+    }
+    fn deserialize_version(&self) -> Result<SlcanCommand, SlcanError> {
+        if self.msg_len == 2 {
+            Ok(SlcanCommand::Version)
+        } else {
+            Err(SlcanError::InvalidCommand)
+        }
+    }
+
+    fn deserialize_serial_no(&self) -> Result<SlcanCommand, SlcanError> {
+        if self.msg_len == 2 {
+            Ok(SlcanCommand::SerialNo)
+        } else {
+            Err(SlcanError::InvalidCommand)
         }
     }
 
@@ -526,6 +592,18 @@ impl SlcanSerializer {
                 b'6' => Ok(SlcanCommand::SetBitrate(SlcanBitrates::CAN500KB)),
                 b'7' => Ok(SlcanCommand::SetBitrate(SlcanBitrates::CAN800KB)),
                 b'8' => Ok(SlcanCommand::SetBitrate(SlcanBitrates::CAN1000KB)),
+                _ => Err(SlcanError::InvalidCommand),
+            }
+        } else {
+            Err(SlcanError::InvalidCommand)
+        }
+    }
+
+    fn deserialize_timestamp(&self) -> Result<SlcanCommand, SlcanError> {
+        if self.msg_len == 3 {
+            match self.msg_buffer[1] {
+                b'0' => Ok(SlcanCommand::Timestamp(false)),
+                b'1' => Ok(SlcanCommand::Timestamp(true)),
                 _ => Err(SlcanError::InvalidCommand),
             }
         } else {
@@ -776,6 +854,7 @@ mod tests {
                 id: Id::Standard(StandardId::new(0x123).unwrap()),
                 data: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
                 dlc: 0,
+                timestamp: None,
                 is_remote: false,
             }))
         );
@@ -800,6 +879,7 @@ mod tests {
                 id: Id::Standard(StandardId::new(0x456).unwrap()),
                 data: [0x11, 0x22, 0x33, 0x00, 0x00, 0x00, 0x00, 0x00],
                 dlc: 3,
+                timestamp: None,
                 is_remote: false,
             }))
         );
@@ -882,6 +962,7 @@ mod tests {
                     id: Id::Standard(StandardId::new(0x123).unwrap()),
                     data: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
                     dlc: 0,
+                    timestamp: None,
                     is_remote: false
                 }))
                 .unwrap(),
@@ -912,6 +993,7 @@ mod tests {
                     id: Id::Standard(StandardId::new(0x123).unwrap()),
                     data: [0xf1, 0xf2, 0xf3, 0x00, 0x00, 0x00, 0x00, 0x00],
                     dlc: 3,
+                    timestamp: None,
                     is_remote: false
                 }))
                 .unwrap(),
@@ -941,6 +1023,7 @@ mod tests {
                     id: Id::Extended(ExtendedId::new(0x12345678).unwrap()),
                     data: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
                     dlc: 0,
+                    timestamp: None,
                     is_remote: false
                 }))
                 .unwrap(),
@@ -976,6 +1059,7 @@ mod tests {
                     id: Id::Extended(ExtendedId::new(0x12345678).unwrap()),
                     data: [0xf1, 0xf2, 0xf3, 0x00, 0x00, 0x00, 0x00, 0x00],
                     dlc: 3,
+                    timestamp: None,
                     is_remote: false
                 }))
                 .unwrap(),
@@ -1000,6 +1084,7 @@ mod tests {
                     id: Id::Standard(StandardId::new(0x123).unwrap()),
                     data: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
                     dlc: 0,
+                    timestamp: None,
                     is_remote: true
                 }))
                 .unwrap(),
@@ -1030,6 +1115,7 @@ mod tests {
                     id: Id::Standard(StandardId::new(0x123).unwrap()),
                     data: [0xf1, 0xf2, 0xf3, 0x00, 0x00, 0x00, 0x00, 0x00],
                     dlc: 3,
+                    timestamp: None,
                     is_remote: true
                 }))
                 .unwrap(),
@@ -1059,6 +1145,7 @@ mod tests {
                     id: Id::Extended(ExtendedId::new(0x12345678).unwrap()),
                     data: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
                     dlc: 0,
+                    timestamp: None,
                     is_remote: true
                 }))
                 .unwrap(),
@@ -1094,6 +1181,7 @@ mod tests {
                     id: Id::Extended(ExtendedId::new(0x12345678).unwrap()),
                     data: [0xf1, 0xf2, 0xf3, 0x00, 0x00, 0x00, 0x00, 0x00],
                     dlc: 3,
+                    timestamp: None,
                     is_remote: true
                 }))
                 .unwrap(),
@@ -1111,6 +1199,7 @@ mod tests {
                 id: Id::Standard(StandardId::new(0x456).unwrap()),
                 data: [0x11, 0x22, 0x33, 0x00, 0x00, 0x00, 0x00, 0x00],
                 dlc: 3,
+                timestamp: None,
                 is_remote: true,
             }))
         );
@@ -1144,6 +1233,7 @@ mod tests {
                 id: Id::Extended(ExtendedId::new(0x12ABCDEF).unwrap()),
                 data: [0xAA, 0x55, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
                 dlc: 2,
+                timestamp: None,
                 is_remote: false,
             }))
         );
@@ -1195,6 +1285,7 @@ mod tests {
                 id: Id::Extended(ExtendedId::new(0x12ABCDEF).unwrap()),
                 data: [0xAA, 0x55, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
                 dlc: 2,
+                timestamp: None,
                 is_remote: true,
             }))
         );
@@ -1336,5 +1427,263 @@ mod tests {
             serializer.from_bytes(b"MFFFFFFFF\r"),
             Err(SlcanError::InvalidCommand)
         )
+    }
+
+    #[test]
+    fn test_deserialize_timestamp_enabled() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(
+            serializer.from_bytes(b"Z1\r"),
+            Ok(SlcanCommand::Timestamp(true))
+        )
+    }
+
+    #[test]
+    fn test_deserialize_timestamp_disabled() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(
+            serializer.from_bytes(b"Z0\r"),
+            Ok(SlcanCommand::Timestamp(false))
+        )
+    }
+
+    #[test]
+    fn test_deserialize_timestamp_wrong_val() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(
+            serializer.from_bytes(b"Z8\r"),
+            Err(SlcanError::InvalidCommand)
+        )
+    }
+
+    #[test]
+    fn test_deserialize_timestamp_wrong_len() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(
+            serializer.from_bytes(b"Z12\r"),
+            Err(SlcanError::InvalidCommand)
+        )
+    }
+
+    #[test]
+    fn test_deserialize_read_status_flags() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(
+            serializer.from_bytes(b"F\r"),
+            Ok(SlcanCommand::ReadStatusFlags)
+        )
+    }
+
+    #[test]
+    fn test_deserialize_read_status_flags_invalid() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(
+            serializer.from_bytes(b"FX\r"),
+            Err(SlcanError::InvalidCommand)
+        )
+    }
+
+    #[test]
+    fn test_deserialize_version() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(
+            serializer.from_bytes(b"V\r"),
+            Ok(SlcanCommand::Version)
+        )
+    }
+
+    #[test]
+    fn test_deserialize_version_invalid() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(
+            serializer.from_bytes(b"VX\r"),
+            Err(SlcanError::InvalidCommand)
+        )
+    }
+
+    #[test]
+    fn test_deserialize_serial() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(
+            serializer.from_bytes(b"N\r"),
+            Ok(SlcanCommand::SerialNo)
+        )
+    }
+
+    #[test]
+    fn test_deserialize_serial_invalid() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(
+            serializer.from_bytes(b"NX\r"),
+            Err(SlcanError::InvalidCommand)
+        )
+    }
+
+    #[test]
+    fn test_deserialize_version_fw() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(
+            serializer.from_bytes(b"v\r"),
+            Ok(SlcanCommand::Version)
+        )
+    }
+
+    #[test]
+    fn test_deserialize_version_fw_invalid() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(
+            serializer.from_bytes(b"vX\r"),
+            Err(SlcanError::InvalidCommand)
+        )
+    }
+
+    #[test]
+    fn test_serialize_standard_frame_r_len_3_w_timestamp() {
+        let mut serializer = SlcanSerializer::new();
+        let mut res: [u8; 31] = [0; 31];
+        res[0] = b'r';
+        res[1] = b'1';
+        res[2] = b'2';
+        res[3] = b'3';
+        res[4] = b'3';
+        res[5] = b'F';
+        res[6] = b'1';
+        res[7] = b'F';
+        res[8] = b'2';
+        res[9] = b'F';
+        res[10] = b'3';
+        res[11] = b'0';
+        res[12] = b'0';
+        res[13] = b'0';
+        res[14] = b'1';
+        res[15] = b'\r';
+
+        assert_eq!(
+            serializer
+                .to_bytes(SlcanCommand::Frame(CanFrame {
+                    id: Id::Standard(StandardId::new(0x123).unwrap()),
+                    data: [0xf1, 0xf2, 0xf3, 0x00, 0x00, 0x00, 0x00, 0x00],
+                    dlc: 3,
+                    timestamp: Some(1),
+                    is_remote: true
+                }))
+                .unwrap(),
+            res
+        );
+    }
+
+    #[test]
+    fn test_serialize_standard_frame_t_len_3_w_timestamp() {
+        let mut serializer = SlcanSerializer::new();
+        let mut res: [u8; 31] = [0; 31];
+        res[0] = b't';
+        res[1] = b'1';
+        res[2] = b'2';
+        res[3] = b'3';
+        res[4] = b'3';
+        res[5] = b'F';
+        res[6] = b'1';
+        res[7] = b'F';
+        res[8] = b'2';
+        res[9] = b'F';
+        res[10] = b'3';
+        res[11] = b'0';
+        res[12] = b'0';
+        res[13] = b'0';
+        res[14] = b'1';
+        res[15] = b'\r';
+
+        assert_eq!(
+            serializer
+                .to_bytes(SlcanCommand::Frame(CanFrame {
+                    id: Id::Standard(StandardId::new(0x123).unwrap()),
+                    data: [0xf1, 0xf2, 0xf3, 0x00, 0x00, 0x00, 0x00, 0x00],
+                    dlc: 3,
+                    timestamp: Some(1),
+                    is_remote: false
+                }))
+                .unwrap(),
+            res
+        );
+    }
+
+    #[test]
+    fn test_serialize_extended_frame_r_len_3_w_timestamp() {
+        let mut serializer = SlcanSerializer::new();
+        let mut res: [u8; 31] = [0; 31];
+        res[0] = b'R';
+        res[1] = b'1';
+        res[2] = b'2';
+        res[3] = b'3';
+        res[4] = b'4';
+        res[5] = b'5';
+        res[6] = b'6';
+        res[7] = b'7';
+        res[8] = b'8';
+        res[9] = b'3';
+        res[10] = b'F';
+        res[11] = b'1';
+        res[12] = b'F';
+        res[13] = b'2';
+        res[14] = b'F';
+        res[15] = b'3';
+        res[16] = b'0';
+        res[17] = b'0';
+        res[18] = b'0';
+        res[19] = b'1';
+        res[20] = b'\r';
+
+        assert_eq!(
+            serializer
+                .to_bytes(SlcanCommand::Frame(CanFrame {
+                    id: Id::Extended(ExtendedId::new(0x12345678).unwrap()),
+                    data: [0xf1, 0xf2, 0xf3, 0x00, 0x00, 0x00, 0x00, 0x00],
+                    dlc: 3,
+                    timestamp: Some(1),
+                    is_remote: true
+                }))
+                .unwrap(),
+            res
+        );
+    }
+
+    #[test]
+    fn test_serialize_extended_frame_t_len_3_w_timestamp() {
+        let mut serializer = SlcanSerializer::new();
+        let mut res: [u8; 31] = [0; 31];
+        res[0] = b'T';
+        res[1] = b'1';
+        res[2] = b'2';
+        res[3] = b'3';
+        res[4] = b'4';
+        res[5] = b'5';
+        res[6] = b'6';
+        res[7] = b'7';
+        res[8] = b'8';
+        res[9] = b'3';
+        res[10] = b'F';
+        res[11] = b'1';
+        res[12] = b'F';
+        res[13] = b'2';
+        res[14] = b'F';
+        res[15] = b'3';
+        res[16] = b'0';
+        res[17] = b'0';
+        res[18] = b'0';
+        res[19] = b'1';
+        res[20] = b'\r';
+
+        assert_eq!(
+            serializer
+                .to_bytes(SlcanCommand::Frame(CanFrame {
+                    id: Id::Extended(ExtendedId::new(0x12345678).unwrap()),
+                    data: [0xf1, 0xf2, 0xf3, 0x00, 0x00, 0x00, 0x00, 0x00],
+                    dlc: 3,
+                    timestamp: Some(1),
+                    is_remote: false
+                }))
+                .unwrap(),
+            res
+        );
     }
 }
