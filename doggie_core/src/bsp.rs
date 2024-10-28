@@ -1,5 +1,5 @@
 use embedded_can::blocking::Can;
-use embedded_io::{Read, Write};
+use embedded_io_async::{Read, Write};
 
 use core::cell::RefCell;
 

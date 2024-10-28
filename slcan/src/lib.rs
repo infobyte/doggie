@@ -49,6 +49,12 @@ impl CanFrame {
             return None;
         }
 
+        if len % 2 != 0 {
+            return None;
+        }
+
+        let len = len / 2;
+
         let mut frame = CanFrame {
             id: id.into(),
             is_remote,

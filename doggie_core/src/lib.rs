@@ -12,15 +12,18 @@ use slcan::{SlcanCommand, SlcanError};
 use defmt::{error, info, println};
 
 use embassy_executor::Spawner;
+use embassy_futures::select::select;
+use embassy_futures::select::Either;
 use embassy_futures::yield_now;
+use embassy_time::Timer;
 
 use embedded_can::{blocking::Can, Frame, Id, StandardId};
-use embedded_io::{Read, ReadReady, Write};
+use embedded_io_async::{Read, Write};
 
 pub struct Core<CAN, SERIAL>
 where
     CAN: Can,
-    SERIAL: Read + Write + ReadReady,
+    SERIAL: Read + Write,
 {
     pub bsp: Bsp<CAN, SERIAL>,
     pub spawner: Spawner,
@@ -29,7 +32,7 @@ where
 impl<CAN, SERIAL> Core<CAN, SERIAL>
 where
     CAN: Can,
-    SERIAL: Read + Write + ReadReady,
+    SERIAL: Read + Write,
 {
     pub fn new(spawner: Spawner, bsp: Bsp<CAN, SERIAL>) -> Self {
         Core { bsp, spawner }
@@ -40,77 +43,59 @@ where
         in_channel: CanChannelReceiver,
         out_channel: CanChannelSender,
     ) {
-        info!("Starting 'slcan_task'");
         let mut serial_in_buf: [u8; 64] = [0; 64];
         // let mut serial_out_buf: [u8; 64] = [0; 64]; // This is not used because slcan doesn't
         // need it now, but i hope in the future
         let mut slcan_serializer = slcan::SlcanSerializer::new();
 
         loop {
-            // info!("reading from serial");
-            // Read from serial
-            match serial.read_ready() {
-                Ok(true) => {
-                    match serial.read(&mut serial_in_buf) {
-                        Ok(size) if size > 0 => {
-                            match slcan_serializer.from_bytes(&serial_in_buf[0..size]) {
-                                Ok(SlcanCommand::Frame(frame)) => {
-                                    info!("New frame parsed correctlly");
-                                    out_channel.send(SlcanCommand::Frame(frame)).await;
-                                }
-                                Ok(SlcanCommand::IncompleteMessage) => {
-                                    // Do nothing
-                                }
-                                Ok(_) => {
-                                    // TODO: Complete all the cases
-                                    info!("OTHER OK")
-                                }
-                                Err(SlcanError::InvalidCommand) => {
-                                    // Do nothing too
-                                    error!("InvalidMessage");
-                                }
-                                Err(_) => {
-                                    error!("Another error")
-                                    // TODO: Complete all the cases
-                                }
-                            };
+            let serial_future = serial.read(&mut serial_in_buf);
+            let can_future = in_channel.receive();
+
+            // This will wait for only one future to finish and drop the other one
+            // So, in a loop it should work.
+            // TODO: Check if no packets are dropped
+            match select(serial_future, can_future).await {
+                // n bytes has ben received from serial
+                Either::First(serial_recv_size) => {
+                    let size = serial_recv_size.unwrap();
+                    match slcan_serializer.from_bytes(&serial_in_buf[0..size]) {
+                        Ok(SlcanCommand::Frame(frame)) => {
+                            info!("New frame parsed correctlly");
+                            out_channel.send(SlcanCommand::Frame(frame)).await;
                         }
-                        Ok(size) => {
-                            // println!("Recv from serial {}", size);
+                        Ok(SlcanCommand::IncompleteMessage) => {
+                            // Do nothing
+                        }
+                        Ok(_) => {
+                            // TODO: Complete all the cases
+                        }
+                        Err(SlcanError::InvalidCommand) => {
+                            // Do nothing too
+                            error!("InvalidMessage");
                         }
                         Err(_) => {
-                            // error!("Errorn on serial read");
+                            // TODO: Complete all the cases
                         }
-                    }
+                    };
                 }
-                _ => {}
-            }
-            // Check channel
-            // info!("Checking channel");
-            if !in_channel.is_empty() {
-                match in_channel.receive().await {
-                    SlcanCommand::Frame(frame) => {
-                        // Serialize and send the frame
-                        if let Some(buffer) = slcan_serializer.to_bytes(SlcanCommand::Frame(frame))
-                        {
-                            let mut index = 0;
 
-                            while index < buffer.len() {
-                                if let Ok(written) = serial.write(&buffer[index..]) {
-                                    index += written;
-                                }
+                Either::Second(can_cmd) => {
+                    match can_cmd {
+                        SlcanCommand::Frame(frame) => {
+                            // Serialize and send the frame
+                            if let Some(buffer) =
+                                slcan_serializer.to_bytes(SlcanCommand::Frame(frame))
+                            {
+                                serial.write(&buffer).await.unwrap();
                             }
                         }
-                    }
-                    _ => {
-                        // We are not expecting other message
+                        _ => {
+                            // We are not expecting other message
+                        }
                     }
                 }
-            } else {
-                // info!("Channel empty");
-            }
-
-            yield_now().await;
+            };
         }
     }
 
@@ -123,7 +108,7 @@ where
             // Try to receive a message
             match can.receive() {
                 Ok(frame) => {
-                    // info!("New frame received");
+                    info!("New frame received");
                     let new_frame =
                         slcan::CanFrame::new(frame.id(), frame.is_remote_frame(), frame.data())
                             .unwrap();
@@ -132,7 +117,6 @@ where
                 }
                 Err(_) => {
                     // Do nothing for now, but it should log
-                    // error!("Error reading can");
                 }
             }
 
@@ -150,8 +134,6 @@ where
                         // TODO
                     }
                 }
-            } else {
-                // info!("Can channel empty");
             }
 
             // Avoid starbation
