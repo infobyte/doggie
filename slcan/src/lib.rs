@@ -165,8 +165,8 @@ pub enum SlcanCommand {
     SetBitrate(SlcanBitrates), // S
     SetBitTimeRegister(u32),   // s
     Frame(CanFrame),           // t/r/T/R
-    FilterId,                  // m
-    FilterMask,                // M
+    FilterId(Id),              // m
+    FilterMask(Id),            // M
     ToggleTimestamp,           // Z
     Version,                   // V/v
     SerialNo,                  // N
@@ -353,8 +353,8 @@ impl SlcanSerializer {
             b'T' => self.deserialize_extended_frame(false),
             b'r' => self.deserialize_standard_frame(true),
             b'R' => self.deserialize_extended_frame(true),
-            b'm' => Err(SlcanError::CommandNotImplemented),
-            b'M' => Err(SlcanError::CommandNotImplemented),
+            b'm' => self.deserialize_filter_id(),
+            b'M' => self.deserialize_filter_mask(),
             b'Z' => Err(SlcanError::CommandNotImplemented),
             b'V' => Err(SlcanError::CommandNotImplemented),
             b'v' => Err(SlcanError::CommandNotImplemented),
@@ -392,6 +392,66 @@ impl SlcanSerializer {
             Ok(SlcanCommand::OpenChannel)
         } else {
             Err(SlcanError::InvalidCommand)
+        }
+    }
+
+    fn deserialize_filter_id(&self) -> Result<SlcanCommand, SlcanError> {
+        match self.msg_len {
+            5 => {
+                // Standard Id
+                let Some(id) = hex_char_slice_to_u32(&self.msg_buffer[1..4]) else {
+                    return Err(SlcanError::InvalidCommand);
+                };
+
+                let Some(standard_id) = StandardId::new(id as u16) else {
+                    return Err(SlcanError::InvalidCommand);
+                };
+
+                Ok(SlcanCommand::FilterId(Id::Standard(standard_id)))
+            },
+            10 => {
+                // Extended Id
+                let Some(id) = hex_char_slice_to_u32(&self.msg_buffer[1..9]) else {
+                    return Err(SlcanError::InvalidCommand);
+                };
+
+                let Some(extended_id) = ExtendedId::new(id) else {
+                    return Err(SlcanError::InvalidCommand);
+                };
+
+                Ok(SlcanCommand::FilterId(Id::Extended(extended_id)))
+            },
+            _ => Err(SlcanError::InvalidCommand)
+        }
+    }
+
+    fn deserialize_filter_mask(&self) -> Result<SlcanCommand, SlcanError> {
+        match self.msg_len {
+            5 => {
+                // Standard Id
+                let Some(id) = hex_char_slice_to_u32(&self.msg_buffer[1..4]) else {
+                    return Err(SlcanError::InvalidCommand);
+                };
+
+                let Some(standard_id) = StandardId::new(id as u16) else {
+                    return Err(SlcanError::InvalidCommand);
+                };
+
+                Ok(SlcanCommand::FilterMask(Id::Standard(standard_id)))
+            },
+            10 => {
+                // Extended Id
+                let Some(id) = hex_char_slice_to_u32(&self.msg_buffer[1..9]) else {
+                    return Err(SlcanError::InvalidCommand);
+                };
+
+                let Some(extended_id) = ExtendedId::new(id) else {
+                    return Err(SlcanError::InvalidCommand);
+                };
+
+                Ok(SlcanCommand::FilterMask(Id::Extended(extended_id)))
+            },
+            _ => Err(SlcanError::InvalidCommand)
         }
     }
 
@@ -487,9 +547,9 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_from_bytes_invalid() {
+    fn test_deserialize_from_bytes_incomplete() {
         let mut serializer = SlcanSerializer::new();
-        assert_eq!(serializer.from_bytes(b"O"), Err(SlcanError::InvalidCommand));
+        assert_eq!(serializer.from_bytes(b"O"), Ok(SlcanCommand::IncompleteMessage));
     }
 
     #[test]
@@ -1134,5 +1194,135 @@ mod tests {
                 is_remote: true,
             }))
         );
+    }
+
+    #[test]
+    fn test_deserialize_filter_standard_id_valid() {
+        let mut serializer = SlcanSerializer::new();
+        // m123 : Filter standard id 0x123
+        assert_eq!(
+            serializer.from_bytes(b"m123\r"),
+            Ok(SlcanCommand::FilterId(Id::Standard(StandardId::new(0x123).unwrap())))
+        )
+    }
+
+    #[test]
+    fn test_deserialize_filter_extended_id_valid() {
+        let mut serializer = SlcanSerializer::new();
+        // m12ABCDEF : Filter extended id 0x12ABCDEF
+        assert_eq!(
+            serializer.from_bytes(b"m12ABCDEF\r"),
+            Ok(SlcanCommand::FilterId(Id::Extended(ExtendedId::new(0x12ABCDEF).unwrap())))
+        )
+    }
+
+    #[test]
+    fn test_deserialize_filter_id_invalid_len() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(
+            serializer.from_bytes(b"m1\r"),
+            Err(SlcanError::InvalidCommand)
+        )
+    }
+
+    #[test]
+    fn test_deserialize_filter_standard_id_invalid_hex() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(
+            serializer.from_bytes(b"m1X3\r"),
+            Err(SlcanError::InvalidCommand)
+        )
+    }
+
+    #[test]
+    fn test_deserialize_filter_standard_id_invalid_range() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(
+            serializer.from_bytes(b"mFFF\r"),
+            Err(SlcanError::InvalidCommand)
+        )
+    }
+
+    #[test]
+    fn test_deserialize_filter_extended_id_invalid_hex() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(
+            serializer.from_bytes(b"m1X345678\r"),
+            Err(SlcanError::InvalidCommand)
+        )
+    }
+
+    #[test]
+    fn test_deserialize_filter_extended_id_invalid_range() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(
+            serializer.from_bytes(b"mFFFFFFFF\r"),
+            Err(SlcanError::InvalidCommand)
+        )
+    }
+
+    #[test]
+    fn test_deserialize_filter_standard_mask_valid() {
+        let mut serializer = SlcanSerializer::new();
+        // M123 : Filter standard mask 0x123
+        assert_eq!(
+            serializer.from_bytes(b"M123\r"),
+            Ok(SlcanCommand::FilterMask(Id::Standard(StandardId::new(0x123).unwrap())))
+        )
+    }
+
+    #[test]
+    fn test_deserialize_filter_extended_mask_valid() {
+        let mut serializer = SlcanSerializer::new();
+        // M12ABCDEF : Filter extended mask 0x12ABCDEF
+        assert_eq!(
+            serializer.from_bytes(b"M12ABCDEF\r"),
+            Ok(SlcanCommand::FilterMask(Id::Extended(ExtendedId::new(0x12ABCDEF).unwrap())))
+        )
+    }
+
+    #[test]
+    fn test_deserialize_filter_mask_invalid_len() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(
+            serializer.from_bytes(b"M1\r"),
+            Err(SlcanError::InvalidCommand)
+        )
+    }
+
+    #[test]
+    fn test_deserialize_filter_standard_mask_invalid_hex() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(
+            serializer.from_bytes(b"M1X3\r"),
+            Err(SlcanError::InvalidCommand)
+        )
+    }
+
+    #[test]
+    fn test_deserialize_filter_standard_mask_invalid_range() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(
+            serializer.from_bytes(b"MFFF\r"),
+            Err(SlcanError::InvalidCommand)
+        )
+    }
+
+    #[test]
+    fn test_deserialize_filter_extended_mask_invalid_hex() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(
+            serializer.from_bytes(b"M1X345678\r"),
+            Err(SlcanError::InvalidCommand)
+        )
+    }
+
+    #[test]
+    fn test_deserialize_filter_extended_mask_invalid_range() {
+        let mut serializer = SlcanSerializer::new();
+        assert_eq!(
+            serializer.from_bytes(b"MFFFFFFFF\r"),
+            Err(SlcanError::InvalidCommand)
+        )
     }
 }
