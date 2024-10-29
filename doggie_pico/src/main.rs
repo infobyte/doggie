@@ -10,11 +10,9 @@
 mod soft_timer;
 mod spi_device;
 
-use embedded_io_async::Write;
 use soft_timer::SoftTimer;
 use spi_device::CustomSpiDevice;
-
-// use defmt::*;
+use defmt::*;
 use embassy_executor::Spawner;
 use embassy_rp::bind_interrupts;
 use embassy_rp::peripherals::SPI0;
@@ -22,10 +20,9 @@ use embassy_rp::peripherals::UART0;
 use embassy_rp::spi::{Blocking, Spi};
 use embassy_rp::uart::{BufferedInterruptHandler, BufferedUart, Config};
 use gpio::{Level, Output};
-// use embedded_io_async::{Read, Write};
 use doggie_core::*;
 use embassy_rp::{gpio, spi};
-use mcp2515::{regs::OpMode, CanSpeed, McpSpeed, MCP2515};
+use mcp2515::MCP2515;
 use static_cell::StaticCell;
 use {defmt_rtt as _, panic_probe as _};
 
@@ -48,9 +45,9 @@ async fn main(spawner: Spawner) {
 
     static RX_BUF: StaticCell<[u8; 16]> = StaticCell::new();
     let rx_buf = &mut RX_BUF.init([0; 16])[..];
-    let mut uart = BufferedUart::new(uart_no, Irqs, tx_pin, rx_pin, tx_buf, rx_buf, uart_config);
+    let uart = BufferedUart::new(uart_no, Irqs, tx_pin, rx_pin, tx_buf, rx_buf, uart_config);
 
-    uart.write(b"\r\nUART init ok\r\n").await.unwrap();
+    info!("UART init ok");
 
     // Setup SPI
     let (clk_pin, tx_pin, rx_pin, cs_pin, spi_no) =
@@ -62,27 +59,15 @@ async fn main(spawner: Spawner) {
     let rp_spi = Spi::new_blocking(spi_no, clk_pin, tx_pin, rx_pin, spi_config);
     let cs = Output::new(cs_pin, Level::High);
     let spi = CustomSpiDevice::new(rp_spi, cs);
+    let delay = SoftTimer {};
 
-    // MCP2515 init
-    let mut can = MCP2515::new(spi);
-    let mut delay = SoftTimer {};
-
-    can.init(
-        &mut delay,
-        mcp2515::Settings {
-            mode: OpMode::Normal,         // Loopback for testing and example
-            can_speed: CanSpeed::Kbps250, // Many options supported.
-            mcp_speed: McpSpeed::MHz8,    // Currently 16MHz and 8MHz chips are supported.
-            clkout_en: false,
-        },
-    )
-    .unwrap();
-
-    uart.write(b"CAN init ok\r\n").await.unwrap();
-    uart.flush().await.unwrap();
+    info!("SPI init ok");
 
     // Create the Bsp
-    let bsp = Bsp::new(can, uart);
+    // let bsp = Bsp::new(can, uart);
+    let bsp = Bsp::new_with_mcp2515(spi, delay, uart);
+
+    info!("MCP2515 init ok");    
 
     // Create and run the Doggie core
     let core = Core::new(spawner, bsp);
