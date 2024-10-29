@@ -6,16 +6,13 @@ mod macros;
 mod mcp2515;
 mod types;
 
-use core::time;
-
 pub use bsp::Bsp;
 pub use can::CanDevice;
-use mcp2515::can_speed_from_raw;
 pub use types::*;
 
 use slcan::{SlcanCommand, SlcanError};
 
-use defmt::{error, info, println};
+use defmt::{error, info};
 
 use embassy_executor::Spawner;
 use embassy_futures::select::select;
@@ -23,7 +20,7 @@ use embassy_futures::select::Either;
 use embassy_futures::yield_now;
 
 use embassy_time::Instant;
-use embedded_can::{blocking::Can, Frame, Id, StandardId};
+use embedded_can::Frame;
 use embedded_io_async::{Read, Write};
 
 // Struct to hold timestamp functionality
@@ -79,7 +76,7 @@ where
         let mut slcan_serializer = slcan::SlcanSerializer::new();
 
         let mut listen_only = false;
-        let mut timestamp_enabled = true;
+        let mut timestamp_enabled = false;
         let mut timestamp = Timestamp::new();
 
         loop {
@@ -118,6 +115,7 @@ where
                         }
                         Ok(SlcanCommand::Timestamp(enabled)) => {
                             if !timestamp_enabled && enabled {
+                                info!("Timestamp started");
                                 timestamp.start();
                             }
 
@@ -150,7 +148,10 @@ where
                             if let Some((buffer, size)) =
                                 slcan_serializer.to_bytes(SlcanCommand::Frame(frame))
                             {
-                                serial.write(&buffer[..size]).await.unwrap();
+                                let mut start = 0;
+                                while start != size {
+                                    start += serial.write(&buffer[start..size]).await.unwrap();
+                                }
                             }
                         }
                         _ => {
@@ -208,7 +209,7 @@ where
                 }
             }
 
-            // Avoid starbation
+            // Avoid starvation
             yield_now().await;
         }
     }
