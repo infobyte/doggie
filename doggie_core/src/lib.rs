@@ -22,9 +22,9 @@ use embassy_futures::select::select;
 use embassy_futures::select::Either;
 use embassy_futures::yield_now;
 
+use embassy_time::Instant;
 use embedded_can::{blocking::Can, Frame, Id, StandardId};
 use embedded_io_async::{Read, Write};
-use embassy_time::Instant;
 
 // Struct to hold timestamp functionality
 pub struct Timestamp {
@@ -34,9 +34,7 @@ pub struct Timestamp {
 impl Timestamp {
     // Initialize the timestamp with the current time as the start
     pub fn new() -> Self {
-        Self {
-            start: None,
-        }
+        Self { start: None }
     }
 
     pub fn start(&mut self) {
@@ -47,7 +45,7 @@ impl Timestamp {
     pub fn get_current(&self) -> Option<u16> {
         match self.start {
             Some(instant) => Some(instant.elapsed().as_micros() as u16),
-            None => None
+            None => None,
         }
     }
 }
@@ -101,32 +99,32 @@ where
                         }
                         Ok(SlcanCommand::OpenChannel) => {
                             serial.write(b"\r").await.unwrap();
-                        },
+                        }
                         Ok(SlcanCommand::CloseChannel) => {
                             serial.write(b"\r").await.unwrap();
-                        },
+                        }
                         Ok(SlcanCommand::ReadStatusFlags) => {
                             serial.write(b"F00\r").await.unwrap();
-                        },
+                        }
                         Ok(SlcanCommand::Listen) => {
                             listen_only = true;
                             serial.write(b"\r").await.unwrap();
-                        },
+                        }
                         Ok(SlcanCommand::Version) => {
                             serial.write(b"V1337\r").await.unwrap();
-                        },
+                        }
                         Ok(SlcanCommand::SerialNo) => {
                             serial.write(b"N1337\r").await.unwrap();
-                        },
+                        }
                         Ok(SlcanCommand::Timestamp(enabled)) => {
                             if !timestamp_enabled && enabled {
                                 timestamp.start();
                             }
-                            
+
                             timestamp_enabled = enabled;
-                            
+
                             serial.write(b"\r").await.unwrap();
-                        },
+                        }
                         Ok(cmd) => {
                             if !listen_only {
                                 out_channel.send(cmd).await;
@@ -134,13 +132,11 @@ where
                                 error!("Cannot send frame in listen only mode")
                             }
                         }
-                        Err(e) => {
-                            match e {
-                                SlcanError::InvalidCommand => error!("Invalid slcan command"),
-                                SlcanError::CommandNotImplemented => error!("Command not implemented"),
-                                SlcanError::MessageTooLong => error!("Command to long")
-                            }
-                        }
+                        Err(e) => match e {
+                            SlcanError::InvalidCommand => error!("Invalid slcan command"),
+                            SlcanError::CommandNotImplemented => error!("Command not implemented"),
+                            SlcanError::MessageTooLong => error!("Command to long"),
+                        },
                     };
                 }
 
@@ -151,10 +147,10 @@ where
                             if timestamp_enabled {
                                 frame.timestamp = timestamp.get_current();
                             }
-                            if let Some(buffer) =
+                            if let Some((buffer, size)) =
                                 slcan_serializer.to_bytes(SlcanCommand::Frame(frame))
                             {
-                                serial.write(&buffer).await.unwrap();
+                                serial.write(&buffer[..size]).await.unwrap();
                             }
                         }
                         _ => {
@@ -171,6 +167,7 @@ where
         in_channel: CanChannelReceiver,
         out_channel: CanChannelSender,
     ) {
+        info!("Init: can_task");
         loop {
             // Try to receive a message
             match can.receive() {

@@ -10,6 +10,16 @@ fn nibble_to_hex_char(value: u8) -> u8 {
     }
 }
 
+fn write_hex(value: u32, size: usize, buffer: &mut [u8]) -> usize {
+    for index in 0..size {
+        let hex_value = nibble_to_hex_char(((value >> (index * 4)) & 0xf) as u8);
+
+        buffer[size - 1 - index] = hex_value;
+    }
+
+    size
+}
+
 fn hex_char_to_u8(hex_char: u8) -> Option<u8> {
     match hex_char {
         b'0'..=b'9' => Some(hex_char - b'0'), // Convert '0'-'9' to 0-9
@@ -101,64 +111,6 @@ impl CanFrame {
     }
 }
 
-// impl Frame for CanFrame {
-//     /// Creates a new data frame.
-//     fn new(id: impl Into<Id>, data: &[u8]) -> Option<Self> {
-//         if data.len() > 8 {
-//             return None;
-//         }
-//         let mut frame = CanFrame {
-//             id: id.into(),
-//             is_remote: false,
-//             dlc: data.len(), // Already asserted data.len() <= 8
-//             data: [0; 8],
-//         };
-//         frame.data[..data.len()].copy_from_slice(data);
-//         Some(frame)
-//     }
-
-//     /// Creates a new remote frame (RTR bit set).
-//     fn new_remote(id: impl Into<Id>, dlc: usize) -> Option<Self> {
-//         if dlc > 8 {
-//             return None;
-//         }
-//         Some(CanFrame {
-//             id: id.into(),
-//             is_remote: true,
-//             dlc: dlc, // Already asserted dlc <= 8
-//             data: [0; 8],
-//         })
-//     }
-
-//     /// Returns true if this frame is an extended frame.
-//     fn is_extended(&self) -> bool {
-//         match self.id {
-//             Id::Extended(_) => true,
-//             Id::Standard(_) => false,
-//         }
-//     }
-
-//     /// Returns true if this frame is a remote frame.
-//     fn is_remote_frame(&self) -> bool {
-//         self.is_remote
-//     }
-
-//     /// Returns the frame identifier.
-//     fn id(&self) -> Id {
-//         self.id
-//     }
-
-//     /// Returns the data length code (DLC).
-//     fn dlc(&self) -> usize {
-//         self.dlc
-//     }
-
-//     /// Returns the frame data.
-//     fn data(&self) -> &[u8] {
-//         &self.data[..self.dlc]
-//     }
-// }
-
 #[derive(Debug, Eq, PartialEq)]
 pub enum SlcanCommand {
     OpenChannel,               // O
@@ -170,7 +122,7 @@ pub enum SlcanCommand {
     Frame(CanFrame),           // t/r/T/R
     FilterId(Id),              // m
     FilterMask(Id),            // M
-    Timestamp(bool),    // Z
+    Timestamp(bool),           // Z
     Version,                   // V/v
     SerialNo,                  // N
     IncompleteMessage,
@@ -210,154 +162,61 @@ impl SlcanSerializer {
         }
     }
 
-    pub fn to_bytes(&mut self, cmd: SlcanCommand) -> Option<[u8; 31]> {
+    pub fn to_bytes(&mut self, cmd: SlcanCommand) -> Option<([u8; 31], usize)> {
         if let SlcanCommand::Frame(frame) = cmd {
-            match frame.is_remote {
-                true => return Some(self.serialize_frame_r(frame)),
-                false => return Some(self.serialize_frame_t(frame)),
-            }
+            Some(self.serialize_frame(frame))
+        } else {
+            None
         }
-        None
     }
 
-    fn serialize_frame_r(&mut self, frame: CanFrame) -> [u8; 31] {
+    fn serialize_frame(&mut self, frame: CanFrame) -> ([u8; 31], usize) {
         let mut res = [0; 31];
+
+        let mut index: usize = 0;
+
         match frame.id {
             Id::Standard(id) => {
-                res[0] = b'r';
-                res[1] = nibble_to_hex_char(((id.as_raw() >> 8) & 0xf) as u8);
-                res[2] = nibble_to_hex_char(((id.as_raw() >> 4) & 0xf) as u8);
-                res[3] = nibble_to_hex_char((id.as_raw() & 0xf) as u8);
-                res[4] = nibble_to_hex_char(frame.dlc as u8);
-
-                let mut i = 0;
-
-                while i < frame.dlc {
-                    res[5 + 2 * i] = nibble_to_hex_char(((frame.data[i] >> 4) & 0xf) as u8);
-                    res[6 + 2 * i] = nibble_to_hex_char((frame.data[i] & 0xf) as u8);
-                    i += 1;
+                if frame.is_remote {
+                    res[0] = b'r';
+                } else {
+                    res[0] = b't';
                 }
 
-                match frame.timestamp {
-                    Some(t) => {
-                        let t_start = 5 + 2 * i;
-                        res[t_start] = nibble_to_hex_char(((t >> 12) & 0xf) as u8);
-                        res[t_start + 1] = nibble_to_hex_char(((t >> 8) & 0xf) as u8);
-                        res[t_start + 2] = nibble_to_hex_char(((t >> 4) & 0xf) as u8);
-                        res[t_start + 3] = nibble_to_hex_char((t & 0xf) as u8);
-                        res[t_start + 4] = b'\r'
-                    },
-                    None => {
-                        res[5 + 2 * i] = b'\r';
-                    }
-                }
+                index += 1;
+
+                index += write_hex(id.as_raw() as u32, 3, &mut res[index..]);
             }
+
             Id::Extended(id) => {
-                res[0] = b'R';
-                res[1] = nibble_to_hex_char(((id.as_raw() >> 28) & 0xf) as u8);
-                res[2] = nibble_to_hex_char(((id.as_raw() >> 24) & 0xf) as u8);
-                res[3] = nibble_to_hex_char(((id.as_raw() >> 20) & 0xf) as u8);
-                res[4] = nibble_to_hex_char(((id.as_raw() >> 16) & 0xf) as u8);
-                res[5] = nibble_to_hex_char(((id.as_raw() >> 12) & 0xf) as u8);
-                res[6] = nibble_to_hex_char(((id.as_raw() >> 8) & 0xf) as u8);
-                res[7] = nibble_to_hex_char(((id.as_raw() >> 4) & 0xf) as u8);
-                res[8] = nibble_to_hex_char((id.as_raw() & 0xf) as u8);
-                res[9] = nibble_to_hex_char(frame.dlc as u8);
-
-                let mut i = 0;
-
-                while i < frame.dlc {
-                    res[10 + 2 * i] = nibble_to_hex_char(((frame.data[i] >> 4) & 0xf) as u8);
-                    res[11 + 2 * i] = nibble_to_hex_char((frame.data[i] & 0xf) as u8);
-                    i += 1;
+                if frame.is_remote {
+                    res[0] = b'R';
+                } else {
+                    res[0] = b'T';
                 }
 
-                match frame.timestamp {
-                    Some(t) => {
-                        let t_start = 10 + 2 * i;
-                        res[t_start] = nibble_to_hex_char(((t >> 12) & 0xf) as u8);
-                        res[t_start + 1] = nibble_to_hex_char(((t >> 8) & 0xf) as u8);
-                        res[t_start + 2] = nibble_to_hex_char(((t >> 4) & 0xf) as u8);
-                        res[t_start + 3] = nibble_to_hex_char((t & 0xf) as u8);
-                        res[t_start + 4] = b'\r'
-                    },
-                    None => {
-                        res[10 + 2 * i] = b'\r'
-                    }
-                }
+                index += 1;
+
+                index += write_hex(id.as_raw(), 8, &mut res[index..]);
             }
         }
-        res
-    }
 
-    fn serialize_frame_t(&mut self, frame: CanFrame) -> [u8; 31] {
-        let mut res = [0; 31];
-        match frame.id {
-            Id::Standard(id) => {
-                res[0] = b't';
-                res[1] = nibble_to_hex_char(((id.as_raw() >> 8) & 0xf) as u8);
-                res[2] = nibble_to_hex_char(((id.as_raw() >> 4) & 0xf) as u8);
-                res[3] = nibble_to_hex_char((id.as_raw() & 0xf) as u8);
-                res[4] = nibble_to_hex_char(frame.dlc as u8);
+        index += write_hex(frame.dlc as u32, 1, &mut res[index..]);
 
-                let mut i = 0;
-
-                while i < frame.dlc {
-                    res[5 + 2 * i] = nibble_to_hex_char(((frame.data[i] >> 4) & 0xf) as u8);
-                    res[6 + 2 * i] = nibble_to_hex_char((frame.data[i] & 0xf) as u8);
-                    i += 1;
-                }
-
-                match frame.timestamp {
-                    Some(t) => {
-                        let t_start = 5 + 2 * i;
-                        res[t_start] = nibble_to_hex_char(((t >> 12) & 0xf) as u8);
-                        res[t_start + 1] = nibble_to_hex_char(((t >> 8) & 0xf) as u8);
-                        res[t_start + 2] = nibble_to_hex_char(((t >> 4) & 0xf) as u8);
-                        res[t_start + 3] = nibble_to_hex_char((t & 0xf) as u8);
-                        res[t_start + 4] = b'\r'
-                    },
-                    None => {
-                        res[5 + 2 * i] = b'\r';
-                    }
-                }
-            }
-            Id::Extended(id) => {
-                res[0] = b'T';
-                res[1] = nibble_to_hex_char(((id.as_raw() >> 28) & 0xf) as u8);
-                res[2] = nibble_to_hex_char(((id.as_raw() >> 24) & 0xf) as u8);
-                res[3] = nibble_to_hex_char(((id.as_raw() >> 20) & 0xf) as u8);
-                res[4] = nibble_to_hex_char(((id.as_raw() >> 16) & 0xf) as u8);
-                res[5] = nibble_to_hex_char(((id.as_raw() >> 12) & 0xf) as u8);
-                res[6] = nibble_to_hex_char(((id.as_raw() >> 8) & 0xf) as u8);
-                res[7] = nibble_to_hex_char(((id.as_raw() >> 4) & 0xf) as u8);
-                res[8] = nibble_to_hex_char((id.as_raw() & 0xf) as u8);
-                res[9] = nibble_to_hex_char(frame.dlc as u8);
-
-                let mut i = 0;
-
-                while i < frame.dlc {
-                    res[10 + 2 * i] = nibble_to_hex_char(((frame.data[i] >> 4) & 0xf) as u8);
-                    res[11 + 2 * i] = nibble_to_hex_char((frame.data[i] & 0xf) as u8);
-                    i += 1;
-                }
-
-                match frame.timestamp {
-                    Some(t) => {
-                        let t_start = 10 + 2 * i;
-                        res[t_start] = nibble_to_hex_char(((t >> 12) & 0xf) as u8);
-                        res[t_start + 1] = nibble_to_hex_char(((t >> 8) & 0xf) as u8);
-                        res[t_start + 2] = nibble_to_hex_char(((t >> 4) & 0xf) as u8);
-                        res[t_start + 3] = nibble_to_hex_char((t & 0xf) as u8);
-                        res[t_start + 4] = b'\r'
-                    },
-                    None => {
-                        res[10 + 2 * i] = b'\r'
-                    }
-                }
-            }
+        for i in 0..frame.dlc {
+            index += write_hex(frame.data[i] as u32, 2, &mut res[index..]);
         }
-        res
+
+        match frame.timestamp {
+            Some(t) => {
+                index += write_hex(t as u32, 4, &mut res[index..]);
+            }
+            None => {}
+        }
+
+        res[index] = b'\r';
+
+        (res, index + 1)
     }
 
     pub fn from_bytes(&mut self, bytes: &[u8]) -> Result<SlcanCommand, SlcanError> {
@@ -370,7 +229,6 @@ impl SlcanSerializer {
             }
         }
         Ok(SlcanCommand::IncompleteMessage)
-        // Err(SlcanError::InvalidCommand)
     }
 
     pub fn from_byte(&mut self, byte: u8) -> Result<SlcanCommand, SlcanError> {
@@ -1486,10 +1344,7 @@ mod tests {
     #[test]
     fn test_deserialize_version() {
         let mut serializer = SlcanSerializer::new();
-        assert_eq!(
-            serializer.from_bytes(b"V\r"),
-            Ok(SlcanCommand::Version)
-        )
+        assert_eq!(serializer.from_bytes(b"V\r"), Ok(SlcanCommand::Version))
     }
 
     #[test]
@@ -1504,10 +1359,7 @@ mod tests {
     #[test]
     fn test_deserialize_serial() {
         let mut serializer = SlcanSerializer::new();
-        assert_eq!(
-            serializer.from_bytes(b"N\r"),
-            Ok(SlcanCommand::SerialNo)
-        )
+        assert_eq!(serializer.from_bytes(b"N\r"), Ok(SlcanCommand::SerialNo))
     }
 
     #[test]
@@ -1522,10 +1374,7 @@ mod tests {
     #[test]
     fn test_deserialize_version_fw() {
         let mut serializer = SlcanSerializer::new();
-        assert_eq!(
-            serializer.from_bytes(b"v\r"),
-            Ok(SlcanCommand::Version)
-        )
+        assert_eq!(serializer.from_bytes(b"v\r"), Ok(SlcanCommand::Version))
     }
 
     #[test]
