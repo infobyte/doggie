@@ -1,10 +1,12 @@
 #![no_std]
 #![no_main]
 
+mod can_device;
 mod soft_timer;
 mod spi_device;
 mod usb_device;
 
+use can_device::CanWrapper;
 use soft_timer::SoftTimer;
 use spi_device::CustomSpiDevice;
 
@@ -24,10 +26,17 @@ use embassy_stm32::{
 };
 use embassy_stm32::{mode, rcc::*};
 use mcp2515::MCP2515;
+use static_cell::StaticCell;
 use usb_device::UsbWrapper;
 use {defmt_rtt as _, panic_probe as _};
 
 use embassy_futures::join::join;
+use embassy_stm32::can::frame::Envelope;
+use embassy_stm32::can::{
+    filter, Can, Fifo, Frame, Id, Rx0InterruptHandler, Rx1InterruptHandler, SceInterruptHandler,
+    StandardId, TxInterruptHandler,
+};
+use embassy_stm32::peripherals::CAN;
 use embassy_stm32::usb::{Driver, Instance};
 use embassy_stm32::{usb, Config};
 use embassy_time::Timer;
@@ -43,19 +52,35 @@ use core::cell::RefCell;
 #[cfg(feature = "usb")]
 static mut STATE: Option<RefCell<State>> = None;
 
-#[cfg(feature = "uart")]
-static mut UART2_BUF_TX: &mut [u8; 64] = &mut [0; 64];
-#[cfg(feature = "uart")]
-static mut UART2_BUF_RX: &mut [u8; 64] = &mut [0; 64];
-
 #[cfg(feature = "usb")]
-bind_interrupts!(struct Irqs {
+bind_interrupts!(struct UsbIrqs {
     USB_LP_CAN1_RX0 => usb::InterruptHandler<peripherals::USB>;
 });
 
 #[cfg(feature = "uart")]
+static mut UART2_BUF_TX: &mut [u8; 64] = &mut [0; 64];
+#[cfg(feature = "uart")]
+static mut UART2_BUF_RX: &mut [u8; 128] = &mut [0; 128];
+
+#[cfg(feature = "uart")]
 bind_interrupts!(struct UartIrqs {
     USART2 => usart::BufferedInterruptHandler<peripherals::USART2>;
+});
+
+#[cfg(feature = "internal_can")]
+bind_interrupts!(struct CanIrqs {
+    USB_LP_CAN1_RX0 => Rx0InterruptHandler<CAN>;
+    CAN1_RX1 => Rx1InterruptHandler<CAN>;
+    CAN1_SCE => SceInterruptHandler<CAN>;
+    USB_HP_CAN1_TX => TxInterruptHandler<CAN>;
+});
+
+#[cfg(feature = "interenal_can")]
+bind_interrupts!(struct CanIrqs {
+    USB_LP_CAN1_RX0 => Rx0InterruptHandler<CAN>;
+    CAN1_RX1 => Rx1InterruptHandler<CAN>;
+    CAN1_SCE => SceInterruptHandler<CAN>;
+    USB_HP_CAN1_TX => TxInterruptHandler<CAN>;
 });
 
 fn init_bluepill() -> embassy_stm32::Peripherals {
@@ -87,20 +112,37 @@ async fn usb_task(mut usb: UsbDevice<'static, embassy_stm32::usb::Driver<'static
     usb.run().await;
 }
 
+#[embassy_executor::task]
+async fn blink_task(mut led: Output<'static>) {
+    loop {
+        led.set_high();
+        Timer::after_millis(300).await;
+
+        led.set_low();
+        Timer::after_millis(300).await;
+    }
+}
+
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
     if !cfg!(feature = "uart") && !cfg!(feature = "usb") {
         panic!("Either 'uart' or 'usb' feature must be enabled.");
     }
 
+    if cfg!(feature = "usb") && cfg!(feature = "internal_can") {
+        panic!("Usb and internal_can features are incompatible.");
+    }
+
     let mut p = init_bluepill();
 
-    // let mut led = Output::new(p.PC13, Level::High, Speed::Low);
+    let led = Output::new(p.PC13, Level::High, Speed::Low);
+
+    spawner.spawn(blink_task(led)).unwrap();
 
     #[cfg(feature = "uart")]
     let serial = {
         let mut uart_config = usart::Config::default();
-        uart_config.baudrate = 921600;
+        uart_config.baudrate = 115200;
 
         // Initialize UART
         unsafe {
@@ -129,7 +171,7 @@ async fn main(spawner: Spawner) {
         }
 
         // Create the driver, from the HAL.
-        let driver = Driver::new(p.USB, Irqs, p.PA12, p.PA11);
+        let driver = Driver::new(p.USB, UsbIrqs, p.PA12, p.PA11);
 
         // Create embassy-usb Config
         let config = embassy_usb::Config::new(0xc0de, 0xcafe);
@@ -172,6 +214,39 @@ async fn main(spawner: Spawner) {
         UsbWrapper::new(class)
     };
 
+    #[cfg(feature = "internal_can")]
+    {
+        // Set alternate pin mapping to B8/B9
+        embassy_stm32::pac::AFIO
+            .mapr()
+            .modify(|w| w.set_can1_remap(2));
+
+        static RX_BUF: StaticCell<embassy_stm32::can::RxBuf<10>> = StaticCell::new();
+        static TX_BUF: StaticCell<embassy_stm32::can::TxBuf<10>> = StaticCell::new();
+
+        let mut can = Can::new(p.CAN, p.PB8, p.PB9, CanIrqs);
+
+        can.modify_filters()
+            .enable_bank(0, Fifo::Fifo0, filter::Mask32::accept_all());
+
+        can.modify_config()
+            .set_loopback(false)
+            .set_silent(false)
+            .set_bitrate(250_000);
+
+        can.enable().await;
+
+        let can_wrapper = CanWrapper::new(can);
+
+        let bsp = Bsp::new(can_wrapper, serial);
+
+        // Create and run the Doggie core
+        let core = Core::new(spawner, bsp);
+
+        info!("About to run CORE");
+        core_run!(core);
+    }
+
     #[cfg(feature = "mcp2515")]
     {
         // Delay for the MCP2515
@@ -207,5 +282,8 @@ type SerialType = UsbWrapper<'static>;
 
 #[cfg(feature = "mcp2515")]
 type CanType = MCP2515<CustomSpiDevice<'static, mode::Blocking>>;
+
+#[cfg(feature = "internal_can")]
+type CanType = CanWrapper<'static>;
 
 core_create_tasks!(SerialType, CanType);

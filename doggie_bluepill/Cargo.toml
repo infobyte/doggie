@@ -7,7 +7,8 @@ version = "0.1.0"
 uart = []
 usb = []
 mcp2515 = []
-default = ["mcp2515", "usb"]
+internal_can = []
+default = ["uart", "internal_can"]
 
 [dependencies]
 # Change stm32f103c8 to your chip name, if necessary.
@@ -35,6 +36,7 @@ mcp2515 = "0.3.0"
 embedded-io = "0.6.1"
 embedded-io-async = "0.6.1"
 embedded-hal = "1.0.0"
+embedded-can = "0.4.1"
 
 [patch.crates-io]
 embassy-stm32 = { git = "https://github.com/embassy-rs/embassy", rev = "d7692b1ae8775723e54de8574a190df4864aa854" }
@@ -47,7 +49,7 @@ embassy-futures = { git = "https://github.com/embassy-rs/embassy", rev = "d7692b
 
 [profile.dev]
 opt-level = "s"
-strip = true
+# strip = true
 
 [profile.release]
 debug = 2

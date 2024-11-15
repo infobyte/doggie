@@ -7,7 +7,7 @@ mod mcp2515;
 mod types;
 
 pub use bsp::Bsp;
-pub use can::CanDevice;
+pub use can::{CanBitrates, CanDevice};
 pub use types::*;
 
 use slcan::{SlcanCommand, SlcanError};
@@ -93,6 +93,7 @@ where
                     match slcan_serializer.from_bytes(&serial_in_buf[0..size]) {
                         Ok(SlcanCommand::IncompleteMessage) => {
                             // Do nothing
+                            info!("IncompleteMessage");
                         }
                         Ok(SlcanCommand::OpenChannel) => {
                             serial.write(b"\r").await.unwrap();
