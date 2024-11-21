@@ -3,6 +3,11 @@ name = "doggie_pico"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+uart = []
+usb = []
+default = ["uart"]
+
 [dependencies]
 embassy-rp = { version = "0.2.0", features = ["defmt", "unstable-pac", "time-driver", "critical-section-impl", "rp2040"] }
 embassy-sync = { version = "0.6.0", features = ["defmt"] }
@@ -22,6 +27,7 @@ cortex-m = "0.7.7"
 
 doggie_core = { version = "0.1.0", path = "../doggie_core"}
 mcp2515 = "0.3.0"
+embedded-io = "0.6.1"
 
 
 [profile.release]

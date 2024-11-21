@@ -341,6 +341,7 @@ dependencies = [
  "embassy-time",
  "embassy-usb",
  "embedded-hal 1.0.0",
+ "embedded-io",
  "embedded-io-async",
  "mcp2515",
  "panic-probe",
