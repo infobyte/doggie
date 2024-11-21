@@ -90,52 +90,54 @@ where
                 // n bytes has ben received from serial
                 Either::First(serial_recv_size) => {
                     let size = serial_recv_size.unwrap();
-                    match slcan_serializer.from_bytes(&serial_in_buf[0..size]) {
-                        Ok(SlcanCommand::IncompleteMessage) => {
-                            // Do nothing
-                            info!("IncompleteMessage");
-                        }
-                        Ok(SlcanCommand::OpenChannel) => {
-                            serial.write(b"\r").await.unwrap();
-                        }
-                        Ok(SlcanCommand::CloseChannel) => {
-                            serial.write(b"\r").await.unwrap();
-                        }
-                        Ok(SlcanCommand::ReadStatusFlags) => {
-                            serial.write(b"F00\r").await.unwrap();
-                        }
-                        Ok(SlcanCommand::Listen) => {
-                            listen_only = true;
-                            serial.write(b"\r").await.unwrap();
-                        }
-                        Ok(SlcanCommand::Version) => {
-                            serial.write(b"V1337\r").await.unwrap();
-                        }
-                        Ok(SlcanCommand::SerialNo) => {
-                            serial.write(b"N1337\r").await.unwrap();
-                        }
-                        Ok(SlcanCommand::Timestamp(enabled)) => {
-                            if !timestamp_enabled && enabled {
-                                info!("Timestamp started");
-                                timestamp.start();
+                    for byte in &serial_in_buf[0..size] {
+                        match slcan_serializer.from_byte(*byte) {
+                            Ok(SlcanCommand::IncompleteMessage) => {
+                                // Do nothing
+                                info!("IncompleteMessage");
                             }
-
-                            timestamp_enabled = enabled;
-
-                            serial.write(b"\r").await.unwrap();
-                        }
-                        Ok(cmd) => {
-                            if !listen_only {
-                                out_channel.send(cmd).await;
-                            } else {
-                                error!("Cannot send frame in listen only mode")
+                            Ok(SlcanCommand::OpenChannel) => {
+                                serial.write(b"\r").await.unwrap();
                             }
-                        }
-                        Err(e) => match e {
-                            SlcanError::InvalidCommand => error!("Invalid slcan command"),
-                            SlcanError::CommandNotImplemented => error!("Command not implemented"),
-                            SlcanError::MessageTooLong => error!("Command to long"),
-                        },
+                            Ok(SlcanCommand::CloseChannel) => {
+                                serial.write(b"\r").await.unwrap();
+                            }
+                            Ok(SlcanCommand::ReadStatusFlags) => {
+                                serial.write(b"F00\r").await.unwrap();
+                            }
+                            Ok(SlcanCommand::Listen) => {
+                                listen_only = true;
+                                serial.write(b"\r").await.unwrap();
+                            }
+                            Ok(SlcanCommand::Version) => {
+                                serial.write(b"V1337\r").await.unwrap();
+                            }
+                            Ok(SlcanCommand::SerialNo) => {
+                                serial.write(b"N1337\r").await.unwrap();
+                            }
+                            Ok(SlcanCommand::Timestamp(enabled)) => {
+                                if !timestamp_enabled && enabled {
+                                    info!("Timestamp started");
+                                    timestamp.start();
+                                }
+
+                                timestamp_enabled = enabled;
+
+                                serial.write(b"\r").await.unwrap();
+                            }
+                            Ok(cmd) => {
+                                if !listen_only {
+                                    out_channel.send(cmd).await;
+                                } else {
+                                    error!("Cannot send frame in listen only mode")
+                                }
+                            }
+                            Err(e) => match e {
+                                SlcanError::InvalidCommand => error!("Invalid slcan command"),
+                                SlcanError::CommandNotImplemented => error!("Command not implemented"),
+                                SlcanError::MessageTooLong => error!("Command to long"),
+                            },
+                        };
                     };
                 }
 
