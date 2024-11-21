@@ -22,31 +22,32 @@ impl<'d, T: Instance, MODE: Mode> ErrorType for CustomSpiDevice<'d, T, MODE> {
 
 impl<'d, T: Instance, MODE: Mode> SpiDevice<u8> for CustomSpiDevice<'d, T, MODE> {
     fn transaction(&mut self, operations: &mut [Operation<'_, u8>]) -> Result<(), Self::Error> {
+        let mut res: Result<(), Self::Error> = Ok(());
+
         self.cs.set_low();
 
         for operation in operations {
-            match operation {
-                Operation::Read(buffer) => {
-                    self.spi.blocking_read(buffer)?;
-                }
-                Operation::Write(data) => {
-                    self.spi.blocking_write(data)?;
-                }
+            res = match operation {
+                Operation::Read(buffer) => self.spi.blocking_read(buffer),
+                Operation::Write(data) => self.spi.blocking_write(data),
                 Operation::Transfer(read_buffer, write_data) => {
-                    self.spi.blocking_transfer(read_buffer, write_data)?;
+                    self.spi.blocking_transfer(read_buffer, write_data)
                 }
-                Operation::TransferInPlace(buffer) => {
-                    self.spi.blocking_transfer_in_place(buffer)?;
-                }
+                Operation::TransferInPlace(buffer) => self.spi.blocking_transfer_in_place(buffer),
                 Operation::DelayNs(ns) => {
                     cortex_m::asm::delay(*ns / 10); // Aproximation
+                    Ok(())
                 }
+            };
+
+            if res.is_err() {
+                break;
             }
         }
 
         self.cs.set_high();
 
-        Ok(())
+        res
     }
 
     fn read(&mut self, buf: &mut [u8]) -> Result<(), Self::Error> {

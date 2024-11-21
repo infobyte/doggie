@@ -2,6 +2,7 @@ use crate::can::{CanBitrates, CanDevice};
 use embedded_can::Id;
 use embedded_hal::{delay::DelayNs, spi::SpiDevice};
 use embedded_io_async::{Read, Write};
+use defmt::{info, error};
 
 use crate::bsp::Bsp;
 
@@ -43,8 +44,20 @@ pub fn can_speed_from_raw(speed: u16) -> CanSpeed {
 
 impl<SPI: SpiDevice> CanDevice for MCP2515<SPI> {
     fn set_bitrate(&mut self, bitrate: CanBitrates) {
-        self.set_bitrate(convert_bitrate(bitrate), MCP_CLOCK, MCP_CLOCK_ENABLE)
-            .unwrap();
+        info!("Setting bitrate to {} Kbps", bitrate as u16);
+        match self.set_mode(OpMode::Configuration) {
+            Ok(_) => info!("Switching to Configuration Mode"),
+            Err(_) => error!("Failed to switch to Configuration Mode")
+        }
+        
+        match self.set_bitrate(convert_bitrate(bitrate), MCP_CLOCK, MCP_CLOCK_ENABLE) {
+            Ok(_) => info!("Bitrate set!"),
+            Err(_) => error!("Failed to set bitrate!!!")
+        };
+        match self.set_mode(OpMode::Normal) {
+            Ok(_) => info!("Switching to Normal Mode"),
+            Err(_) => error!("Failed to switch to Normal Mode")
+        }
     }
 
     fn set_filter(&mut self, id: Id) {
