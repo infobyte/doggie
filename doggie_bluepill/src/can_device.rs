@@ -1,4 +1,6 @@
+use defmt::{error, info};
 use doggie_core::{CanBitrates, CanDevice};
+use embassy_futures::block_on;
 use embassy_stm32::can::Can as StmCan;
 use embassy_stm32::can::{filter, Fifo, Id};
 use embedded_can::{blocking::Can, ErrorKind, ExtendedId, StandardId};
@@ -29,7 +31,10 @@ impl<'d> Can for CanWrapper<'d> {
     fn transmit(&mut self, frame: &Self::Frame) -> Result<(), Self::Error> {
         match self.can.try_write(frame) {
             Ok(_) => Ok(()),
-            Err(_) => Err(CanError {}),
+            Err(err) => {
+                error!("CAN controller Error: {:?}", err);
+                Err(CanError {})
+            }
         }
     }
     fn receive(&mut self) -> Result<Self::Frame, Self::Error> {
@@ -42,7 +47,11 @@ impl<'d> Can for CanWrapper<'d> {
 
 impl<'d> CanDevice for CanWrapper<'d> {
     fn set_bitrate(&mut self, bitrate: CanBitrates) {
+        info!("Setting bitrate to: {:X}", bitrate as u32);
         self.can.set_bitrate((bitrate as u32) * 1_000);
+
+        // Re enable can
+        block_on(self.can.enable());
     }
 
     fn set_filter(&mut self, id: Id) {

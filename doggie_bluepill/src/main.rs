@@ -4,11 +4,13 @@
 mod can_device;
 mod soft_timer;
 mod spi_device;
+mod uart_device;
 mod usb_device;
 
 use can_device::CanWrapper;
 use soft_timer::SoftTimer;
 use spi_device::CustomSpiDevice;
+use uart_device::UartWrapper;
 
 use defmt::{error, info};
 use doggie_core::{
@@ -18,10 +20,11 @@ use embassy_executor::Spawner;
 use embassy_stm32::{
     bind_interrupts,
     gpio::{Level, Output, Pull, Speed},
+    interrupt::{self, InterruptExt},
     peripherals::{self, USB},
     spi::{self, MODE_0},
     time::Hertz,
-    usart::{self, BufferedUart},
+    usart::{self, BufferedUart, Uart},
     Config as StmConfig,
 };
 use embassy_stm32::{mode, rcc::*};
@@ -58,13 +61,13 @@ bind_interrupts!(struct UsbIrqs {
 });
 
 #[cfg(feature = "uart")]
-static mut UART2_BUF_TX: &mut [u8; 64] = &mut [0; 64];
+static mut UART2_BUF_TX: &mut [u8; 128] = &mut [0; 128];
 #[cfg(feature = "uart")]
 static mut UART2_BUF_RX: &mut [u8; 128] = &mut [0; 128];
 
 #[cfg(feature = "uart")]
 bind_interrupts!(struct UartIrqs {
-    USART2 => usart::BufferedInterruptHandler<peripherals::USART2>;
+    USART2 => usart::InterruptHandler<peripherals::USART2>;
 });
 
 #[cfg(feature = "internal_can")]
@@ -146,16 +149,18 @@ async fn main(spawner: Spawner) {
 
         // Initialize UART
         unsafe {
-            BufferedUart::new(
-                p.USART2,
-                UartIrqs,
-                p.PA3,
-                p.PA2,
-                UART2_BUF_TX,
-                UART2_BUF_RX,
-                uart_config,
+            UartWrapper::new(
+                Uart::new(
+                    p.USART2,
+                    p.PA3,
+                    p.PA2,
+                    UartIrqs,
+                    p.DMA1_CH7,
+                    p.DMA1_CH6,
+                    uart_config,
+                )
+                .unwrap(),
             )
-            .unwrap()
         }
     };
 
@@ -221,9 +226,6 @@ async fn main(spawner: Spawner) {
             .mapr()
             .modify(|w| w.set_can1_remap(2));
 
-        static RX_BUF: StaticCell<embassy_stm32::can::RxBuf<10>> = StaticCell::new();
-        static TX_BUF: StaticCell<embassy_stm32::can::TxBuf<10>> = StaticCell::new();
-
         let mut can = Can::new(p.CAN, p.PB8, p.PB9, CanIrqs);
 
         can.modify_filters()
@@ -275,7 +277,7 @@ async fn main(spawner: Spawner) {
 }
 
 #[cfg(feature = "uart")]
-type SerialType = BufferedUart<'static>;
+type SerialType = UartWrapper<'static>;
 
 #[cfg(feature = "usb")]
 type SerialType = UsbWrapper<'static>;
