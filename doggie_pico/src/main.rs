@@ -9,28 +9,37 @@
 
 mod soft_timer;
 mod spi_device;
+#[cfg(feature = "usb")]
 mod usb_device;
 
 use soft_timer::SoftTimer;
 use spi_device::CustomSpiDevice;
-use defmt::{error, info};
+use defmt::info;
 use embassy_executor::Spawner;
 use embassy_rp::bind_interrupts;
 use embassy_rp::peripherals::SPI0;
-use embassy_rp::peripherals::UART0;
-use embassy_rp::peripherals::USB;
 use embassy_rp::spi::{Blocking, Spi};
-use embassy_rp::uart::{BufferedInterruptHandler, BufferedUart, Config};
-use embassy_rp::usb::{Driver, InterruptHandler};
-use embassy_usb::class::cdc_acm::{CdcAcmClass, State};
-use embassy_usb::UsbDevice;
-use usb_device::UsbWrapper;
 use gpio::{Level, Output};
 use doggie_core::*;
 use embassy_rp::{gpio, spi};
 use mcp2515::MCP2515;
 use static_cell::StaticCell;
 use {defmt_rtt as _, panic_probe as _};
+
+#[cfg(feature = "uart")]
+use {
+    embassy_rp::peripherals::UART0,
+    embassy_rp::uart::{BufferedInterruptHandler, BufferedUart, Config},
+};
+
+#[cfg(feature = "usb")]
+use {
+    usb_device::UsbWrapper,
+    embassy_rp::peripherals::USB,
+    embassy_usb::UsbDevice,
+    embassy_rp::usb::{Driver, InterruptHandler},
+    embassy_usb::class::cdc_acm::{CdcAcmClass, State},
+};
 
 #[cfg(feature = "uart")]
 bind_interrupts!(struct Irqs {
@@ -42,6 +51,7 @@ bind_interrupts!(struct Irqs {
     USBCTRL_IRQ => InterruptHandler<USB>;
 });
 
+#[cfg(feature = "usb")]
 #[embassy_executor::task]
 async fn usb_task(mut usb: UsbDevice<'static, Driver<'static, USB>>) -> ! {
     usb.run().await
@@ -131,7 +141,11 @@ async fn main(spawner: Spawner) {
 
         class.wait_connection().await;
 
-        UsbWrapper::new(class)
+        let serial = UsbWrapper::new(class);
+
+        info!("USB init ok");
+
+        serial
     };
 
     // Setup SPI
@@ -144,9 +158,11 @@ async fn main(spawner: Spawner) {
     let rp_spi = Spi::new_blocking(spi_no, clk_pin, tx_pin, rx_pin, spi_config);
     let cs = Output::new(cs_pin, Level::High);
     let spi = CustomSpiDevice::new(rp_spi, cs);
-    let delay = SoftTimer {};
-
+    
     info!("SPI init ok");
+    
+    // Create SoftTimer
+    let delay = SoftTimer {};
 
     // Create the Bsp
     // let bsp = Bsp::new(can, uart);

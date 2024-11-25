@@ -6,7 +6,7 @@ edition = "2021"
 [features]
 uart = []
 usb = []
-default = ["uart"]
+default = ["usb"]
 
 [dependencies]
 embassy-rp = { version = "0.2.0", features = ["defmt", "unstable-pac", "time-driver", "critical-section-impl", "rp2040"] }
