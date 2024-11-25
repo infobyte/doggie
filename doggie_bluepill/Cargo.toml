@@ -8,7 +8,7 @@ uart = []
 usb = []
 mcp2515 = []
 internal_can = []
-default = ["uart", "internal_can"]
+default = ["usb", "mcp2515"]
 
 [dependencies]
 # Change stm32f103c8 to your chip name, if necessary.
