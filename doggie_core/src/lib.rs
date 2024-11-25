@@ -134,11 +134,13 @@ where
                             }
                             Err(e) => match e {
                                 SlcanError::InvalidCommand => error!("Invalid slcan command"),
-                                SlcanError::CommandNotImplemented => error!("Command not implemented"),
+                                SlcanError::CommandNotImplemented => {
+                                    error!("Command not implemented")
+                                }
                                 SlcanError::MessageTooLong => error!("Command to long"),
                             },
                         };
-                    };
+                    }
                 }
 
                 Either::Second(can_cmd) => {
@@ -177,9 +179,12 @@ where
             match can.receive() {
                 Ok(frame) => {
                     info!("New frame received");
-                    let new_frame =
-                        slcan::CanFrame::new(frame.id(), frame.is_remote_frame(), frame.data())
-                            .unwrap();
+                    let new_frame = slcan::CanFrame::new(
+                        frame.id(),
+                        frame.is_remote_frame(),
+                        &frame.data()[0..frame.dlc()],
+                    )
+                    .unwrap();
 
                     out_channel.send(SlcanCommand::Frame(new_frame)).await;
                 }
