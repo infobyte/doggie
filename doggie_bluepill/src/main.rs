@@ -1,56 +1,75 @@
 #![no_std]
 #![no_main]
 
+#[cfg(feature = "internal_can")]
 mod can_device;
+
+#[cfg(feature = "mcp2515")]
 mod soft_timer;
+#[cfg(feature = "mcp2515")]
 mod spi_device;
+
+#[cfg(feature = "uart")]
 mod uart_device;
+
+#[cfg(feature = "usb")]
 mod usb_device;
 
-use can_device::CanWrapper;
-use soft_timer::SoftTimer;
-use spi_device::CustomSpiDevice;
-use uart_device::UartWrapper;
-
-use defmt::{error, info};
+use defmt::info;
 use doggie_core::{
     core_create_tasks, core_run, Bsp, CanChannel, CanChannelReceiver, CanChannelSender, Core,
 };
 use embassy_executor::Spawner;
+use embassy_stm32::rcc::*;
 use embassy_stm32::{
     bind_interrupts,
-    gpio::{Level, Output, Pull, Speed},
-    interrupt::{self, InterruptExt},
-    peripherals::{self, USB},
-    spi::{self, MODE_0},
+    gpio::{Level, Output, Speed},
+    peripherals,
     time::Hertz,
-    usart::{self, BufferedUart, Uart},
     Config as StmConfig,
 };
-use embassy_stm32::{mode, rcc::*};
-use mcp2515::MCP2515;
-use static_cell::StaticCell;
-use usb_device::UsbWrapper;
+
 use {defmt_rtt as _, panic_probe as _};
 
-use embassy_futures::join::join;
-use embassy_stm32::can::frame::Envelope;
-use embassy_stm32::can::{
-    filter, Can, Fifo, Frame, Id, Rx0InterruptHandler, Rx1InterruptHandler, SceInterruptHandler,
-    StandardId, TxInterruptHandler,
-};
-use embassy_stm32::peripherals::CAN;
-use embassy_stm32::usb::{Driver, Instance};
-use embassy_stm32::{usb, Config};
 use embassy_time::Timer;
-use embassy_usb::driver::EndpointError;
-use embassy_usb::Builder;
-use embassy_usb::{
-    class::cdc_acm::{CdcAcmClass, State},
-    UsbDevice,
+
+#[cfg(feature = "usb")]
+use {
+    core::cell::RefCell,
+    embassy_stm32::usb,
+    embassy_stm32::{peripherals::USB, usb::Driver},
+    embassy_usb::{
+        class::cdc_acm::{CdcAcmClass, State},
+        Builder, UsbDevice,
+    },
+    usb_device::UsbWrapper,
 };
 
-use core::cell::RefCell;
+#[cfg(feature = "uart")]
+use {
+    embassy_stm32::usart::{self, Uart},
+    uart_device::UartWrapper,
+};
+
+#[cfg(feature = "mcp2515")]
+use {
+    embassy_stm32::{gpio::Pull, mode, spi, spi::MODE_0},
+    mcp2515::MCP2515,
+    soft_timer::SoftTimer,
+    spi_device::CustomSpiDevice,
+};
+
+#[cfg(feature = "internal_can")]
+use {
+    can_device::CanWrapper,
+    embassy_stm32::{
+        can::{
+            filter, Can, Fifo, Rx0InterruptHandler, Rx1InterruptHandler, SceInterruptHandler,
+            TxInterruptHandler,
+        },
+        peripherals::CAN,
+    },
+};
 
 #[cfg(feature = "usb")]
 static mut STATE: Option<RefCell<State>> = None;
@@ -61,24 +80,11 @@ bind_interrupts!(struct UsbIrqs {
 });
 
 #[cfg(feature = "uart")]
-static mut UART2_BUF_TX: &mut [u8; 128] = &mut [0; 128];
-#[cfg(feature = "uart")]
-static mut UART2_BUF_RX: &mut [u8; 128] = &mut [0; 128];
-
-#[cfg(feature = "uart")]
 bind_interrupts!(struct UartIrqs {
     USART2 => usart::InterruptHandler<peripherals::USART2>;
 });
 
 #[cfg(feature = "internal_can")]
-bind_interrupts!(struct CanIrqs {
-    USB_LP_CAN1_RX0 => Rx0InterruptHandler<CAN>;
-    CAN1_RX1 => Rx1InterruptHandler<CAN>;
-    CAN1_SCE => SceInterruptHandler<CAN>;
-    USB_HP_CAN1_TX => TxInterruptHandler<CAN>;
-});
-
-#[cfg(feature = "interenal_can")]
 bind_interrupts!(struct CanIrqs {
     USB_LP_CAN1_RX0 => Rx0InterruptHandler<CAN>;
     CAN1_RX1 => Rx1InterruptHandler<CAN>;
@@ -110,6 +116,7 @@ fn init_bluepill() -> embassy_stm32::Peripherals {
     embassy_stm32::init(config)
 }
 
+#[cfg(feature = "usb")]
 #[embassy_executor::task]
 async fn usb_task(mut usb: UsbDevice<'static, embassy_stm32::usb::Driver<'static, USB>>) {
     usb.run().await;
