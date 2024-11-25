@@ -12,7 +12,7 @@ The project emphasizes **modularity**, allowing users to select from various har
 ## **Supported Configurations**  
 
 ### Microcontrollers:
-- **Raspberry Pi Pico (1 and 2)**:  [doggie_pico](./doggie_pico/README.md)
+- **Raspberry Pi Pico (RP2040)**:  [doggie_pico](./doggie_pico/README.md)
 - **STM32F103C8 (Bluepill)**: [doggie_bluepill](./doggie_bluepill/README.md)
 - **ESP32**: [doggie_esp32](./doggie_esp32/README.md)
 
