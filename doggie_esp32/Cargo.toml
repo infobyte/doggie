@@ -29,7 +29,6 @@ mcp2515 = "0.3.0"
 
 [patch.crates-io]
 embassy-sync = { git = "https://github.com/embassy-rs/embassy", rev = "d7692b1ae8775723e54de8574a190df4864aa854" }
-embassy-executor = { git = "https://github.com/embassy-rs/embassy", rev = "d7692b1ae8775723e54de8574a190df4864aa854" }
 
 [profile.dev]
 # Rust debug is too slow.
