@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # **Doggie - CAN Bus to USB Bridge**
 
 ![alt text](./docs/logo_m.png)
