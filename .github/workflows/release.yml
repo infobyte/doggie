@@ -28,7 +28,7 @@ jobs:
       run: cargo build --release --all
 
     - name: Upload binaries
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: doggie-bluepill-binaries
         path: |
@@ -66,7 +66,7 @@ jobs:
       run: elf2uf2-rs doggie_pico_usb_mcp doggie_pico_usb_mcp.uf2 && elf2uf2-rs doggie_pico_uart_mcp doggie_pico_uart_mcp.uf2
 
     - name: Upload binaries
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: doggie-pico-binaries
         path: |
@@ -96,7 +96,7 @@ jobs:
       run: . $HOME/export-esp.sh && DEFMT_LOG=off cargo build --release
 
     - name: Upload binaries
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: doggie-esp32-binaries
         path: |
@@ -113,10 +113,8 @@ jobs:
     - name: Download build artifacts
       uses: actions/download-artifact@v4
       with:
-        pattern: "*"
+        pattern: doggie-*
         merge-multiple: true
-        
-    - run: ls -R .
 
     - name: Create GitHub Release
       uses: ncipollo/release-action@v1
