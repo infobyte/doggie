@@ -74,7 +74,7 @@ curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/relea
 
 - If you want to program your Pico using another Pico as a probe, install `probe-rs`:
     ```
-    cargo binstall probe-rs-tools
+    curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-tools-installer.sh | sh
     ```
 
     Additionally, you have to modify `doggie_pico/.cargo/config.toml`:
