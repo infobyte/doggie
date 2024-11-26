@@ -113,10 +113,10 @@ jobs:
     - name: Download build artifacts
       uses: actions/download-artifact@v4
       with:
-        pattern: doggie*
+        pattern: "*"
         merge-multiple: true
         
-    - run: ls -R $GITHUB_WORKSPACE
+    - run: ls -R .
 
     - name: Create GitHub Release
       uses: ncipollo/release-action@v1
