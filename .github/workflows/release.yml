@@ -111,7 +111,7 @@ jobs:
     - name: Create GitHub Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: doggie-bluepill-binaries
+        artifacts: doggie_bluepill_usb_mcp, doggie_bluepill_uart_mcp, doggie_bluepill_uart_int
         # - doggie-pico-binaries
         # - doggie-esp32-binaries
         token: ${{ secrets.GITHUB_TOKEN }}
