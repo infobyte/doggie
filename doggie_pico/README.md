@@ -48,6 +48,15 @@ The Raspberry Pico implementation supports the following configurations:
 
 ---
 
+## **How to Flash a Release**
+* USB and MCP2515:
+    1. Download the release `doggie_pico_usb_mcp.uf2`.
+    2. Connect the Pico in bootloader mode and copy the release.
+
+* UART and MCP2515:
+    1. Download the release `doggie_pico_uart_mcp.uf2`.
+    2. Connect the Pico in bootloader mode and copy the release.
+
 ## **How to Compile and Flash**
 
 ### **Prerequisites**  
