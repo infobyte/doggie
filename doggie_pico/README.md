@@ -123,9 +123,9 @@ curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/relea
 2. Build and flash with selected features
     * USB and MCP2515:
         ```
-        cargo run --release
+        cargo run --bin doggie_pico_usb_mcp --release
         ```
     * UART and MCP2515 (Use this feature if you are using the probe):
         ```
-        cargo run --release --no-default-features --features "uart"
+        cargo run --bin doggie_pico_uart_mcp --release
         ```
