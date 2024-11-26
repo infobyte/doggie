@@ -110,18 +110,14 @@ jobs:
     - build_esp32
 
     steps:
-    # Step 1: Checkout the repository
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
-    # Step 2: Download artifacts
     - name: Download build artifacts
       uses: actions/download-artifact@v4
       with:
         pattern: doggie*
         merge-multiple: true
+        
+    - run: ls -R $GITHUB_WORKSPACE
 
-    # Step 3: Create GitHub Release
     - name: Create GitHub Release
       uses: ncipollo/release-action@v1
       with:
