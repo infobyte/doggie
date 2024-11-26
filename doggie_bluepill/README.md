@@ -81,7 +81,7 @@ The Bluepill implementation supports the following configurations:
 
 3. Install `probe-rs`
     ```
-    cargo install probe-rs
+    cargo binstall probe-rs-tools
     ```
 
 ### **Compile and Flash the Firmware Using ST-Link V2:**

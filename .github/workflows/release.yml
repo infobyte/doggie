@@ -23,9 +23,9 @@ jobs:
       working-directory: ./doggie_bluepill
       run: rustup target add thumbv7m-none-eabi
 
-    - name: Install prove-rs
+    - name: Install probe-rs
       working-directory: ./doggie_bluepill
-      run: cargo install probe-rs
+      run: cargo binstall probe-rs-tools
 
     - name: Build doggie bluepill
       working-directory: ./doggie_bluepill
