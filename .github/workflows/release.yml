@@ -117,6 +117,9 @@ jobs:
     # Step 2: Download artifacts
     - name: Download build artifacts
       uses: actions/download-artifact@v3
+      with:
+        pattern: doggie-*-binaries
+        merge-multiple: true
 
     # Step 3: Create GitHub Release
     - name: Create GitHub Release
