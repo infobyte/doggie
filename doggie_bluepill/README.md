@@ -89,21 +89,16 @@ The Bluepill implementation supports the following configurations:
 1. Connect Bluepill to the programmer  
     ![alt text](../docs/bluepill_stlink.webp)
 
-2. Select desired configuration flags
-    * usb
-    * uart
-    * mcp2515
-    * internal_can
-3. Build and flash with selected features
+2. Build and flash with selected features
     * USB and MCP2515:
         ```
         cargo run --release
         ```
-    * UART and MCP2515
+    * UART and MCP2515:
         ```
         cargo run --release --no-default-features --features "uart,mcp2515"
         ```
-    * UART and internal Can
+    * UART and internal CAN:
         ```
         cargo run --release --no-default-features --features "uart,internal_can"
         ```
