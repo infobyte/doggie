@@ -23,11 +23,6 @@ jobs:
       working-directory: ./doggie_bluepill
       run: rustup target add thumbv7m-none-eabi
 
-    - name: Install probe-rs
-      working-directory: ./doggie_bluepill
-      run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-tools-installer.sh | sh
-
-
     - name: Build doggie bluepill
       working-directory: ./doggie_bluepill
       run: cargo build --release --all
@@ -40,61 +35,79 @@ jobs:
           ./doggie_bluepill/target/thumbv7m-none-eabi/release/doggie_bluepill_usb_mcp
           ./doggie_bluepill/target/thumbv7m-none-eabi/release/doggie_bluepill_uart_mcp
           ./doggie_bluepill/target/thumbv7m-none-eabi/release/doggie_bluepill_uart_int
-  #
-  # build_pico:
-  #   runs-on: ubuntu-latest
-  #
-  #   steps:
-  #   - name: Checkout repository
-  #     uses: actions/checkout@v3
-  #
-  #   - name: Set up Rust
-  #     uses: actions-rs/toolchain@v1
-  #     with:
-  #       toolchain: stable
-  #       override: true
-  #
-  #   - name: Build doggie_pico
-  #     working-directory: ./doggie_pico
-  #     run: cargo build --release
-  #
-  #   - name: Upload binaries
-  #     uses: actions/upload-artifact@v3
-  #     with:
-  #       name: doggie-pico-binaries
-  #       path: |
-  #         ./doggie_pico/target/release/*
-  #
-  # build_esp32:
-  #   runs-on: ubuntu-latest
-  #
-  #   steps:
-  #   - name: Checkout repository
-  #     uses: actions/checkout@v3
-  #
-  #   - name: Set up Rust
-  #     uses: actions-rs/toolchain@v1
-  #     with:
-  #       toolchain: stable
-  #       override: true
-  #
-  #   - name: Build doggie_esp32
-  #     working-directory: ./doggie_esp32
-  #     run: cargo build --release
-  #
-  #   - name: Upload binaries
-  #     uses: actions/upload-artifact@v3
-  #     with:
-  #       name: doggie-esp32-binaries
-  #       path: |
-  #         ./doggie_esp32/target/release/*
+
+  build_pico:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+
+    - name: Add rust target
+      working-directory: ./doggie_pico
+      run: rustup target add thumbv6m-none-eabi
+
+    - name: Install elf2uf2-rs
+      working-directory: ./doggie_pico
+      run: cargo install elf2uf2-rs
+
+    - name: Build doggie_pico
+      working-directory: ./doggie_pico
+      run: cargo build --release --all
+
+    - name: Convert to uf2
+      working-directory: ./doggie_pico/target/thumbv6m-none-eabi/release/
+      run: elf2uf2-rs doggie_pico_usb_mcp doggie_pico_usb_mcp.uf2 && elf2uf2-rs doggie_pico_uart_mcp doggie_pico_uart_mcp.uf2
+
+    - name: Upload binaries
+      uses: actions/upload-artifact@v3
+      with:
+        name: doggie-pico-binaries
+        path: |
+          ./doggie_pico/target/thumbv6m-none-eabi/release/doggie_pico_uart_mcp
+          ./doggie_pico/target/thumbv6m-none-eabi/release/doggie_pico_uart_mcp.uf2
+          ./doggie_pico/target/thumbv6m-none-eabi/release/doggie_pico_usb_mcp
+          ./doggie_pico/target/thumbv6m-none-eabi/release/doggie_pico_usb_mcp.uf2
+
+  build_esp32:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+
+    - name: Set up toolchain
+      run: cargo install ldproxy && cargo install espup && espup install
+
+    - name: Build doggie_esp32
+      working-directory: ./doggie_esp32
+      run: . $HOME/export-esp.sh && DEFMT_LOG=off cargo build --release
+
+    - name: Upload binaries
+      uses: actions/upload-artifact@v3
+      with:
+        name: doggie-esp32-binaries
+        path: |
+          ./doggie_esp32/target/xtensa-esp32-none-elf/release/doggie_esp32
 
   release:
     runs-on: ubuntu-latest
     needs:
     - build_bluepill
-    # - build_pico
-    # - build_esp32
+    - build_pico
+    - build_esp32
 
     steps:
     # Step 1: Checkout the repository
@@ -106,19 +119,20 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: doggie-bluepill-binaries
+        name: doggie-pico-binaries
+        name: doggie-esp32-binaries
 
     # Step 3: Create GitHub Release
     - name: Create GitHub Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: doggie_bluepill_usb_mcp, doggie_bluepill_uart_mcp, doggie_bluepill_uart_int
-        # - doggie-pico-binaries
-        # - doggie-esp32-binaries
+        artifacts: doggie_bluepill_usb_mcp, doggie_bluepill_uart_mcp, doggie_bluepill_uart_int, doggie_pico_uart_mcp, doggie_pico_uart_mcp.uf2, doggie_pico_usb_mcp, doggie_pico_usb_mcp.uf2, doggie_esp32
         token: ${{ secrets.GITHUB_TOKEN }}
         tag: ${{ github.ref_name }}
         name: "Doggie Release ${{ github.ref_name }}"
         body: |
           This release contains the binaries for:
           - Doggie Bluepill
-          # - Doggie Pico
-          # - Doggie ESP32
+          - Doggie Pico
+          - Doggie ESP32
+          For more information about building and flashing, check `README.md`
