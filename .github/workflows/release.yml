@@ -25,7 +25,8 @@ jobs:
 
     - name: Install probe-rs
       working-directory: ./doggie_bluepill
-      run: cargo binstall probe-rs-tools
+      run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-tools-installer.sh | sh
+
 
     - name: Build doggie bluepill
       working-directory: ./doggie_bluepill
