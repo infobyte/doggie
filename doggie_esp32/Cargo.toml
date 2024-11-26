@@ -1,0 +1,45 @@
+[package]
+name = "doggie_esp32"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+esp-hal = { version = "0.22.0", features = [ "esp32" ] }
+esp-backtrace = { version = "0.14.2", features = [
+    "esp32",
+    "exception-handler",
+    "panic-handler",
+    "defmt",
+] }
+esp-hal-embassy = { version = "0.5.0", features = [ "esp32" ] }
+esp-println = { version = "0.12.0", features = [ "esp32" , "defmt-espflash", "log" ] }
+
+embassy-executor = { version = "0.6.1", features = ["task-arena-size-12288"] }
+embassy-sync = { version = "0.6.0" }
+
+embedded-io-async = "0.6.1"
+
+log = { version = "0.4.22" }
+static_cell = "2.1.0"
+
+doggie_core = { version = "0.1.0", path = "../doggie_core"}
+defmt = "0.3.8"
+embedded-hal = "1.0.0"
+mcp2515 = "0.3.0"
+
+[patch.crates-io]
+embassy-sync = { git = "https://github.com/embassy-rs/embassy", rev = "d7692b1ae8775723e54de8574a190df4864aa854" }
+
+[profile.dev]
+# Rust debug is too slow.
+# For debug builds always builds with some optimization
+opt-level = "s"
+debug = 2
+
+[profile.release]
+codegen-units = 1 # LLVM can perform better optimizations using a single thread
+debug = 0
+debug-assertions = false
+incremental = false
+lto = true
+opt-level = 's'

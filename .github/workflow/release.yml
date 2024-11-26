@@ -1,0 +1,123 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*" # Trigger on tags starting with 'v' (e.g., v1.0.0)
+
+jobs:
+  build_bluepill:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+
+    - name: Add rust target
+      working-directory: ./doggie_bluepill
+      run: rustup target add thumbv7m-none-eabi
+
+    - name: Install prove-rs
+      working-directory: ./doggie_bluepill
+      run: cargo install probe-rs
+
+    - name: Build doggie bluepill
+      working-directory: ./doggie_bluepill
+      run: cargo build --release --all
+
+    - name: Upload binaries
+      uses: actions/upload-artifact@v3
+      with:
+        name: doggie-bluepill-binaries
+        path: |
+          ./doggie_bluepill/target/thumbv7m-none-eabi/release/doggie_bluepill_usb_mcp
+          ./doggie_bluepill/target/thumbv7m-none-eabi/release/doggie_bluepill_uart_mcp
+          ./doggie_bluepill/target/thumbv7m-none-eabi/release/doggie_bluepill_uart_int
+  #
+  # build_pico:
+  #   runs-on: ubuntu-latest
+  #
+  #   steps:
+  #   - name: Checkout repository
+  #     uses: actions/checkout@v3
+  #
+  #   - name: Set up Rust
+  #     uses: actions-rs/toolchain@v1
+  #     with:
+  #       toolchain: stable
+  #       override: true
+  #
+  #   - name: Build doggie_pico
+  #     working-directory: ./doggie_pico
+  #     run: cargo build --release
+  #
+  #   - name: Upload binaries
+  #     uses: actions/upload-artifact@v3
+  #     with:
+  #       name: doggie-pico-binaries
+  #       path: |
+  #         ./doggie_pico/target/release/*
+  #
+  # build_esp32:
+  #   runs-on: ubuntu-latest
+  #
+  #   steps:
+  #   - name: Checkout repository
+  #     uses: actions/checkout@v3
+  #
+  #   - name: Set up Rust
+  #     uses: actions-rs/toolchain@v1
+  #     with:
+  #       toolchain: stable
+  #       override: true
+  #
+  #   - name: Build doggie_esp32
+  #     working-directory: ./doggie_esp32
+  #     run: cargo build --release
+  #
+  #   - name: Upload binaries
+  #     uses: actions/upload-artifact@v3
+  #     with:
+  #       name: doggie-esp32-binaries
+  #       path: |
+  #         ./doggie_esp32/target/release/*
+
+  release:
+    runs-on: ubuntu-latest
+    needs:
+    - build_bluepill
+    # - build_pico
+    # - build_esp32
+
+    steps:
+    # Step 1: Checkout the repository
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # Step 2: Download artifacts
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: doggie-bluepill-binaries
+
+    # Step 3: Create GitHub Release
+    - name: Create GitHub Release
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: doggie-bluepill-binaries
+        # - doggie-pico-binaries
+        # - doggie-esp32-binaries
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ github.ref_name }}
+        name: "Doggie Release ${{ github.ref_name }}"
+        body: |
+          This release contains the binaries for:
+          - Doggie Bluepill
+          # - Doggie Pico
+          # - Doggie ESP32
