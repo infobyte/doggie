@@ -29,6 +29,15 @@ The ESP32 implementation supports the following configuration:
 
 ---
 
+## **How to Flash a Release**
+1. Install `espflash`
+    ```
+    cargo install espflash
+    cargo install cargo-espflash
+    ```
+2. Download the release `doggie_esp32`.
+3. Run `espflash flash --monitor -L defmt doggie_esp32`
+ 
 ## **How to Compile and Flash**
 
 ### **Prerequisites**  
