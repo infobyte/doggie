@@ -92,13 +92,13 @@ The Bluepill implementation supports the following configurations:
 2. Build and flash with selected features
     * USB and MCP2515:
         ```
-        cargo run --release
+        cargo run --release --bin doggie_bluepill_usb_mcp
         ```
     * UART and MCP2515:
         ```
-        cargo run --release --no-default-features --features "uart,mcp2515"
+        cargo run --release --bin doggie_bluepill_uart_mcp
         ```
     * UART and internal CAN:
         ```
-        cargo run --release --no-default-features --features "uart,internal_can"
+        cargo run --release --bin doggie_bluepill_uart_int
         ```

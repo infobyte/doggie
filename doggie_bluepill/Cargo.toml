@@ -3,12 +3,18 @@ edition = "2021"
 name = "doggie_bluepill"
 version = "0.1.0"
 
-[features]
-uart = []
-usb = []
-mcp2515 = []
-internal_can = []
-default = ["usb", "mcp2515"]
+[[bin]]
+name = "doggie_bluepill_usb_mcp"
+path = "src/doggie_bluepill_usb_mcp.rs"
+
+[[bin]]
+name = "doggie_bluepill_uart_mcp"
+path = "src/doggie_bluepill_uart_mcp.rs"
+
+[[bin]]
+name = "doggie_bluepill_uart_int"
+path = "src/doggie_bluepill_uart_int.rs"
+
 
 [dependencies]
 # Change stm32f103c8 to your chip name, if necessary.
