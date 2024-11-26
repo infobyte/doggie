@@ -116,7 +116,7 @@ jobs:
 
     # Step 2: Download artifacts
     - name: Download build artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         pattern: doggie-*-binaries
         merge-multiple: true
