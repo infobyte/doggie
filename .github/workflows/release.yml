@@ -117,10 +117,6 @@ jobs:
     # Step 2: Download artifacts
     - name: Download build artifacts
       uses: actions/download-artifact@v3
-      with:
-        name: doggie-bluepill-binaries
-        name: doggie-pico-binaries
-        name: doggie-esp32-binaries
 
     # Step 3: Create GitHub Release
     - name: Create GitHub Release
