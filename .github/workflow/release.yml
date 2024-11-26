@@ -27,36 +27,18 @@ jobs:
       working-directory: ./doggie_bluepill
       run: cargo install probe-rs
 
-    - name: Create output dir
-      run: mkdir "doggie_bluepill_release"
-
-    - name: Build doggie_bluepill usb-mcp
+    - name: Build doggie bluepill
       working-directory: ./doggie_bluepill
-      run: cargo build --release --no-default-features --features "usb,mcp2515"
-
-    - name: Save build
-      run: mv ./doggie_bluepill/target/thumbv7m-none-eabi/release/doggie_bluepill "./doggie_bluepill_release/doggie_${{ github.ref_name }}_bluepill_usb_mcp.bin"
-
-    - name: Build doggie_bluepill uart-mcp
-      working-directory: ./doggie_bluepill
-      run: cargo run --release --no-default-features --features "uart,mcp2515"
-
-    - name: Save build
-      run: mv ./doggie_bluepill/target/thumbv7m-none-eabi/release/doggie_bluepill "./doggie_bluepill_release/doggie_${{ github.ref_name }}_bluepill_uart_mcp.bin"
-
-    - name: Build doggie_bluepill uart-internal
-      working-directory: ./doggie_bluepill
-      run: cargo run --release --no-default-features --features "uart,internal_can"
-
-    - name: Save build
-      run: mv ./doggie_bluepill/target/thumbv7m-none-eabi/release/doggie_bluepill "./doggie_bluepill_release/doggie_${{ github.ref_name }}_bluepill_uart_internal.bin"
+      run: cargo build --release --all
 
     - name: Upload binaries
       uses: actions/upload-artifact@v3
       with:
         name: doggie-bluepill-binaries
         path: |
-          ./doggie_bluepill_release/*
+          ./doggie_bluepill/target/thumbv7m-none-eabi/release/doggie_bluepill_usb_mcp
+          ./doggie_bluepill/target/thumbv7m-none-eabi/release/doggie_bluepill_uart_mcp
+          ./doggie_bluepill/target/thumbv7m-none-eabi/release/doggie_bluepill_uart_int
   #
   # build_pico:
   #   runs-on: ubuntu-latest
