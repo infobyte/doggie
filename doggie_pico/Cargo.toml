@@ -3,10 +3,13 @@ name = "doggie_pico"
 version = "0.1.0"
 edition = "2021"
 
-[features]
-uart = []
-usb = []
-default = ["usb"]
+[[bin]]
+name = "doggie_pico_usb_mcp"
+path = "src/doggie_pico_usb_mcp.rs"
+
+[[bin]]
+name = "doggie_pico_uart_mcp"
+path = "src/doggie_pico_uart_mcp.rs"
 
 [dependencies]
 embassy-rp = { version = "0.2.0", features = ["defmt", "unstable-pac", "time-driver", "critical-section-impl", "rp2040"] }
