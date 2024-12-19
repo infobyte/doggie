@@ -17,7 +17,7 @@ pub fn create_spi<'d>(
     // Setup SPI
     let mut spi_config = spi::Config::default();
     spi_config.mode = MODE_0;
-    spi_config.frequency = Hertz(1_000_000);
+    spi_config.frequency = Hertz(10_000_000);
     spi_config.miso_pull = Pull::Down;
 
     let stm_spi = spi::Spi::new_blocking(spi, miso, mosi, clk, spi_config);
