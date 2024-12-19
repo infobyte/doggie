@@ -4,35 +4,32 @@
 mod soft_timer;
 mod spi;
 mod spi_device;
+mod unique_id;
 mod usb_device;
 
-use soft_timer::SoftTimer;
-use spi_device::CustomSpiDevice;
+use unique_id::serial_number;
+
 use defmt::info;
+use doggie_core::{
+    core_create_tasks, core_run, Bsp, CanChannel, CanChannelReceiver, CanChannelSender, Core,
+};
 use embassy_executor::Spawner;
 use embassy_rp::{
-    bind_interrupts, 
-    peripherals::{SPI0, USB}, 
+    bind_interrupts,
+    peripherals::{SPI0, USB},
     spi::Blocking,
-    usb::{Driver, InterruptHandler}
+    usb::{Driver, InterruptHandler},
 };
 use embassy_usb::{
     class::cdc_acm::{CdcAcmClass, State},
-    UsbDevice
+    UsbDevice,
 };
 use mcp2515::MCP2515;
-use {defmt_rtt as _, panic_probe as _};
+use soft_timer::SoftTimer;
+use spi_device::CustomSpiDevice;
 use static_cell::StaticCell;
 use usb_device::UsbWrapper;
-use doggie_core::{
-    core_create_tasks,
-    core_run,
-    Bsp,
-    Core,
-    CanChannel,
-    CanChannelReceiver,
-    CanChannelSender
-};
+use {defmt_rtt as _, panic_probe as _};
 
 bind_interrupts!(struct Irqs {
     USBCTRL_IRQ => InterruptHandler<USB>;
@@ -47,6 +44,8 @@ async fn usb_task(mut usb: UsbDevice<'static, Driver<'static, USB>>) -> ! {
 async fn main(spawner: Spawner) {
     let p = embassy_rp::init(Default::default());
 
+    let device_id: &str = serial_number(p.FLASH, p.DMA_CH0);
+
     let serial = {
         // Create the driver, from the HAL.
         let driver = Driver::new(p.USB, Irqs);
@@ -56,7 +55,7 @@ async fn main(spawner: Spawner) {
             let mut config = embassy_usb::Config::new(0xc0de, 0xcafe);
             config.manufacturer = Some("Aznarez/Gianatiempo");
             config.product = Some("DoggiePico");
-            config.serial_number = Some("1337");
+            config.serial_number = Some(device_id);
             config.max_power = 100;
             config.max_packet_size_0 = 64;
 
@@ -104,7 +103,7 @@ async fn main(spawner: Spawner) {
 
         let serial = UsbWrapper::new(class);
 
-        info!("USB init ok");
+        info!("USB init ok with serial number: {}", device_id);
 
         serial
     };
@@ -112,7 +111,7 @@ async fn main(spawner: Spawner) {
     // Setup SPI
     let spi = create_default_spi!(p);
     info!("SPI init ok");
-    
+
     // Create SoftTimer
     let delay = SoftTimer {};
 
@@ -120,7 +119,7 @@ async fn main(spawner: Spawner) {
     // let bsp = Bsp::new(can, uart);
     let bsp = Bsp::new_with_mcp2515(spi, delay, serial);
 
-    info!("MCP2515 init ok");    
+    info!("MCP2515 init ok");
 
     // Create and run the Doggie core
     let core = Core::new(spawner, bsp);
@@ -131,7 +130,4 @@ async fn main(spawner: Spawner) {
 type SerialType = UsbWrapper<'static>;
 type CanType = MCP2515<CustomSpiDevice<'static, SPI0, Blocking>>;
 
-core_create_tasks!(
-    SerialType,
-    CanType
-);
+core_create_tasks!(SerialType, CanType);
