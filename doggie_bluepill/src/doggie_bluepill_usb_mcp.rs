@@ -34,6 +34,7 @@ use embassy_usb::{
     class::cdc_acm::{CdcAcmClass, State},
     Builder, UsbDevice,
 };
+use static_cell::StaticCell;
 
 static mut STATE: Option<RefCell<State>> = None;
 
@@ -79,34 +80,44 @@ async fn main(spawner: Spawner) {
         let driver = Driver::new(p.USB, UsbIrqs, p.PA12, p.PA11);
 
         // Create embassy-usb Config
-        let config = embassy_usb::Config::new(0xc0de, 0xcafe);
-        //config.max_packet_size_0 = 64;
+        let config = {
+            let mut config = embassy_usb::Config::new(0xc0de, 0xcafe);
+            config.manufacturer = Some("Aznarez/Gianatiempo");
+            config.product = Some("DoggieBluepill");
+            config.serial_number = Some("1337");
+            config.max_power = 100;
+            config.max_packet_size_0 = 64;
+            config.device_class = 0xEF;
+            config.device_sub_class = 0x02;
+            config.device_protocol = 0x01;
+            config.composite_with_iads = true;
+            config
+        };
 
         // Create embassy-usb DeviceBuilder using the driver and config.
         // It needs some buffers for building the descriptors.
-        static mut USB_CONFIG_DESC: &mut [u8; 256] = &mut [0; 256];
-        static mut USB_BOS_DESC: &mut [u8; 256] = &mut [0; 256];
-        static mut USB_CTRL_BUF: &mut [u8; 7] = &mut [0; 7];
+        let mut builder = {
+            static CONFIG_DESCRIPTOR: StaticCell<[u8; 256]> = StaticCell::new();
+            static BOS_DESCRIPTOR: StaticCell<[u8; 256]> = StaticCell::new();
+            static CONTROL_BUF: StaticCell<[u8; 64]> = StaticCell::new();
 
-        // let mut state: State = State::new();
-        unsafe {
-            STATE.replace(RefCell::new(State::new()));
-        }
-
-        let mut builder = unsafe {
-            Builder::new(
+            let builder = embassy_usb::Builder::new(
                 driver,
                 config,
-                USB_CONFIG_DESC,
-                USB_BOS_DESC,
+                CONFIG_DESCRIPTOR.init([0; 256]),
+                BOS_DESCRIPTOR.init([0; 256]),
                 &mut [], // no msos descriptors
-                USB_CTRL_BUF,
-            )
+                CONTROL_BUF.init([0; 64]),
+            );
+            builder
         };
 
         // Create classes on the builder.
-        let mut class =
-            unsafe { CdcAcmClass::new(&mut builder, STATE.as_mut().unwrap().get_mut(), 64) };
+        let mut class = {
+            static STATE: StaticCell<State> = StaticCell::new();
+            let state = STATE.init(State::new());
+            CdcAcmClass::new(&mut builder, state, 64)
+        };
 
         // Build the builder.
         let usb = builder.build();
