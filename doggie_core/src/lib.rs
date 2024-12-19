@@ -69,7 +69,7 @@ where
         mut serial: SERIAL,
         in_channel: CanChannelReceiver,
         out_channel: CanChannelSender,
-    ) {
+    ) -> ! {
         let mut serial_in_buf: [u8; 64] = [0; 64];
         // let mut serial_out_buf: [u8; 64] = [0; 64]; // This is not used because slcan doesn't
         // need it now, but i hope in the future
@@ -94,7 +94,7 @@ where
                         match slcan_serializer.from_byte(*byte) {
                             Ok(SlcanCommand::IncompleteMessage) => {
                                 // Do nothing
-                                info!("IncompleteMessage");
+                                // info!("IncompleteMessage");
                             }
                             Ok(SlcanCommand::OpenChannel) => {
                                 serial.write(b"\r").await.unwrap();
@@ -172,7 +172,7 @@ where
         mut can: CAN,
         in_channel: CanChannelReceiver,
         out_channel: CanChannelSender,
-    ) {
+    ) -> ! {
         info!("Init: can_task");
         loop {
             // Try to receive a message

@@ -38,7 +38,6 @@ impl<'d> Read for UsbWrapper<'d> {
 
 impl<'d> Write for UsbWrapper<'d> {
     async fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
-        println!("WRITING: {}", buf);
         match self.usb.write_packet(buf).await {
             Err(_) => {
                 error!("Error on the usb write");
