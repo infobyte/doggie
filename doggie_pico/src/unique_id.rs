@@ -14,33 +14,36 @@ fn get_serial_number(flash: FLASH, dma: DMA_CH0) -> u64 {
     u64::from_be_bytes(uid)
 }
 
-fn u64_to_str(mut n: u64) -> &'static str {
+fn u64_to_str(mut raw_number: u64) -> &'static str {
     // A static buffer to hold the string
     static mut BUF: [u8; 20] = [0; 20]; // 20 bytes is enough to hold the max length of u64
-    let mut i = 19;
+    let mut digits: [u8; 20] = [b'0'; 20];
 
-    // Handle the case when n is 0
-    if n == 0 {
+    if raw_number == 0 {
         unsafe {
-            BUF[19] = b'0';
+            BUF[0] = b'0';
         }
-        return unsafe { core::str::from_utf8_unchecked(&BUF[19..20]) };
+        return unsafe { core::str::from_utf8_unchecked(&BUF[0..1]) };
     }
 
-    // Convert the number to a string in reverse order
-    while n > 0 {
-        let digit = (n % 10) as u8 + b'0';
+    let mut pos = 0;
+    while raw_number > 0 && pos < 20 {
+        digits[pos] = b'0' + (raw_number % 10) as u8;
+        raw_number /= 10;
+        pos += 1;
+    }
+
+    for i in 0..pos {
         unsafe {
-            BUF[i] = digit;
+            BUF[pos - 1 - i] = digits[i];
         }
-        i -= 1;
-        n /= 10;
     }
 
     // Return the slice that points to the start of the number string
-    unsafe { core::str::from_utf8_unchecked(&BUF[i + 1..20]) }
+    unsafe { core::str::from_utf8_unchecked(&BUF[0..pos]) }
 }
 
 pub fn serial_number(flash: FLASH, dma: DMA_CH0) -> &'static str {
-    u64_to_str(get_serial_number(flash, dma))
+    let raw_serial_number = get_serial_number(flash, dma);
+    u64_to_str(raw_serial_number)
 }

@@ -16,10 +16,12 @@ use doggie_core::{
 use embassy_executor::Spawner;
 use embassy_rp::{
     bind_interrupts,
+    gpio::{Level, Output},
     peripherals::{SPI0, USB},
     spi::Blocking,
     usb::{Driver, InterruptHandler},
 };
+use embassy_time::Timer;
 use embassy_usb::{
     class::cdc_acm::{CdcAcmClass, State},
     UsbDevice,
@@ -36,17 +38,38 @@ bind_interrupts!(struct Irqs {
 });
 
 #[embassy_executor::task]
+async fn blink_task(mut led: Output<'static>) {
+    loop {
+        led.set_high();
+        Timer::after_millis(250).await;
+
+        led.set_low();
+        Timer::after_millis(250).await;
+    }
+}
+
+#[embassy_executor::task]
 async fn usb_task(mut usb: UsbDevice<'static, Driver<'static, USB>>) -> ! {
     usb.run().await
 }
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
+    info!("Device initialization");
     let p = embassy_rp::init(Default::default());
+
+    let led = Output::new(p.PIN_25, Level::Low);
+    spawner.spawn(blink_task(led)).unwrap();
 
     let device_id: &str = serial_number(p.FLASH, p.DMA_CH0);
 
+    info!("Serial number: {}", device_id);
+
     let serial = {
+        info!("USB init");
+
+        Timer::after_millis(2000).await;
+
         // Create the driver, from the HAL.
         let driver = Driver::new(p.USB, Irqs);
 
@@ -99,11 +122,12 @@ async fn main(spawner: Spawner) {
         // Run the USB device.
         spawner.spawn(usb_task(usb)).unwrap();
 
+        info!("Waiting for USB connection");
         class.wait_connection().await;
 
         let serial = UsbWrapper::new(class);
 
-        info!("USB init ok with serial number: {}", device_id);
+        info!("USB init ok");
 
         serial
     };
