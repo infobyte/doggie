@@ -8,11 +8,11 @@ use embassy_stm32::{
 use crate::spi_device::CustomSpiDevice;
 
 pub fn create_spi<'d>(
-    spi: peripherals::SPI1,
-    miso: peripherals::PA5,
-    mosi: peripherals::PA7,
-    clk: peripherals::PA6,
-    cs: peripherals::PA4,
+    spi: peripherals::SPI2,
+    miso: peripherals::PB14,
+    mosi: peripherals::PB15,
+    clk: peripherals::PB13,
+    cs: peripherals::PB12,
 ) -> CustomSpiDevice<'d, mode::Blocking> {
     // Setup SPI
     let mut spi_config = spi::Config::default();
@@ -20,7 +20,7 @@ pub fn create_spi<'d>(
     spi_config.frequency = Hertz(10_000_000);
     spi_config.miso_pull = Pull::Down;
 
-    let stm_spi = spi::Spi::new_blocking(spi, miso, mosi, clk, spi_config);
+    let stm_spi = spi::Spi::new_blocking(spi, clk, mosi, miso, spi_config);
 
     let cs = Output::new(cs, Level::High, Speed::VeryHigh);
 
@@ -30,6 +30,6 @@ pub fn create_spi<'d>(
 #[macro_export]
 macro_rules! create_default_spi {
     ($p:expr) => {{
-        spi::create_spi($p.SPI1, $p.PA5, $p.PA7, $p.PA6, $p.PA4)
+        spi::create_spi($p.SPI2, $p.PB14, $p.PB15, $p.PB13, $p.PB12)
     }};
 }
