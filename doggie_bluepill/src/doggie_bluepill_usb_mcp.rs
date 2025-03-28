@@ -15,7 +15,6 @@ use doggie_core::{
     core_create_tasks, core_run, Bsp, CanChannel, CanChannelReceiver, CanChannelSender, Core,
 };
 
-use core::cell::RefCell;
 use defmt::info;
 use mcp2515::MCP2515;
 use {defmt_rtt as _, panic_probe as _};
@@ -32,11 +31,9 @@ use embassy_stm32::{
 use embassy_time::Timer;
 use embassy_usb::{
     class::cdc_acm::{CdcAcmClass, State},
-    Builder, UsbDevice,
+    UsbDevice,
 };
 use static_cell::StaticCell;
-
-static mut STATE: Option<RefCell<State>> = None;
 
 bind_interrupts!(struct UsbIrqs {
     USB_LP_CAN1_RX0 => usb::InterruptHandler<peripherals::USB>;
@@ -119,16 +116,20 @@ async fn main(spawner: Spawner) {
             CdcAcmClass::new(&mut builder, state, 64)
         };
 
+        info!("Building USB");
         // Build the builder.
         let usb = builder.build();
 
         // Run the USB device.
         spawner.spawn(usb_task(usb)).unwrap();
 
+        info!("Waiting for USB connection");
         class.wait_connection().await;
 
         UsbWrapper::new(class)
     };
+
+    info!("USB initialized");
 
     // Delay for the MCP2515
     let delay = SoftTimer {};

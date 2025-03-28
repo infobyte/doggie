@@ -68,8 +68,6 @@ async fn main(spawner: Spawner) {
     let serial = {
         info!("USB init");
 
-        Timer::after_millis(2000).await;
-
         // Create the driver, from the HAL.
         let driver = Driver::new(p.USB, Irqs);
 
