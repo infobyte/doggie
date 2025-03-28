@@ -8,11 +8,14 @@ mod types;
 
 pub use bsp::Bsp;
 pub use can::{CanBitrates, CanDevice};
+use defmt::warn;
+use embedded_can::Error;
+use embedded_can::ErrorKind;
 pub use types::*;
 
 use slcan::{SlcanCommand, SlcanError};
 
-use defmt::{error, info};
+use defmt::{debug, error, info};
 
 use embassy_executor::Spawner;
 use embassy_futures::select::select;
@@ -70,7 +73,7 @@ where
         in_channel: CanChannelReceiver,
         out_channel: CanChannelSender,
     ) -> ! {
-        let mut serial_in_buf: [u8; 64] = [0; 64];
+        let mut serial_in_buf: [u8; 256] = [0; 256];
         // let mut serial_out_buf: [u8; 64] = [0; 64]; // This is not used because slcan doesn't
         // need it now, but i hope in the future
         let mut slcan_serializer = slcan::SlcanSerializer::new();
@@ -89,32 +92,30 @@ where
             match select(serial_future, can_future).await {
                 // n bytes has ben received from serial
                 Either::First(serial_recv_size) => {
-                    let size = serial_recv_size.unwrap();
+                    let size = match serial_recv_size {
+                        Ok(size) => size,
+                        Err(_) => {
+                            error!("Error reading from serial");
+                            continue;
+                        }
+                    };
+
                     for byte in &serial_in_buf[0..size] {
-                        match slcan_serializer.from_byte(*byte) {
+                        let res: Option<&[u8]> = match slcan_serializer.from_byte(*byte) {
                             Ok(SlcanCommand::IncompleteMessage) => {
                                 // Do nothing
-                                // info!("IncompleteMessage");
+                                // warn!("IncompleteMessage");
+                                None
                             }
-                            Ok(SlcanCommand::OpenChannel) => {
-                                serial.write(b"\r").await.unwrap();
-                            }
-                            Ok(SlcanCommand::CloseChannel) => {
-                                serial.write(b"\r").await.unwrap();
-                            }
-                            Ok(SlcanCommand::ReadStatusFlags) => {
-                                serial.write(b"F00\r").await.unwrap();
-                            }
+                            Ok(SlcanCommand::OpenChannel) => Some(b"\r"),
+                            Ok(SlcanCommand::CloseChannel) => Some(b"\r"),
+                            Ok(SlcanCommand::ReadStatusFlags) => Some(b"F00\r"),
                             Ok(SlcanCommand::Listen) => {
                                 listen_only = true;
-                                serial.write(b"\r").await.unwrap();
+                                Some(b"\r")
                             }
-                            Ok(SlcanCommand::Version) => {
-                                serial.write(b"V1337\r").await.unwrap();
-                            }
-                            Ok(SlcanCommand::SerialNo) => {
-                                serial.write(b"N1337\r").await.unwrap();
-                            }
+                            Ok(SlcanCommand::Version) => Some(b"V1337\r"),
+                            Ok(SlcanCommand::SerialNo) => Some(b"N1337\r"),
                             Ok(SlcanCommand::Timestamp(enabled)) => {
                                 if !timestamp_enabled && enabled {
                                     info!("Timestamp started");
@@ -123,7 +124,7 @@ where
 
                                 timestamp_enabled = enabled;
 
-                                serial.write(b"\r").await.unwrap();
+                                Some(b"\r")
                             }
                             Ok(cmd) => {
                                 if !listen_only {
@@ -131,14 +132,27 @@ where
                                 } else {
                                     error!("Cannot send frame in listen only mode")
                                 }
+
+                                None
                             }
-                            Err(e) => match e {
-                                SlcanError::InvalidCommand => error!("Invalid slcan command"),
-                                SlcanError::CommandNotImplemented => {
-                                    error!("Command not implemented")
-                                }
-                                SlcanError::MessageTooLong => error!("Command to long"),
+                            Err(e) => {
+                                match e {
+                                    SlcanError::InvalidCommand => error!("Invalid slcan command"),
+                                    SlcanError::CommandNotImplemented => {
+                                        error!("Command not implemented")
+                                    }
+                                    SlcanError::MessageTooLong => error!("Command to long"),
+                                };
+                                None
+                            }
+                        };
+
+                        match res {
+                            Some(res_str) => match serial.write(res_str).await {
+                                Ok(_) => {}
+                                Err(_) => error!("Error writing response"),
                             },
+                            None => {}
                         };
                     }
                 }
@@ -155,7 +169,13 @@ where
                             {
                                 let mut start = 0;
                                 while start != size {
-                                    start += serial.write(&buffer[start..size]).await.unwrap();
+                                    start += match serial.write(&buffer[start..size]).await {
+                                        Ok(size) => size,
+                                        Err(_) => {
+                                            error!("Error writing to serial, up to retry");
+                                            0
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -178,7 +198,7 @@ where
             // Try to receive a message
             match can.receive() {
                 Ok(frame) => {
-                    info!("New frame received");
+                    debug!("New frame received");
                     let new_frame = slcan::CanFrame::new(
                         frame.id(),
                         frame.is_remote_frame(),
@@ -188,20 +208,37 @@ where
 
                     out_channel.send(SlcanCommand::Frame(new_frame)).await;
                 }
-                Err(_) => {
-                    // Do nothing for now, but it should log
-                }
+                Err(e) => match e.kind() {
+                    ErrorKind::Overrun => {
+                        error!("Overrun error received from CAN controller");
+                    }
+                    _ => {}
+                },
             }
 
             if !in_channel.is_empty() {
                 match in_channel.receive().await {
                     SlcanCommand::Frame(frame) => {
-                        info!("Sending new frame");
+                        debug!("Sending new frame");
 
                         let new_frame =
                             CAN::Frame::new(frame.id, &frame.data[0..frame.dlc]).unwrap();
 
-                        can.transmit(&new_frame).unwrap();
+                        while let Err(e) = can.transmit(&new_frame) {
+                            match e.kind() {
+                                ErrorKind::Overrun => {
+                                    error!("Overrun error received from CAN controller");
+                                }
+                                ErrorKind::Other => {
+                                    error!("Other error received from CAN controller");
+                                }
+                                _ => {
+                                    error!("Transmition failed, up to retry");
+                                }
+                            };
+
+                            yield_now().await;
+                        }
                     }
                     SlcanCommand::FilterId(id) => can.set_filter(id),
                     SlcanCommand::FilterMask(mask) => can.set_filter(mask),
@@ -213,6 +250,7 @@ where
                     }
                     _ => {
                         // We don't expect other message type
+                        warn!("SlcanCommand not supported");
                     }
                 }
             }
