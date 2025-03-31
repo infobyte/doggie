@@ -89,7 +89,7 @@ jobs:
         override: true
 
     - name: Set up toolchain
-      run: cargo install ldproxy && cargo install espup && espup install
+      run: cargo install ldproxy && cargo install espup && espup install --toolchain-version 1.82.0.1
 
     - name: Build doggie_esp32
       working-directory: ./doggie_esp32
