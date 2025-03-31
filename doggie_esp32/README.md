@@ -65,7 +65,7 @@ As the ESP32 doesn't have 5v tolerant GPIOs, we shoud modify the MCP2515 or use 
     ```
     cargo install ldproxy
     cargo install espup
-    espup install
+    espup install --toolchain-version 1.82.0.1
     . $HOME/export-esp.sh           # Or add to .zshrc/.bashrc
     ```
 
