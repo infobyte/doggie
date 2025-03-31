@@ -17,14 +17,14 @@ The Bluepill implementation supports the following configurations:
    - This configuration allows the device to interface with a CAN network while communicating with the host via USB.
 
     __Connections__:  
-    | Function | Bluepill | MCP2515 |
-    | -------- | -------- | ------- |
-    |   Vcc    |    5v    |    5v   |
-    |   GND    |    GND   |    GND  |
-    |   MOSI   |    A7    |    SI   |
-    |   MISO   |    A6    |    SO   |
-    |   Clock  |    A5    |    SCK  |
-    |   CS     |    A4    |    CS   |
+    | Function |  Bluepill  | MCP2515 |
+    | -------- | ---------- | ------- |
+    |   Vcc    |    5v      |    5v   |
+    |   GND    |    GND     |    GND  |
+    |   MOSI   |    PB15    |    SI   |
+    |   MISO   |    PB14    |    SO   |
+    |   Clock  |    PB13    |    SCK  |
+    |   CS     |    PB12    |    CS   |
 
     ![alt text](../docs/bluepill_usb_mcp.png)
 
@@ -34,16 +34,16 @@ The Bluepill implementation supports the following configurations:
    - This configuration is useful when the USB port is unavailable or when using a serial connection instead of USB.
 
     __Connections__:  
-    | Function | Bluepill | MCP2515 | USB-UART |
-    | -------- | -------- | ------- | -------- |
-    |   Vcc    |    5v    |    5v   |    5v    |
-    |   GND    |    GND   |    GND  |   GND    |
-    |   MOSI   |    A7    |    SI   |    -     |
-    |   MISO   |    A6    |    SO   |    -     |
-    |   Clock  |    A5    |    SCK  |    -     |
-    |   CS     |    A4    |    CS   |    -     |
-    |   TX     |    A2    |    -    |    RX    |
-    |   RX     |    A3    |    -    |    TX    |   
+    | Function |  Bluepill  | MCP2515 | USB-UART |
+    | -------- | ---------- | ------- | -------- |
+    |   Vcc    |    5v      |    5v   |    5v    |
+    |   GND    |    GND     |    GND  |   GND    |
+    |   MOSI   |    PB15    |    SI   |    -     |
+    |   MISO   |    PB14    |    SO   |    -     |
+    |   Clock  |    PB13    |    SCK  |    -     |
+    |   CS     |    PB12    |    CS   |    -     |
+    |   TX     |    A2      |    -    |    RX    |
+    |   RX     |    A3      |    -    |    TX    |   
 
     ![alt text](../docs/bluepill_uart_mcp.png)
 
@@ -66,6 +66,9 @@ The Bluepill implementation supports the following configurations:
     ![alt text](../docs/bluepill_uart_internal.png)
 
 ---
+
+### Note on MCP2551 compatibility ###
+There is no need to modify the MCP2551 standard module as the bluepill pins selected for the SPI are 5v tolerant.
 
 
 ## **How to flash a release using St-Link v2** ##

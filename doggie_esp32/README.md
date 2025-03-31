@@ -8,24 +8,39 @@ This implementation provides a **CAN Bus to USB adapter** using the **ESP32** mi
 
 ## **Supported Configurations**
 
-The ESP32 implementation supports the following configuration:
+The ESP32 implementation supports the following configuration.
+
+As the ESP32 doesn't have 5v tolerant GPIOs, we shoud modify the MCP2515 or use a logic level shifter in order to make it compatible. Read [MCP2515 module compatibility note](../docs/mcp_mod.md) for more information.
 
 1. **USB, UART0 and MCP2515 (SPI to CAN)**  
    - The **USB** port and the **UART0** port of the ESP32 can be used for communication with the host system.  
    - The **MCP2515** (SPI to CAN) module is used for CAN Bus communication.  
    - This configuration allows the device to interface with a CAN network while communicating with the host via USB.
 
-    __Connections__:  
-    | Function |   ESP32  | MCP2515 |
-    | -------- | -------- | ------- |
-    |   Vcc    |  VIN/5v  |    5v   |
-    |   GND    |   GND    |    GND  |
-    |   MOSI   |   D13    |    SI   |
-    |   MISO   |   D12    |    SO   |
-    |   Clock  |   D14    |    SCK  |
-    |   CS     |   D15    |    CS   |
+    __Connections__ (MCP2515 mod):  
+    | Function |   ESP32  |    MCP2515     |
+    | -------- | -------- | -------------- |
+    |   Vcc 3.3|   3v3    |       VCC      |
+    |   Vcc 5v |  VIN/5v  | Tranceiver Vcc |
+    |   GND    |   GND    |       GND      |
+    |   MOSI   |   D13    |       SI       |
+    |   MISO   |   D12    |       SO       |
+    |   Clock  |   D14    |       SCK      |
+    |   CS     |   D15    |       CS       |
 
-    ![alt text](../docs/esp32_usb.png)
+    ![alt text](../docs/esp32_mcp_mod.png)
+
+    __Connections__ (MCP2515 with level shifter):  
+    | Function |   ESP32  | Level Shifter | MCP2515 |
+    | -------- | -------- | ------------- | ------- |
+    |   Vcc    |  VIN/5v  |        -      |    5v   |
+    |   GND    |   GND    |        -      |    GND  |
+    |   MOSI   |   D13    | <-----------> |    SI   |
+    |   MISO   |   D12    | <-----------> |    SO   |
+    |   Clock  |   D14    | <-----------> |    SCK  |
+    |   CS     |   D15    | <-----------> |    CS   |
+
+    ![alt text](../docs/esp32_mcp_ls.png)
 
 ---
 

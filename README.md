@@ -18,7 +18,7 @@ The project emphasizes **modularity**, allowing users to select from various har
 
 ### CAN Controllers:  
 - Built-in CAN controllers (if supported by the microcontroller)  
-- **MCP2515** (SPI to CAN)  
+- **MCP2515** (SPI to CAN, see [compatibility modification](./docs/mcp_mod.md))  
 
 ### USB/Serial Connectivity:
 - **Microcontroller USB** (native USB support)

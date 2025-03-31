@@ -8,43 +8,75 @@ This implementation provides a **CAN Bus to USB adapter** using the **RP2040** m
 
 ## **Supported Configurations**
 
-The Raspberry Pico implementation supports the following configurations:
+The Raspberry Pico implementation supports the following configurations.
+
+As the RP2040 doesn't have 5v tolerant GPIOs, we shoud modify the MCP2515 or use a logic level shifter in order to make it compatible. Read [MCP2515 module compatibility note](../docs/mcp_mod.md) for more information.
 
 1. **USB and MCP2515 (SPI to CAN)**  
    - The **USB** port of the Pico is used for communication with the host system.  
    - The **MCP2515** (SPI to CAN) module is used for CAN Bus communication.  
    - This configuration allows the device to interface with a CAN network while communicating with the host via USB.
 
-    __Connections__:  
-    | Function |   Pico   | MCP2515 |
-    | -------- | -------- | ------- |
-    |   Vcc    |   VBUS   |    5v   |
-    |   GND    |   GND    |    GND  |
-    |   MOSI   |   GP19   |    SI   |
-    |   MISO   |   GP16   |    SO   |
-    |   Clock  |   GP18   |    SCK  |
-    |   CS     |   GP17   |    CS   |
+    __Connections__ (MCP2515 mod):  
+    | Function |   Pico   |    MCP2515     |
+    | -------- | -------- | -------------- |
+    |   Vcc    |   3.3    |    VCC         |
+    |   Vcc 5v |   VBUS   | Tranceiver VCC |
+    |   GND    |   GND    |    GND         |
+    |   MOSI   |   GP19   |    SI          |
+    |   MISO   |   GP16   |    SO          |
+    |   Clock  |   GP18   |    SCK         |
+    |   CS     |   GP17   |    CS          |
 
-    ![alt text](../docs/pico_usb_mcp2515.png)
+    ![alt text](../docs/pico_mcp_mod.png)
+
+    __Connections__ (MCP2515 with level shifter):  
+    | Function |   Pico   | Level Shifter | MCP2515 |
+    | -------- | -------- | ------------- | ------- |
+    |   Vcc    |   VBUS   |               |    VCC  |
+    |   GND    |   GND    |               |    GND  |
+    |   MOSI   |   GP19   | <-----------> |    SI   |
+    |   MISO   |   GP16   | <-----------> |    SO   |
+    |   Clock  |   GP18   | <-----------> |    SCK  |
+    |   CS     |   GP17   | <-----------> |    CS   |
+
+    ![alt text](../docs/pico_mcp_ls.png)
 
 2. **UART and MCP2515 (SPI to CAN)**  
    - The **UART** port of the Pico is used to communicate with the host system.  
    - The **MCP2515** (SPI to CAN) module is used for CAN Bus communication.  
    - This configuration is useful when the USB port is unavailable or when using a serial connection instead of USB.
 
-    __Connections__:  
-    | Function |   Pico   | MCP2515 | USB-UART |
-    | -------- | -------- | ------- | -------- |
-    |   Vcc    |   VBUS   |    5v   |    5v    |
-    |   GND    |   GND    |    GND  |   GND    |
-    |   MOSI   |   GP19   |    SI   |    -     |
-    |   MISO   |   GP16   |    SO   |    -     |
-    |   Clock  |   GP18   |    SCK  |    -     |
-    |   CS     |   GP17   |    CS   |    -     |
-    |   TX     |   GP0    |    -    |    RX    |
-    |   RX     |   GP1    |    -    |    TX    |   
+    __Connections__ (MCP2515 mod):  
+    | Function |   Pico   |    MCP2515     | USB-UART |
+    | -------- | -------- | -------------- | -------- |
+    |   Vcc    |   3.3    |       VCC      |    -     |
+    |   Vcc 5v |   VBUS   | Tranceiver VCC |    5v    |
+    |   MOSI   |   GP19   |       SI       |    -     |
+    |   MISO   |   GP16   |       SO       |    -     |
+    |   Clock  |   GP18   |       SCK      |    -     |
+    |   CS     |   GP17   |       CS       |    -     |
+    |   TX     |   GP0    |        -       |    RX    |
+    |   RX     |   GP1    |        -       |    TX    |   
 
-    ![alt text](../docs/pico_serial_mcp2515.png)
+    ![alt text](../docs/pico_mcp_mod_uart.png)
+
+
+    __Connections__ (MCP2515 with level shifter):  
+    | Function |   Pico   | Level Shifter | MCP2515 | USB-UART |
+    | -------- | -------- | ------------- | ------- | -------- |
+    |   Vcc    |   VBUS   |               |    VCC  |   GND    |
+    |   GND    |   GND    |               |    GND  |    -     |
+    |   MOSI   |   GP19   | <-----------> |    SI   |    -     |
+    |   MISO   |   GP16   | <-----------> |    SO   |    -     |
+    |   Clock  |   GP18   | <-----------> |    SCK  |    -     |
+    |   CS     |   GP17   | <-----------> |    CS   |    -     |
+    |   TX     |   GP0    |               |    -    |    RX    |
+    |   RX     |   GP1    |               |    -    |    TX    |  
+
+
+    ![alt text](../docs/pico_mcp_ls_uart.png)
+
 
 ---
 
@@ -123,6 +155,8 @@ curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/relea
     ![alt text](../docs/pico_probe.png)
 
     Note that you will be using the probe as a SWD programer and as a UART bridge, so you must compile doggie using the `uart` feature.
+
+    __Make the modification to the MCP2515 or use a logic level shifter__
 
 
 ### **Compile and Flash the Firmware:**
