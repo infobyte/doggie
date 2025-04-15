@@ -1,0 +1,22 @@
+
+[package]
+name = "evil_core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+defmt = "0.3"
+embedded-hal = "1.0.0"
+embedded-can = "0.4.1"
+mcp2515 = "0.3.0"
+
+[profile.dev]
+opt-level = 3
+lto = true
+debug = 2
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
+debug = 0
