@@ -15,13 +15,17 @@ path = "src/doggie_bluepill_uart_mcp.rs"
 name = "doggie_bluepill_uart_int"
 path = "src/doggie_bluepill_uart_int.rs"
 
+[[bin]]
+name = "evil_bluepill"
+path = "src/evil_bluepill.rs"
+
 
 [dependencies]
 # Change stm32f103c8 to your chip name, if necessary.
 embassy-stm32 = { version = "0.1.0", features = [ "defmt", "stm32f103c8", "unstable-pac", "memory-x", "time-driver-any" ]  }
 embassy-sync = { version = "0.6.0", features = ["defmt"] }
 embassy-executor = { version = "0.6.1", features = ["arch-cortex-m", "executor-thread", "defmt", "integrated-timers"] }
-embassy-time = { version = "0.3.2", features = ["defmt", "defmt-timestamp-uptime", "tick-hz-32_768"] }
+embassy-time = { version = "0.3.2", features = ["defmt", "defmt-timestamp-uptime", "tick-hz-72_000_000"] }
 embassy-usb = { version = "0.3.0", features = ["defmt"] }
 embassy-futures = { version = "0.1.0" }
 
@@ -37,6 +41,7 @@ static_cell = "2.0.0"
 
 slcan = { version = "0.1.0", path = "../slcan"}
 doggie_core = { version = "0.1.0", path = "../doggie_core"}
+evil_core = { version = "0.1.0", path = "../evil_core"}
 
 mcp2515 = "0.3.0"
 embedded-io = "0.6.1"
@@ -54,11 +59,12 @@ embassy-futures = { git = "https://github.com/embassy-rs/embassy", rev = "d7692b
 
 
 [profile.dev]
-opt-level = "s"
-# strip = true
+opt-level = 3
+lto = true
+debug = 2
 
 [profile.release]
-debug = 2
-codegen-units = 1
-# strip = true
-opt-level = "z"
+opt-level = 3
+lto = true
+strip = true
+debug = 0
