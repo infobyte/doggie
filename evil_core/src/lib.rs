@@ -2,7 +2,6 @@
 
 mod bsp;
 mod can;
-mod mcp2515;
 mod attack_machine;
 mod commands;
 mod attack_errors;
