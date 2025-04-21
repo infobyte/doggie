@@ -11,6 +11,10 @@ path = "src/doggie_pico_usb_mcp.rs"
 name = "doggie_pico_uart_mcp"
 path = "src/doggie_pico_uart_mcp.rs"
 
+[[bin]]
+name = "evildoggie_pico"
+path = "src/evildoggie_pico.rs"
+
 [dependencies]
 embassy-rp = { version = "0.2.0", features = ["defmt", "unstable-pac", "time-driver", "critical-section-impl", "rp2040"] }
 embassy-sync = { version = "0.6.0", features = ["defmt"] }
@@ -29,6 +33,8 @@ embedded-hal = "1.0.0"
 cortex-m = "0.7.7"
 
 doggie_core = { version = "0.1.0", path = "../doggie_core"}
+evil_core = { version = "0.1.0", path = "../evil_core"}
+
 mcp2515 = "0.3.0"
 embedded-io = "0.6.1"
 
