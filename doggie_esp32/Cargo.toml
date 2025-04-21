@@ -15,6 +15,10 @@ path = "src/doggie_esp32_twai.rs"
 name = "doggie_esp32"
 path = "src/doggie_esp32.rs"
 
+[[bin]]
+name = "evildoggie_esp32"
+path = "src/evildoggie_esp32.rs"
+
 [dependencies]
 esp-hal = { version = "0.22.0" }
 esp-backtrace = { version = "0.14.1", features = [
@@ -35,11 +39,13 @@ log = { version = "0.4.22" }
 static_cell = "2.1.0"
 
 doggie_core = { version = "0.1.0", path = "../doggie_core"}
+evil_core = { version = "0.1.0", path = "../evil_core"}
 defmt = { version = "0.3.8", features = ["encoding-raw"] }
 embedded-hal = "1.0.0"
 embedded-can = "0.4.1"
 mcp2515 = "0.3.0"
 nb = "1.1.0"
+xtensa-lx = "0.9.0"
 
 bleps = { git = "https://github.com/bjoernQ/bleps", package = "bleps", rev = "a5148d8ae679e021b78f53fd33afb8bb35d0b62e", features = [ "macros", "async"] }
 esp-wifi = { version = "0.11.0", features = ["ble"] }

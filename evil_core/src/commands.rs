@@ -38,6 +38,7 @@ impl<const SIZE: usize> BitStream<SIZE> {
         }
     }
 
+    #[inline]
     pub fn pop(&mut self) -> Result<bool, ()> {
         if self.start == self.end {
             return Err(());
@@ -49,6 +50,7 @@ impl<const SIZE: usize> BitStream<SIZE> {
         Ok(res)
     }
 
+    #[inline]
     pub fn push(&mut self, value: bool) -> Result<(), ()> {
         let next_end = (self.end + 1) % SIZE;
         if next_end == self.start {
@@ -61,10 +63,12 @@ impl<const SIZE: usize> BitStream<SIZE> {
         Ok(())
     }
 
+    #[inline]
     pub fn clean(&mut self) {
         self.end = self.start;
     }
 
+    #[inline]
     pub fn to_u32(&self) -> u32 {
         let mut result = 0u32;
         let len = self.len();
