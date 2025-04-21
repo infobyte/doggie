@@ -199,9 +199,11 @@ dependencies = [
  "esp-hal",
  "esp-hal-embassy",
  "esp-println",
+ "evil_core",
  "log",
  "mcp2515",
  "static_cell",
+ "xtensa-lx",
 ]
 
 [[package]]
@@ -570,6 +572,16 @@ checksum = "af7d3208ef4ffd96c3105b3fb6fd19e8512bc128b24cb866dc26a734b09f454c"
 dependencies = [
  "critical-section",
  "vcell",
+]
+
+[[package]]
+name = "evil_core"
+version = "0.1.0"
+dependencies = [
+ "defmt",
+ "embedded-can",
+ "embedded-hal 1.0.0",
+ "mcp2515",
 ]
 
 [[package]]

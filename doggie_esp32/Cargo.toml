@@ -3,6 +3,14 @@ name = "doggie_esp32"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "doggie_esp32"
+path = "src/doggie_esp32.rs"
+
+[[bin]]
+name = "evildoggie_esp32"
+path = "src/evildoggie_esp32.rs"
+
 [dependencies]
 esp-hal = { version = "0.22.0", features = [ "esp32" ] }
 esp-backtrace = { version = "0.14.2", features = [
@@ -23,9 +31,12 @@ log = { version = "0.4.22" }
 static_cell = "2.1.0"
 
 doggie_core = { version = "0.1.0", path = "../doggie_core"}
+evil_core = { version = "0.1.0", path = "../evil_core"}
+
 defmt = "0.3.8"
 embedded-hal = "1.0.0"
 mcp2515 = "0.3.0"
+xtensa-lx = "0.9.0"
 
 [patch.crates-io]
 embassy-sync = { git = "https://github.com/embassy-rs/embassy", rev = "d7692b1ae8775723e54de8574a190df4864aa854" }

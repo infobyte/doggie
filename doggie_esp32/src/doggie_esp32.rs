@@ -3,7 +3,6 @@
 
 mod spi_device;
 mod soft_timer;
-
 use soft_timer::SoftTimer;
 use embassy_executor::Spawner;
 use esp_backtrace as _;
@@ -59,7 +58,6 @@ async fn main(spawner: Spawner) {
     .with_mosi(mosi)
     .with_miso(miso)
     .with_cs(cs);
-
 
     let spi = CustomSpiDevice::new(esp_spi);
 

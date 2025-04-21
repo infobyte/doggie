@@ -44,6 +44,7 @@ where
         self.machine.arm(attack) 
     }
 
+    #[inline]
     pub fn attack(&mut self) {
         self.machine.tranceiver.wait_for_sof();
 
