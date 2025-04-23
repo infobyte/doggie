@@ -12,8 +12,46 @@ use evil_core::{
 use {defmt_rtt as _, panic_probe as _};
 use defmt::info;
 use embassy_executor::Spawner;
-use embassy_stm32::gpio::{Input, Level, Output, Pull, Speed};
+use embassy_stm32::{gpio::{Input, Level, Output, Pull, Speed}, pac::{flash::vals::Latency, rcc::vals::Pllsrc}, rcc::{AHBPrescaler, APBPrescaler, PllMul, Sysclk}};
 use embassy_time::Timer;
+use embassy_stm32::pac;
+
+// Function to set PLL multiplier to 16 for 128 MHz (HSE = 8 MHz)
+pub fn overclock() {
+    // Access RCC and FLASH registers
+    let rcc = pac::RCC;
+    let flash = pac::FLASH;
+
+    // Step 1: Enable HSI and switch to HSI (8 MHz)
+    rcc.cr().modify(|w| w.set_hsion(true));
+    while !rcc.cr().read().hsirdy() {} // Wait for HSI ready
+    rcc.cfgr().modify(|w| w.set_sw(Sysclk::HSI)); // SYSCLK = HSI
+    while rcc.cfgr().read().sws().to_bits() != 0 {} // Wait for switch
+
+    // Step 2: Disable PLL
+    rcc.cr().modify(|w| w.set_pllon(false));
+    while rcc.cr().read().pllrdy() {} // Wait for PLL to stop
+
+    // Step 3: Enable HSE and configure PLL
+    rcc.cr().modify(|w| w.set_hseon(true)); // Enable HSE (8 MHz)
+    while !rcc.cr().read().hserdy() {} // Wait for HSE ready
+    rcc.cfgr().modify(|w| {
+        w.set_pllsrc(Pllsrc::HSE_DIV_PREDIV); // PLL source = HSE
+        w.set_pllmul(PllMul::MUL16); // PLL multiplier = 16
+        w.set_hpre(AHBPrescaler::DIV1); // AHB prescaler = DIV1 (HCLK = 128 MHz)
+        w.set_ppre1(APBPrescaler::DIV4); // APB1 prescaler = DIV4 (PCLK1 = 32 MHz)
+        w.set_ppre2(APBPrescaler::DIV2); // APB2 prescaler = DIV2 (PCLK2 = 64 MHz)
+    });
+
+    // Step 4: Update Flash latency (3 wait states for 128 MHz, extrapolated)
+    flash.acr().modify(|w| w.set_latency(Latency::_RESERVED_3));
+
+    // Step 5: Enable PLL and switch to PLL
+    rcc.cr().modify(|w| w.set_pllon(true));
+    while !rcc.cr().read().pllrdy() {} // Wait for PLL ready
+    rcc.cfgr().modify(|w| w.set_sw(Sysclk::PLL1_P)); // SYSCLK = PLL
+    while rcc.cfgr().read().sws() != Sysclk::PLL1_P {} // Wait for switch
+}
 
 #[embassy_executor::task]
 async fn blink_task(mut led: Output<'static>) {
@@ -51,7 +89,7 @@ impl SystickClock {
 }
 
 impl TicksClock for SystickClock {
-    const TICKS_PER_SEC: u32 = 72_000_000;
+    const TICKS_PER_SEC: u32 = 128_000_000;
 
     fn ticks(&self) -> u32 {
         0xFFFFFF - unsafe { core::ptr::read_volatile(0xE000E018 as *const u32) }
@@ -119,6 +157,8 @@ impl<'a> Tranceiver for BpTr<'a> {
 async fn main(spawner: Spawner) {
     let p = bluepill::init();
 
+    overclock();
+
     let led = Output::new(p.PC13, Level::High, Speed::Low);
     spawner.spawn(blink_task(led)).unwrap();
 
@@ -144,7 +184,7 @@ async fn main(spawner: Spawner) {
     info!("BSP created");
 
     // Create and run the Doggie core
-    let mut core = EvilCore::new(bsp, CanBitrates::Kbps250, 1400);
+    let mut core = EvilCore::new(bsp, CanBitrates::Kbps500, 1400);
 
     info!("Core created");
 
