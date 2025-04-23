@@ -1,13 +1,15 @@
-use core::char::from_u32;
-
-use defmt::info;
-
-use crate::commands::{AttackCmd, BitStream};
+use crate::commands::{AttackCmd, FastBitStack};
 use crate::attack_errors::AttackError;
 use crate::tranceiver::Tranceiver;
 
 const MAX_ATTACK_SIZE: usize = 32;
 
+
+enum State {
+    START,
+    MIDDLE,
+    END,
+}
 
 pub struct AttackMachine<Tr>
 where
@@ -16,9 +18,10 @@ where
     index: usize,
     attack: [AttackCmd; MAX_ATTACK_SIZE],
     pub tranceiver: Tr,
-    matching: bool,
-    buffer: BitStream<160>,
-
+    buffer: FastBitStack,
+    bit_stuffing_cnt: u8,
+    bit_stuffing_polarity: bool,
+    state: State,
 }
 
 impl <Tr> AttackMachine <Tr>
@@ -32,14 +35,20 @@ where
             index: 0,
             attack: [AttackCmd::None; MAX_ATTACK_SIZE],
             tranceiver,
-            matching: false,
-            buffer: BitStream::new(),
+            buffer: FastBitStack::new(),
+            bit_stuffing_cnt: 0,
+            bit_stuffing_polarity: true,
+            state: State::START,
         }
     }
 
 
     pub fn arm(&mut self, attack: &[AttackCmd]) -> Result<(), AttackError> {
         self.index = 0;
+        self.state = State::START;
+        self.bit_stuffing_polarity = true;
+        self.bit_stuffing_cnt = 0;
+        self.buffer.clean();
 
         if attack.len() > self.attack.len() {
             return Err(AttackError::AttackToLong);
@@ -57,116 +66,157 @@ where
     }
 
     #[inline]
-    pub fn handle(&mut self) -> Option<u32> {
-        if self.index >= self.attack.len() {
-           return None;
-        }
+    fn next_cmd(&mut self) -> bool {
+        self.index += 1;
 
+        return self.index < self.attack.len()
+    }
+
+    #[inline]
+    pub fn handle_start(&mut self) -> bool {
+        match self.attack[self.index] {
+            AttackCmd::Wait { ref mut bits } => {
+                // Wait for one bit more
+                if *bits > 0 {
+                    *bits -= 1;
+                }
+
+                true
+            },
+            AttackCmd::Force { ref mut stream } => {
+                self.tranceiver.set_force(stream.pop());
+                true
+            },
+            AttackCmd::Send { ref mut stream } => {
+                self.tranceiver.set_tx(!stream.pop());
+                true
+            },
+            AttackCmd::WaitBuffered => {
+                let value = self.buffer.value() * 8;
+                self.buffer.clean();
+
+                if value == 0 {
+                    self.index += 1;
+                    self.handle_start()
+                } else {
+                    self.attack[self.index] = AttackCmd::Wait { bits: (value - 1) as usize };
+                    true
+                }
+            }
+            _ => true
+        }
+    }
+
+    #[inline]
+    pub fn handle_middle(&mut self) -> bool {
+        match self.attack[self.index] {
+            AttackCmd::Match { ref mut stream } => {
+                // Check the next bit with the RX
+                // If it doesn't match, finish the attack
+                stream.pop() == self.tranceiver.get_rx()
+            },
+            AttackCmd::Read { ref mut len } => {
+                self.buffer.push(self.tranceiver.get_rx());
+                *len -= 1;
+                true
+            },
+            _ => true
+        }
+    }
+
+    #[inline]
+    pub fn handle_end(&mut self) -> bool {
         match self.attack[self.index] {
             AttackCmd::None => {
-                self.index += 1;
-                None
+                false
             },
-
             AttackCmd::Wait { bits } => {
-                self.index += 1;
-                Some(AttackMachine::<Tr>::QUANTA_PER_BIT * bits as u32)
-            },
+                if bits <= 0 {
+                    self.next_cmd()
+                } else {
+                    true
+                }
 
+            }
             AttackCmd::Force { ref mut stream } => {
-                match stream.pop() {
-                    Ok(state) => {
-                        self.tranceiver.set_force(state);
-                        Some(AttackMachine::<Tr>::QUANTA_PER_BIT)
-                    },
-                    Err(()) => {
-                        self.index += 1;
-                        self.tranceiver.set_force(false);
-
-                        Some(0)
-                    }
-                }
-            }
-
-            AttackCmd::Send { ref mut stream } => {
-                match stream.pop() {
-                    Ok(state) => {
-                        self.tranceiver.set_tx(!state);
-                        Some(AttackMachine::<Tr>::QUANTA_PER_BIT)
-                    },
-                    Err(_) => {
-                        self.index += 1;
-                        self.tranceiver.set_tx(true);
-
-                        Some(0)
-                    }
-                }
-            }
-
-            AttackCmd::Match { ref mut stream } => {
-                if !self.matching {
-                    self.matching = true;
-                    // If we are startin, shift to the middle of the bit
-                    return Some(AttackMachine::<Tr>::QUANTA_PER_BIT / 2)
-                }
-
-                // If we have no more bits, finish
                 if stream.len() <= 0 {
-                    self.matching = false;
-                    self.index += 1;
-                    return Some(0)
+                    self.tranceiver.set_force(false);
+                    self.next_cmd()
+                } else {
+                    true
+                }
+            },
+            AttackCmd::Send { ref mut stream } => {
+                if stream.len() <= 0 {
+                    self.tranceiver.set_tx(true);
+                    self.next_cmd()
+                } else {
+                    true
+                }
+            },
+            AttackCmd::Match { ref mut stream } => {
+                // Check the next bit with the RX
+                if stream.len() <= 0 {
+                    self.next_cmd()
+                } else {
+                    true
+                }
+            },
+            AttackCmd::Read { ref mut len } => {
+                if *len <= 0 {
+                    self.next_cmd()
+                } else {
+                    true
+                }
+            },
+            _ => true
+        }
+    }
+
+    #[inline]
+    pub fn handle(&mut self) -> Option<u32> {
+        match self.state {
+            State::START => {
+                self.state = State::MIDDLE;
+
+                if self.handle_start() {
+                    Some(2)
+                } else {
+                    None
+                }
+            },
+            State::MIDDLE => {
+                let rx = self.tranceiver.get_rx();
+
+                if rx == self.bit_stuffing_polarity {
+                    self.bit_stuffing_cnt += 1;
+                } else {
+                    self.bit_stuffing_cnt = 1;
+                    self.bit_stuffing_polarity = rx;
                 }
 
-                // Check the next bit with the RX
-                let target_state = stream.pop().unwrap();
-
-                // If it doesn't match, finish the attack
-                if target_state != self.tranceiver.get_rx() {
-                    self.matching = false;
+                self.state = State::END;
+                
+                if self.handle_middle() {
+                    Some(6)
+                } else {
+                    None
+                }
+            },
+            State::END => {
+                if !self.handle_end() {
                     return None
                 }
 
-                // If it was the last bit, shift forward to the start of the bit
-                if stream.len() <= 0 {
-                    return Some(AttackMachine::<Tr>::QUANTA_PER_BIT / 2)
+                self.state = State::START;
+
+                if self.bit_stuffing_cnt >= 5 {
+                    self.bit_stuffing_cnt = 0;
+
+                    Some(AttackMachine::<Tr>::QUANTA_PER_BIT as u32)
+                } else {
+                    Some(0)
                 }
-
-                // The bit has metched, wait for the next
-                return Some(AttackMachine::<Tr>::QUANTA_PER_BIT)
-            }
-
-            AttackCmd::Read { ref mut len } => {
-                if !self.matching {
-                    self.matching = true;
-                    self.buffer.clean();
-                    // If we are startin, shift to the middle of the bit
-                    return Some(AttackMachine::<Tr>::QUANTA_PER_BIT / 2)
-                }
-
-                // If we have no more bits to read, finish
-                if *len <= 0 {
-                    self.matching = false;
-                    self.index += 1;
-                    return Some(0)
-                }
-
-                // read
-                self.buffer.push(self.tranceiver.get_rx()).unwrap();
-                *len -= 1;
-
-                // If it was the last bit, shift forward to the start of the bit
-                if *len <= 0 {
-                    return Some(AttackMachine::<Tr>::QUANTA_PER_BIT / 2)
-                }
-
-                // The bit has metched, wait for the next
-                return Some(AttackMachine::<Tr>::QUANTA_PER_BIT)
-            }
-
-            AttackCmd::WaitBuffered => {
-                let value = self.buffer.to_u32();
-                self.buffer.clean();
-                Some(AttackMachine::<Tr>::QUANTA_PER_BIT * value)
             }
         }
     }

