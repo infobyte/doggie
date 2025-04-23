@@ -58,8 +58,14 @@ where
         loop {
             let wait_quantas_opt = self.machine.handle();
 
+
             match wait_quantas_opt {
                 Some(wait_quantas) => {
+
+                    if wait_quantas == 0 {
+                        continue
+                    }
+
                     next_instant = Clock::add_ticks(
                         next_instant, wait_quantas * self.ticks_per_quantum
                     );
