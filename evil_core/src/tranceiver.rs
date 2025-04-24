@@ -7,10 +7,12 @@ pub trait Tranceiver {
 
     fn set_force(&mut self, state: bool);
 
+    #[inline(always)]
     fn wait_for_sof(&self) {
         while self.get_rx() {}
     }
 
+    #[inline(always)]
     fn apply(&mut self, state: &TranceiverState) {
         self.set_force(state.force);
         self.set_tx(state.tx);

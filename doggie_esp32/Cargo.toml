@@ -53,4 +53,4 @@ debug = 0
 debug-assertions = false
 incremental = false
 lto = true
-opt-level = 's'
+opt-level = 3
