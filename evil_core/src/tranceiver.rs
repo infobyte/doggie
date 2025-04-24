@@ -1,3 +1,5 @@
+use crate::TranceiverState;
+
 pub trait Tranceiver {
     fn set_tx(&mut self, state: bool);
 
@@ -7,5 +9,10 @@ pub trait Tranceiver {
 
     fn wait_for_sof(&self) {
         while self.get_rx() {}
+    }
+
+    fn apply(&mut self, state: &TranceiverState) {
+        self.set_force(state.force);
+        self.set_tx(state.tx);
     }
 }

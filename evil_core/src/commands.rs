@@ -1,3 +1,25 @@
+pub struct TranceiverState {
+    pub tx: bool,
+    pub force: bool,
+}
+
+impl TranceiverState {
+    pub fn new() -> Self {
+        Self {
+            tx: true,
+            force: false,
+        }
+    }
+
+    pub fn set_tx(&mut self, state: bool) {
+        self.tx = state;
+    }
+
+    pub fn set_force(&mut self, state: bool) {
+        self.force = state;
+    }
+}
+
 #[derive(Clone, Copy)]
 pub struct BitStream<const SIZE: usize> {
     data: [bool; SIZE],
@@ -29,7 +51,7 @@ impl<const SIZE: usize> BitStream<SIZE> {
         bs
     }
 
-    #[inline]
+    #[inline(always)]
     pub fn len(&self) -> usize {
         if self.end >= self.start {
             self.end - self.start
@@ -38,7 +60,7 @@ impl<const SIZE: usize> BitStream<SIZE> {
         }
     }
 
-    #[inline]
+    #[inline(always)]
     pub fn pop(&mut self) -> Result<bool, ()> {
         if self.start == self.end {
             return Err(());
@@ -50,7 +72,7 @@ impl<const SIZE: usize> BitStream<SIZE> {
         Ok(res)
     }
 
-    #[inline]
+    #[inline(always)]
     pub fn push(&mut self, value: bool) -> Result<(), ()> {
         let next_end = (self.end + 1) % SIZE;
         if next_end == self.start {
@@ -63,12 +85,12 @@ impl<const SIZE: usize> BitStream<SIZE> {
         Ok(())
     }
 
-    #[inline]
+    #[inline(always)]
     pub fn clean(&mut self) {
         self.end = self.start;
     }
 
-    #[inline]
+    #[inline(always)]
     pub fn to_u32(&self) -> u32 {
         let mut result = 0u32;
         let len = self.len();
@@ -103,7 +125,7 @@ impl FastBitQueue {
         }
     } 
 
-    #[inline]
+    #[inline(always)]
     pub fn pop(&mut self) -> bool {
         self.len -= 1;
         let res = (self.value & (1 << 31)) != 0;
@@ -111,7 +133,7 @@ impl FastBitQueue {
         res
     }
 
-    #[inline]
+    #[inline(always)]
     pub fn len(&self) -> u8 {
         self.len
     }
@@ -130,17 +152,17 @@ impl FastBitStack {
         }
     }
 
-    #[inline]
+    #[inline(always)]
     pub fn push(&mut self, value: bool) {
         self.value = (self.value << 1) | (value as u8);
     }
 
-    #[inline]
+    #[inline(always)]
     pub fn value(&self) -> u8 {
         self.value
     }
 
-    #[inline]
+    #[inline(always)]
     pub fn clean(&mut self) {
         self.value = 0;
     }

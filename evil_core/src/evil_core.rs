@@ -1,5 +1,7 @@
 use core::u32;
 
+use defmt::info;
+
 use crate::attack_machine::AttackMachine;
 use crate::attack_errors::AttackError;
 use crate::commands::AttackCmd;
@@ -32,6 +34,8 @@ where
         let ticks_per_quantum = ((baudrate.to_period_ns() / 1_000) * (Clock::TICKS_PER_SEC / 1_000_000)) / AttackMachine::<Tr>::QUANTA_PER_BIT;
         let sof_offset_ticks = (Clock::TICKS_PER_SEC / 1_000_000 * sof_offset_ns) / 1_000;
 
+        info!("Ticks Per Quantum: {}", ticks_per_quantum);
+
         EvilCore {
             clock,
             ticks_per_quantum,
@@ -44,14 +48,14 @@ where
         self.machine.arm(attack) 
     }
 
-    #[inline]
+    #[inline(always)]
     pub fn attack(&mut self) {
         self.machine.tranceiver.wait_for_sof();
 
         self.attack_on_sof()
     }
 
-    #[inline]
+    #[inline(always)]
     pub fn attack_on_sof(&mut self) {
         let mut next_instant = self.clock.ticks() - self.sof_offset_ticks;
 
