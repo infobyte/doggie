@@ -8,7 +8,6 @@ edition = "2021"
 defmt = "0.3"
 embedded-hal = "1.0.0"
 embedded-can = "0.4.1"
-mcp2515 = "0.3.0"
 
 [profile.dev]
 opt-level = 3
@@ -16,7 +15,10 @@ lto = true
 debug = 2
 
 [profile.release]
+codegen-units = 1
 opt-level = 3
-lto = true
-strip = true
-debug = 0
+lto = "fat"
+overflow-checks = false
+
+# strip = true
+# debug = 2
