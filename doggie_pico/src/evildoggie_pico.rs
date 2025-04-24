@@ -17,13 +17,7 @@ use embassy_time::Timer;
 use {defmt_rtt as _, panic_probe as _};
 
 use evil_core::{
-    AttackCmd,
-    BitStream,
-    CanBitrates,
-    EvilBsp,
-    EvilCore,
-    clock::TicksClock,
-    tranceiver::Tranceiver
+    clock::TicksClock, tranceiver::Tranceiver, AttackCmd, BitStream, CanBitrates, EvilBsp, EvilCore, FastBitQueue
 };
 
 struct SystickClock {
@@ -51,10 +45,12 @@ impl SystickClock {
 impl TicksClock for SystickClock {
     const TICKS_PER_SEC: u32 = 120_000_000;
 
+    #[inline(always)]
     fn ticks(&self) -> u32 {
         0xFF_FFFF - self.systick.cvr.read()
     }
 
+    #[inline(always)]
     fn add_ticks(t1: u32, t2: u32) -> u32 {
         (t1 + t2) % 0x1000000
     }
@@ -73,6 +69,7 @@ impl<'a> BpTr<'a> {
 }
 
 impl<'a> Tranceiver for BpTr<'a> {
+    #[inline(always)]
     fn set_tx(&mut self, state: bool) {
         // Direct memory access for pin 20
         const GPIO_OUT_SET: *mut u32 = 0xD000_0014 as *mut u32;
@@ -86,6 +83,7 @@ impl<'a> Tranceiver for BpTr<'a> {
         }
     }
 
+    #[inline(always)]
     fn get_rx(&self) -> bool {
         // Direct memory access for pin 21
         const GPIO_IN: *const u32 = 0xD000_0004 as *const u32;
@@ -94,6 +92,7 @@ impl<'a> Tranceiver for BpTr<'a> {
         }
     }
 
+    #[inline(always)]
     fn set_force(&mut self, state: bool) {
         // Direct memory access for 22
         const GPIO_OUT_SET: *mut u32 = 0xD000_0014 as *mut u32;
@@ -154,43 +153,27 @@ async fn main(spawner: Spawner) {
     info!("BSP created");
 
     // Create and run the Doggie core
-    let mut core = EvilCore::new(bsp, CanBitrates::Kbps250, 930);
+    let mut core = EvilCore::new(bsp, CanBitrates::Kbps500, 850);
 
     info!("Core created");
 
     Timer::after_millis(100).await;
 
     loop {
-    
         core.arm(
             &[
-                // AttackCmd::Force { stream: BitStream::from_u32(0b1010_1010, 8) },
-                AttackCmd::Wait { bits: 45 },
-                AttackCmd::Force { stream: BitStream::from_u32(0b1, 1) },
                 // AttackCmd::Wait { bits: 1 },
-                // AttackCmd::Match { stream: BitStream::from_u32(0x123, 11) },
-                // AttackCmd::Wait { bits: 3 },
-                // AttackCmd::Read { len: 4 },
-                // AttackCmd::WaitBuffered,
-                // AttackCmd::Wait { bits: 42 },
-                // AttackCmd::Send { stream: BitStream::from_u32(0xFFF, 12) },
-
-
-
-                // AttackCmd::Wait { bits: 1 },
-                // AttackCmd::Match { stream: BitStream::from_u32(0x123, 11) },
-                // AttackCmd::Wait { bits: 42 },
-                // AttackCmd::Send { stream: BitStream::from_u32(0xFFF, 12) },
-
-                // AttackCmd::Wait { bits: 46 + 8 },
-                // AttackCmd::Wait { bits: 9 },
-                // AttackCmd::Send { stream: BitStream::from_u32(0xFFF, 12) },
-                // AttackCmd::Force { stream: BitStream::from_u32(0xFFF, 12) },
+                // AttackCmd::Force { stream: FastBitQueue::new(0b1010_1010, 8) },
+                AttackCmd::Wait { bits: 1 },
+                AttackCmd::Match { stream: FastBitQueue::new(0x123, 11) },
+                AttackCmd::Wait { bits: 3 },
+                AttackCmd::Read { len: 4 },
+                AttackCmd::WaitBuffered,
+                AttackCmd::Wait { bits: 16 },
+                AttackCmd::Force { stream: FastBitQueue::new(0b101, 3) },
             ]
         ).unwrap();
-
-        Timer::after_millis(100).await;
-
+        
         info!("Attack armed");
 
         cortex_m::interrupt::free(
@@ -200,6 +183,5 @@ async fn main(spawner: Spawner) {
         );
 
         info!("Attack has finished");
-
     }
 }

@@ -138,7 +138,8 @@ where
                 *len -= 1;
 
                 Ok(*len <= 0)
-            }
+            },
+            AttackCmd::None => Err(()),
             _ => Ok(false),
         }
     }
