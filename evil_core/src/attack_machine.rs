@@ -3,7 +3,7 @@ use crate::commands::{AttackCmd, FastBitStack};
 use crate::tranceiver::Tranceiver;
 use crate::TranceiverState;
 
-const MAX_ATTACK_SIZE: usize = 32;
+pub const MAX_ATTACK_SIZE: usize = 32;
 
 pub struct AttackMachine<Tr>
 where
@@ -138,7 +138,7 @@ where
                 *len -= 1;
 
                 Ok(*len <= 0)
-            },
+            }
             AttackCmd::None => Err(()),
             _ => Ok(false),
         }

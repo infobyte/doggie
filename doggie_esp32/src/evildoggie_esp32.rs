@@ -1,36 +1,50 @@
 #![no_std]
 #![no_main]
 
-mod spi_device;
 mod soft_timer;
+mod spi_device;
 use soft_timer::SoftTimer;
 
 use evil_core::{
-    clock::TicksClock, tranceiver::Tranceiver, AttackCmd, BitStream, CanBitrates, EvilBsp, EvilCore, FastBitQueue
+    clock::TicksClock, tranceiver::Tranceiver, AttackCmd, BitStream, CanBitrates, EvilBsp,
+    EvilCore, FastBitQueue,
 };
+
+use evil_menu::EvilMenu;
 
 use embassy_executor::Spawner;
 use esp_backtrace as _;
-use esp_println as _;
 use esp_hal::{
+    clock::Clocks,
     delay::Delay,
+    gpio::{Input, Level, Output, Pull},
     peripheral::Peripheral,
     prelude::*,
-    spi::{ master::Spi, SpiMode },
+    spi::{master::Spi, SpiMode},
     timer::timg::TimerGroup,
-    gpio::{ Output, Input, Level, Pull },
-    clock::Clocks
+    uart::Uart,
 };
+use esp_println as _;
 
 use defmt::{info, println};
 use spi_device::CustomSpiDevice;
 
+const READ_BUF_SIZE: usize = 64;
+
 struct TimerBasedClock {
-    timer: esp_hal::timer::timg::Timer<esp_hal::timer::timg::TimerX<<esp_hal::peripherals::TIMG1 as Peripheral>::P>, esp_hal::Blocking>,
+    timer: esp_hal::timer::timg::Timer<
+        esp_hal::timer::timg::TimerX<<esp_hal::peripherals::TIMG1 as Peripheral>::P>,
+        esp_hal::Blocking,
+    >,
 }
 
 impl TimerBasedClock {
-    pub fn new(mut timer: esp_hal::timer::timg::Timer<esp_hal::timer::timg::TimerX<<esp_hal::peripherals::TIMG1 as Peripheral>::P>, esp_hal::Blocking>) -> Self {
+    pub fn new(
+        mut timer: esp_hal::timer::timg::Timer<
+            esp_hal::timer::timg::TimerX<<esp_hal::peripherals::TIMG1 as Peripheral>::P>,
+            esp_hal::Blocking,
+        >,
+    ) -> Self {
         // Configure SysTick
         timer.set_counter_active(false);
         timer.set_alarm_active(false);
@@ -41,11 +55,11 @@ impl TimerBasedClock {
 
         let apb_freq = Clocks::get().apb_clock.to_Hz();
         let divider = timer.divider();
-        
+
         println!("APB clock freq: {} Hz", apb_freq);
         println!("Divider: {}", divider);
-        println!("Timer freq: {} Hz", apb_freq/divider);
-        
+        println!("Timer freq: {} Hz", apb_freq / divider);
+
         Self { timer }
     }
 }
@@ -60,20 +74,19 @@ impl TicksClock for TimerBasedClock {
         // // Access timer registers to read current count
         // let regs = self.timer.register_block().t(self.timer.timer_number().into());
 
-        
         // regs.update().write(|w| w.update().set_bit());
         // while regs.update().read().update().bit_is_set() {
-            //     // Wait for the update to complete
-            // }
+        //     // Wait for the update to complete
+        // }
         // regs.lo().read().bits()
-        // unsafe { 
-            //     COUNTER
-            // }
+        // unsafe {
+        //     COUNTER
+        // }
         unsafe {
-        let timg1_t0_update: *mut u32 = 0x3ff6_000c as *mut u32;
-        let timg1_t0_lo: *mut u32 = 0x3ff6_0004 as *mut u32;
-        core::ptr::write_volatile(timg1_t0_update, 1);
-        core::ptr::read_volatile(timg1_t0_lo)
+            let timg1_t0_update: *mut u32 = 0x3ff6_000c as *mut u32;
+            let timg1_t0_lo: *mut u32 = 0x3ff6_0004 as *mut u32;
+            core::ptr::write_volatile(timg1_t0_update, 1);
+            core::ptr::read_volatile(timg1_t0_lo)
         }
     }
 
@@ -88,10 +101,10 @@ impl TicksClock for TimerBasedClock {
     }
 }
 
-const GPIO_OUT_REG: *mut u32 = 0x3FF4_4004 as *mut u32;     // GPIO output register
+const GPIO_OUT_REG: *mut u32 = 0x3FF4_4004 as *mut u32; // GPIO output register
 const GPIO_OUT_W1TS_REG: *mut u32 = 0x3FF4_4008 as *mut u32; // GPIO bit set register
 const GPIO_OUT_W1TC_REG: *mut u32 = 0x3FF4_400C as *mut u32; // GPIO bit clear register
-const GPIO_IN_REG: *mut u32 = 0x3FF4_403c as *mut u32;     // GPIO input register
+const GPIO_IN_REG: *mut u32 = 0x3FF4_403c as *mut u32; // GPIO input register
 
 struct EspTranceiver<'a> {
     tx: Output<'a>,
@@ -145,7 +158,6 @@ impl<'a> Tranceiver for EspTranceiver<'a> {
 }
 
 #[no_mangle]
-// #[link_section = ".iram1.text"]
 #[ram]
 fn esp32_attack(core: &mut EvilCore<TimerBasedClock, EspTranceiver<'_>>) {
     xtensa_lx::interrupt::free(|_| {
@@ -157,17 +169,23 @@ fn esp32_attack(core: &mut EvilCore<TimerBasedClock, EspTranceiver<'_>>) {
 #[esp_hal_embassy::main]
 async fn main(spawner: Spawner) {
     info!("Init!");
-    
+
     let mut cfg = esp_hal::Config::default();
     cfg.cpu_clock = CpuClock::Clock240MHz;
-    
+
     info!("CPU clock: {}", cfg.cpu_clock.hz());
 
     let p = esp_hal::init(cfg);
-    
 
     let timg0 = TimerGroup::new(p.TIMG0);
     esp_hal_embassy::init(timg0.timer0);
+
+    // Setup serial
+    let (tx_pin, rx_pin) = (p.GPIO1, p.GPIO3);
+    let config = esp_hal::uart::Config::default().rx_fifo_full_threshold(READ_BUF_SIZE as u16);
+    let serial = Uart::new_with_config(p.UART0, config, rx_pin, tx_pin).unwrap();
+
+    info!("Serial init ok");
 
     // Setup tx, rx, and force pins, and tranceiver
     let tx = Output::new(p.GPIO25, Level::Low);
@@ -178,45 +196,51 @@ async fn main(spawner: Spawner) {
     info!("Tranceiver init ok");
 
     // Create clock
-    let timg1_t0: esp_hal::timer::timg::Timer<esp_hal::timer::timg::TimerX<<esp_hal::peripherals::TIMG1 as Peripheral>::P>, esp_hal::Blocking> = TimerGroup::new(p.TIMG1).timer0;
+    let timg1_t0: esp_hal::timer::timg::Timer<
+        esp_hal::timer::timg::TimerX<<esp_hal::peripherals::TIMG1 as Peripheral>::P>,
+        esp_hal::Blocking,
+    > = TimerGroup::new(p.TIMG1).timer0;
     let clock = TimerBasedClock::new(timg1_t0);
-
 
     // Create the EvilBsp
     let bsp = EvilBsp::new(clock, tranceiver);
     info!("BSP created");
 
     // Create and run the EvilDoggie core
-    let mut core = EvilCore::new(bsp, CanBitrates::Kbps1000, 0);
+    let core = EvilCore::new(bsp, CanBitrates::Kbps1000, 0, esp32_attack);
     info!("Core created");
 
-    Delay::new().delay_millis(100);
+    let mut menu = EvilMenu::new(serial, core);
+    menu.run();
 
-    loop {
-    
-        core.arm(
-            &[
-                // AttackCmd::Wait { bits: 1 },
-                AttackCmd::Force { stream: FastBitQueue::new(0b1010_101, 7) },
-                AttackCmd::Wait { bits: 1 },
-                AttackCmd::Force { stream: FastBitQueue::new(0b1010_101, 7) },
-                // AttackCmd::Wait { bits: 1 },
-                // AttackCmd::Match { stream: FastBitQueue::new(0x123, 11) },
-                // AttackCmd::Wait { bits: 3 },
-                // AttackCmd::Read { len: 4 },
-                // AttackCmd::WaitBuffered,
-                // AttackCmd::Wait { bits: 16 },
-                // AttackCmd::Force { stream: FastBitQueue::new(0b101, 3) },
-            ]
-        ).unwrap();
+    // Delay::new().delay_millis(100);
 
-        info!("Attack armed");
+    // loop {
+    //     core.arm(&[
+    //         // AttackCmd::Wait { bits: 1 },
+    //         AttackCmd::Force {
+    //             stream: FastBitQueue::new(0b1010_101, 7),
+    //         },
+    //         AttackCmd::Wait { bits: 1 },
+    //         AttackCmd::Force {
+    //             stream: FastBitQueue::new(0b1010_101, 7),
+    //         },
+    //         // AttackCmd::Wait { bits: 1 },
+    //         // AttackCmd::Match { stream: FastBitQueue::new(0x123, 11) },
+    //         // AttackCmd::Wait { bits: 3 },
+    //         // AttackCmd::Read { len: 4 },
+    //         // AttackCmd::WaitBuffered,
+    //         // AttackCmd::Wait { bits: 16 },
+    //         // AttackCmd::Force { stream: FastBitQueue::new(0b101, 3) },
+    //     ])
+    //     .unwrap();
 
-        esp32_attack(&mut core);
+    //     info!("Attack armed");
 
-        info!("Attack has finished");
-    }
+    //     esp32_attack(&mut core);
 
+    //     info!("Attack has finished");
+    // }
 }
 
 // core_create_tasks!(

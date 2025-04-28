@@ -1,13 +1,14 @@
 #![no_std]
 
+mod attack_errors;
+mod attack_machine;
 mod bsp;
 mod can;
-mod attack_machine;
-mod commands;
-mod attack_errors;
-mod evil_core;
 pub mod clock;
+mod commands;
+mod evil_core;
 pub mod tranceiver;
 
-pub use evil_core::*;
+pub use attack_machine::MAX_ATTACK_SIZE;
 pub use commands::*;
+pub use evil_core::*;

@@ -1,7 +1,7 @@
 use embedded_can::{blocking::Can, Id};
 
 #[repr(u16)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum CanBitrates {
     Kbps5 = 5,
     Kbps10 = 10,
