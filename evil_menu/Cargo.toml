@@ -1,0 +1,11 @@
+[package]
+name = "evil_menu"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+embedded-io = "0.6.1"
+menu = { version = "0.6.1", features = ["noline"] }
+noline = "0.5.1"
+
+evil_core = { version = "0.1.0", path = "../evil_core" }
