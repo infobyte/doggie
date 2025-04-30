@@ -11,9 +11,13 @@ path = "src/doggie_esp32_mcp.rs"
 name = "doggie_esp32_twai"
 path = "src/doggie_esp32_twai.rs"
 
+[[bin]]
+name = "doggie_esp32_twai_ble"
+path = "src/doggie_esp32_twai_ble.rs"
+
 [dependencies]
 esp-hal = { version = "0.22.0" }
-esp-backtrace = { version = "0.14.2", features = [
+esp-backtrace = { version = "0.14.1", features = [
     "exception-handler",
     "panic-handler",
     "defmt",
@@ -37,17 +41,24 @@ embedded-can = "0.4.1"
 mcp2515 = "0.3.0"
 nb = "1.1.0"
 
-[patch.crates-io]
-embassy-sync = { git = "https://github.com/embassy-rs/embassy", rev = "d7692b1ae8775723e54de8574a190df4864aa854" }
+bleps = { git = "https://github.com/bjoernQ/bleps", package = "bleps", rev = "a5148d8ae679e021b78f53fd33afb8bb35d0b62e", features = [ "macros", "async"] }
+esp-wifi = { version = "0.11.0", features = ["ble"] }
+esp-alloc = { version = "0.5.0", features = ["nightly"] }
+cfg-if = "1.0.0"
+
+
+
+# [patch.crates-io]
+# embassy-sync = { git = "https://github.com/embassy-rs/embassy", rev = "d7692b1ae8775723e54de8574a190df4864aa854" }
 
 [features]
-esp32   = ["esp-hal/esp32",   "esp-backtrace/esp32",   "esp-hal-embassy/esp32",   "esp-println/esp32"]
-esp32c2 = ["esp-hal/esp32c2", "esp-backtrace/esp32c2", "esp-hal-embassy/esp32c2", "esp-println/esp32c2"]
-esp32c3 = ["esp-hal/esp32c3", "esp-backtrace/esp32c3", "esp-hal-embassy/esp32c3", "esp-println/esp32c3"]
-esp32c6 = ["esp-hal/esp32c6", "esp-backtrace/esp32c6", "esp-hal-embassy/esp32c6", "esp-println/esp32c6"]
-esp32h2 = ["esp-hal/esp32h2", "esp-backtrace/esp32h2", "esp-hal-embassy/esp32h2", "esp-println/esp32h2"]
-esp32s2 = ["esp-hal/esp32s2", "esp-backtrace/esp32s2", "esp-hal-embassy/esp32s2", "esp-println/esp32s2"]
-esp32s3 = ["esp-hal/esp32s3", "esp-backtrace/esp32s3", "esp-hal-embassy/esp32s3", "esp-println/esp32s3"]
+esp32   = ["esp-hal/esp32",   "esp-backtrace/esp32",   "esp-hal-embassy/esp32",   "esp-println/esp32", "esp-wifi/esp32"]
+esp32c2 = ["esp-hal/esp32c2", "esp-backtrace/esp32c2", "esp-hal-embassy/esp32c2", "esp-println/esp32c2", "esp-wifi/esp32c2"]
+esp32c3 = ["esp-hal/esp32c3", "esp-backtrace/esp32c3", "esp-hal-embassy/esp32c3", "esp-println/esp32c3", "esp-wifi/esp32c3"]
+esp32c6 = ["esp-hal/esp32c6", "esp-backtrace/esp32c6", "esp-hal-embassy/esp32c6", "esp-println/esp32c6", "esp-wifi/esp32c6"]
+esp32h2 = ["esp-hal/esp32h2", "esp-backtrace/esp32h2", "esp-hal-embassy/esp32h2", "esp-println/esp32h2", "esp-wifi/esp32h2"]
+esp32s2 = ["esp-hal/esp32s2", "esp-backtrace/esp32s2", "esp-hal-embassy/esp32s2", "esp-println/esp32s2", "esp-wifi/esp32s2"]
+esp32s3 = ["esp-hal/esp32s3", "esp-backtrace/esp32s3", "esp-hal-embassy/esp32s3", "esp-println/esp32s3", "esp-wifi/esp32s3"]
 
 [profile.dev]
 # Rust debug is too slow.
