@@ -3,12 +3,18 @@
 
 mod ble;
 mod twai_can;
+mod logging;
 
 use twai_can::CanWrapper;
 use ble::{BleSerial, BleServer, PIPE_CAPACITY};
+use logging::init_logs;
 
 use doggie_core::*;
 
+use core::cell::RefCell;
+
+use defmt::info;
+use critical_section::Mutex;
 use embassy_executor::Spawner;
 use embassy_time::Timer;
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
@@ -18,10 +24,15 @@ use esp_backtrace as _;
 use esp_hal::{
     clock::CpuClock,
     gpio::{Level, Output},
+    uart::{
+        Uart, UartTx,
+    },
+    peripherals,
 };
-use esp_println::println;
 use esp_hal::usb_serial_jtag::UsbSerialJtag;
 use embedded_io_async::{Read, Write};
+use static_cell::StaticCell;
+
 
 static mut BLE_TX_PIPE: Pipe<CriticalSectionRawMutex, PIPE_CAPACITY> = Pipe::new();
 static mut BLE_RX_PIPE: Pipe<CriticalSectionRawMutex, PIPE_CAPACITY> = Pipe::new();
@@ -44,7 +55,7 @@ pub async fn ble_task(mut server: BleServer<'static>) {
 
 #[esp_hal_embassy::main]
 async fn main(spawner: Spawner) {
-    esp_println::logger::init_logger_from_env();
+    // esp_println::logger::init_logger_from_env();
 
     let peripherals = esp_hal::init({
         let mut config = esp_hal::Config::default();
@@ -68,6 +79,17 @@ async fn main(spawner: Spawner) {
     
     let led = Output::new(peripherals.GPIO8, Level::Low);
     spawner.spawn(blink_task(led)).unwrap();
+    
+    let mut dbg_serial = {
+        let (tx_pin, rx_pin) = (peripherals.GPIO3, peripherals.GPIO2);
+        let mut config = esp_hal::uart::Config::default().baudrate(115200);
+
+        Uart::new_with_config(peripherals.UART1, config, rx_pin, tx_pin)
+            .unwrap()
+    };
+
+    let (_, dbg_tx) = dbg_serial.split();
+    init_logs(dbg_tx);
 
     let (ble_tx_reader, ble_tx_writer) = unsafe { BLE_TX_PIPE.split() };
     let (ble_rx_reader, ble_rx_writer) = unsafe { BLE_RX_PIPE.split() };

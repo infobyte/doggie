@@ -259,6 +259,7 @@ version = "0.1.0"
 dependencies = [
  "bleps",
  "cfg-if",
+ "critical-section",
  "defmt 0.3.100",
  "doggie_core",
  "embassy-executor",
@@ -271,9 +272,7 @@ dependencies = [
  "esp-backtrace",
  "esp-hal",
  "esp-hal-embassy",
- "esp-println",
  "esp-wifi",
- "heapless",
  "log",
  "mcp2515",
  "nb 1.1.0",
@@ -686,11 +685,8 @@ version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ee38e87bc7e303c299047c0e9bcd0f8ccca7c7e70d1fd78bbb565db14f33beb6"
 dependencies = [
- "critical-section",
- "defmt 0.3.100",
  "esp-build",
  "log",
- "portable-atomic",
 ]
 
 [[package]]

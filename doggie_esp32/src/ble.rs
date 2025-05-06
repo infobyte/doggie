@@ -21,9 +21,10 @@ use esp_hal::{
     time,
     timer::timg::TimerGroup,
 };
-use esp_println::println;
+use defmt::info;
 use esp_wifi::{ble::controller::BleConnector, init, EspWifiController};
 use embedded_io_async::{Read, Write};
+// use esp_println as _;
 
 pub const PIPE_CAPACITY: usize = 256;
 
@@ -108,30 +109,27 @@ impl<'a> BleServer<'a>{
 
         let now = || time::now().duration_since_epoch().to_millis();
         let ble = Ble::new(connector, now);
-        println!("Connector created");
+        info!("Connector created");
 
         Self { ble, reader, writer }
     }
 
     pub async fn run(&mut self) {
         loop {
-            println!("{:?}", self.ble.init().await);
-            println!("{:?}", self.ble.cmd_set_le_advertising_parameters().await);
-            println!(
-                "{:?}",
-                self.ble.cmd_set_le_advertising_data(
-                    create_advertising_data(&[
-                        AdStructure::Flags(LE_GENERAL_DISCOVERABLE | BR_EDR_NOT_SUPPORTED),
-                        AdStructure::ServiceUuids16(&[Uuid::Uuid16(0x1809)]),
-                        AdStructure::CompleteLocalName(esp_hal::chip!()),
-                    ])
-                    .unwrap()
-                )
-                .await
-            );
-            println!("{:?}", self.ble.cmd_set_le_advertise_enable(true).await);
+            self.ble.init().await;
+            self.ble.cmd_set_le_advertising_parameters().await;
+            self.ble.cmd_set_le_advertising_data(
+                create_advertising_data(&[
+                    AdStructure::Flags(LE_GENERAL_DISCOVERABLE | BR_EDR_NOT_SUPPORTED),
+                    AdStructure::ServiceUuids16(&[Uuid::Uuid16(0x1809)]),
+                    AdStructure::CompleteLocalName(esp_hal::chip!()),
+                ])
+                .unwrap()
+            )
+            .await;
+            self.ble.cmd_set_le_advertise_enable(true).await;
 
-            println!("started advertising");
+            info!("started advertising");
 
             let mut tx_read = |_offset: usize, data: &mut [u8]| {
                 0
