@@ -13,9 +13,9 @@ use mcp2515::{
 };
 
 // TODO: The next 3 options should be features
-const MCP_CLOCK: McpSpeed = McpSpeed::MHz8;
-const MCP_CLOCK_ENABLE: bool = false;
-const MCP_INITIAL_BAUDRATE: CanSpeed = CanSpeed::Kbps250;
+pub const MCP_CLOCK: McpSpeed = McpSpeed::MHz8;
+pub const MCP_CLOCK_ENABLE: bool = false;
+pub const MCP_INITIAL_BAUDRATE: CanSpeed = CanSpeed::Kbps250;
 
 fn convert_bitrate(from: CanBitrates) -> CanSpeed {
     can_speed_from_raw(from as u16)

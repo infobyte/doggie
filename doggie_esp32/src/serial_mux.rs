@@ -1,6 +1,6 @@
 use embedded_io_async::{Read, Write, ErrorType, ErrorKind, Error};
-use embassy_futures::select::{select, Select, Either};
-use  core::convert::Infallible;
+use embassy_futures::select::{select, Either};
+use defmt::info;
 
 #[derive(Debug)]
 pub struct SerialMuxError {}
@@ -37,7 +37,7 @@ where
         Self { s1, s2, state: SerialMuxState::Init }
     }
 
-    async fn auto_select(&mut self) {
+    async fn auto_select(&mut self, buf: &mut [u8]) {
         let mut buf1: [u8;1] = [0];
         let mut buf2: [u8;1] = [0];
 
@@ -47,10 +47,14 @@ where
                 self.s2.read(&mut buf2),
             ).await {
                 Either::First(Ok(_)) => {
+                    info!("First serial selected");
+                    buf[0] = buf1[0];
                     self.state = SerialMuxState::First;
                     return
                 },
                 Either::Second(Ok(_)) => {
+                    info!("Second serial selected");
+                    buf[0] = buf2[0];
                     self.state = SerialMuxState::Second;
                     return
                 },
@@ -77,7 +81,7 @@ where
 {
     async fn read(&mut self, buf: &mut [u8]) -> Result<usize, Self::Error> {
         if self.state == SerialMuxState::Init {
-            self.auto_select().await;
+            self.auto_select(buf).await;
         }
 
         match self.state {
@@ -106,7 +110,7 @@ where
 {
     async fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
         if self.state == SerialMuxState::Init {
-            self.auto_select().await;
+            self.auto_select(&mut [0]).await;
         }
         
         match self.state {

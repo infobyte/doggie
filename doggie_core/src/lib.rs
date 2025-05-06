@@ -3,7 +3,7 @@
 mod bsp;
 mod can;
 mod macros;
-mod mcp2515;
+pub mod mcp2515;
 mod types;
 
 pub use bsp::Bsp;

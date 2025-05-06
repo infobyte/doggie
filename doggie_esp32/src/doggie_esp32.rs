@@ -5,37 +5,39 @@ mod ble;
 mod twai_can;
 mod logging;
 mod serial_mux;
+mod can_mux;
+mod spi_device;
+mod soft_timer;
 
+use can_mux::CanMux;
 use twai_can::CanWrapper;
 use ble::{BleSerial, BleServer, PIPE_CAPACITY};
 use logging::init_logs;
 use serial_mux::SerialMux;
+use spi_device::CustomSpiDevice;
+use soft_timer::SoftTimer;
 
-use doggie_core::*;
-
-use core::cell::RefCell;
-
-use defmt::info;
-use critical_section::Mutex;
 use embassy_executor::Spawner;
 use embassy_time::Timer;
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::pipe::Pipe;
+
 use esp_alloc as _;
 use esp_backtrace as _;
 use esp_hal::{
+    spi::{master::Spi, SpiMode},
     clock::CpuClock,
     gpio::{Level, Output},
-    uart::{
-        Uart, UartTx,
-    },
-    peripherals,
+    uart::Uart,
     Async,
+    Blocking,
+    prelude::*,
+    usb_serial_jtag::UsbSerialJtag,
 };
-use esp_hal::usb_serial_jtag::UsbSerialJtag;
-use embedded_io_async::{Read, Write};
-use static_cell::StaticCell;
 
+use defmt::info;
+use ::mcp2515::MCP2515 as MCP;
+use doggie_core::*;
 
 
 static mut BLE_TX_PIPE: Pipe<CriticalSectionRawMutex, PIPE_CAPACITY> = Pipe::new();
@@ -59,6 +61,7 @@ pub async fn ble_task(mut server: BleServer<'static>) {
 
 #[esp_hal_embassy::main]
 async fn main(spawner: Spawner) {
+    // info!("Device initialization started");
     // Board initialization
     let peripherals = esp_hal::init({
         let mut config = esp_hal::Config::default();
@@ -86,9 +89,10 @@ async fn main(spawner: Spawner) {
     spawner.spawn(blink_task(led)).unwrap();
     
     // Serial logging initialization
-    let mut dbg_serial = {
+    // info!("Debug serial init");
+    let dbg_serial = {
         let (tx_pin, rx_pin) = (peripherals.GPIO3, peripherals.GPIO2);
-        let mut config = esp_hal::uart::Config::default().baudrate(115200);
+        let config = esp_hal::uart::Config::default().baudrate(115200);
 
         Uart::new_with_config(peripherals.UART1, config, rx_pin, tx_pin)
             .unwrap()
@@ -98,10 +102,11 @@ async fn main(spawner: Spawner) {
     init_logs(dbg_tx);
 
     // BLE initialization
+    info!("BLE init");
     let (ble_tx_reader, ble_tx_writer) = unsafe { BLE_TX_PIPE.split() };
     let (ble_rx_reader, ble_rx_writer) = unsafe { BLE_RX_PIPE.split() };
 
-    let mut ble_server = BleServer::new(
+    let ble_server = BleServer::new(
         peripherals.BT,
         peripherals.TIMG0,
         peripherals.RNG,
@@ -112,11 +117,11 @@ async fn main(spawner: Spawner) {
     
     spawner.spawn(ble_task(ble_server)).unwrap();
 
-    let mut ble_serial = BleSerial::new(
+    let ble_serial = BleSerial::new(
         ble_tx_writer, ble_rx_reader
     );
 
-
+    info!("Wired serial init");
     // Wired serial initialization
     #[cfg(feature = "esp32c3")]
     let wired_serial = UsbSerialJtag::new(peripherals.USB_DEVICE).into_async();
@@ -134,21 +139,51 @@ async fn main(spawner: Spawner) {
 
     let serial = SerialMux::new(ble_serial, wired_serial);
     
-
     // CAN bus initialization
+    info!("CAN Bus init");
     #[cfg(feature = "esp32c3")]
     let (rx_pin, tx_pin) = (peripherals.GPIO0, peripherals.GPIO1);
 
     #[cfg(not(feature = "esp32c3"))]
     let (rx_pin, tx_pin) = (peripherals.GPIO3, peripherals.GPIO4);
 
-    let can = CanWrapper::new(peripherals.TWAI0, rx_pin, tx_pin);
+    let twai_can = CanWrapper::new(peripherals.TWAI0, rx_pin, tx_pin);
+
+    // Setup SPI
+    #[cfg(feature = "esp32c3")]
+    let (sclk, mosi, miso, cs, spi) = (peripherals.GPIO9, peripherals.GPIO6, peripherals.GPIO5, peripherals.GPIO7, peripherals.SPI2);
+    #[cfg(feature = "esp32")]
+    let (sclk, mosi, miso, cs, spi) = (peripherals.GPIO14, peripherals.GPIO13, peripherals.GPIO12, peripherals.GPIO15, peripherals.SPI2);
+    let esp_spi = Spi::new_with_config(
+        spi,
+        esp_hal::spi::master::Config {
+            frequency: 1.MHz(),
+            mode: SpiMode::Mode0,
+            ..esp_hal::spi::master::Config::default()
+        },
+    )
+    .with_sck(sclk)
+    .with_mosi(mosi)
+    .with_miso(miso)
+    .with_cs(cs);
+
+    let spi = CustomSpiDevice::new(esp_spi);
+    let mcp = MCP::new(spi);
+
+    // Create SoftTimer
+    let delay = SoftTimer {};
+    
+    let can = CanMux::new(twai_can, mcp, delay);
+    
     // Create the Bsp
+    info!("BSP creation");
     let bsp = Bsp::new(can, serial);
 
     // Create and run the Doggie core
+    info!("Core creation");
     let core = Core::new(spawner, bsp);
 
+    info!("About to run core...");
     core_run!(core);
 }
 
@@ -158,4 +193,4 @@ type UartType = UsbSerialJtag<'static, Async>;
 #[cfg(not(feature = "esp32c3"))]
 type UartType = Uart<'static, Async>;
 
-core_create_tasks!(SerialMux<BleSerial, UartType>, CanWrapper<'static>);
+core_create_tasks!(SerialMux<BleSerial, UartType>, CanMux<'static, CustomSpiDevice<'static, Blocking>>);

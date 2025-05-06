@@ -1,10 +1,4 @@
-use esp_hal::{
-    clock::CpuClock,
-    gpio::{Level, Output},
-    uart::{
-        Uart, UartTx,
-    }
-};
+use esp_hal::uart::UartTx;
 
 static mut LOGGER: Option<UartTx<'static, esp_hal::Blocking>> = None;
 static mut ENCODER: defmt::Encoder = defmt::Encoder::new();

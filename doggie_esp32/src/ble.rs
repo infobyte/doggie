@@ -116,8 +116,8 @@ impl<'a> BleServer<'a>{
 
     pub async fn run(&mut self) {
         loop {
-            self.ble.init().await;
-            self.ble.cmd_set_le_advertising_parameters().await;
+            self.ble.init().await.unwrap();
+            self.ble.cmd_set_le_advertising_parameters().await.unwrap();
             self.ble.cmd_set_le_advertising_data(
                 create_advertising_data(&[
                     AdStructure::Flags(LE_GENERAL_DISCOVERABLE | BR_EDR_NOT_SUPPORTED),
@@ -126,16 +126,16 @@ impl<'a> BleServer<'a>{
                 ])
                 .unwrap()
             )
-            .await;
-            self.ble.cmd_set_le_advertise_enable(true).await;
+            .await.unwrap();
+            self.ble.cmd_set_le_advertise_enable(true).await.unwrap();
 
             info!("started advertising");
 
-            let mut tx_read = |_offset: usize, data: &mut [u8]| {
+            let mut tx_read = |_offset: usize, _data: &mut [u8]| {
                 0
             };
             let mut rx_write = |offset: usize, data: &[u8]| {
-                self.writer.try_write(&data[offset..]);
+                self.writer.try_write(&data[offset..]).unwrap();
             };
         
             gatt!([service {
