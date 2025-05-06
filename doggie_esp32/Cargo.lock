@@ -263,6 +263,7 @@ dependencies = [
  "defmt 0.3.100",
  "doggie_core",
  "embassy-executor",
+ "embassy-futures",
  "embassy-sync 0.6.2",
  "embassy-time",
  "embedded-can",
