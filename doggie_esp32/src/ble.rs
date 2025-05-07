@@ -24,9 +24,8 @@ use esp_hal::{
 use defmt::info;
 use esp_wifi::{ble::controller::BleConnector, init, EspWifiController};
 use embedded_io_async::{Read, Write};
-// use esp_println as _;
 
-pub const PIPE_CAPACITY: usize = 256;
+pub const PIPE_CAPACITY: usize = 1024;
 
 
 // BLE Serial Structure implementing embedded_io_async traits

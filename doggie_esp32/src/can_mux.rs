@@ -37,17 +37,15 @@ impl CanMuxFrame {
             is_remote: frame.is_remote_frame(),
         };
 
-        let mut index = 0;
-        for byte in frame.data() {
-            mux.data[index] = *byte;
-            index += 1;
+        for index in 0..frame.dlc() {
+            mux.data[index] = frame.data()[index];
         }
 
         mux
     }
 
     fn convert<F: Frame>(&self) -> F {
-        F::new(self.id, &self.data).unwrap()
+        F::new(self.id, &self.data[..self.dlc()]).unwrap()
     }
 }
 
@@ -60,10 +58,8 @@ impl Frame for CanMuxFrame {
             is_remote: false,
         };
         
-        let mut index = 0;
-        for byte in data {
-            mux.data[index] = *byte;
-            index += 1;
+        for index in 0..data.len() {
+            mux.data[index] = data[index];
         }
 
         Some(mux)
@@ -98,7 +94,7 @@ impl Frame for CanMuxFrame {
     }
 
     fn data(&self) -> &[u8] {
-        &self.data
+        &self.data[..self.dlc]
     }
 }
 
@@ -157,6 +153,7 @@ pub struct CanMux<'d, Spi: SpiDevice> {
 
 impl<'d, Spi: SpiDevice> CanMux<'d, Spi> {
     pub fn new<Delay: DelayNs>(twai: CanWrapper<'d>, mut mcp: MCP2515<Spi>, mut delay: Delay) -> Self {
+        info!("MCP Initialization");
         let state = match mcp.init(
             &mut delay,
             mcp2515::Settings {
