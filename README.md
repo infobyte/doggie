@@ -3,7 +3,7 @@
 ![alt text](./docs/logo_m.png)
 
 ## **Description**  
-**Doggie** is an open-source, modular project designed to build a DIY CAN Bus-to-USB adapter. The device connects your computer to a CAN Bus network and uses the **slcan protocol** (CAN over Serial) to ensure compatibility with popular tools like **SocketCAN**, **Python-can**, and other slcan-compatible software.  
+**Doggie** is an open-source, modular project designed to build a DIY CAN Bus to serial adapter (USB, BLE, UART). The device connects your computer to a CAN Bus network and uses the **slcan protocol** (CAN over Serial) to ensure compatibility with popular tools like **SocketCAN**, **Python-can**, and other slcan-compatible software.  
 
 The project emphasizes **modularity**, allowing users to select from various hardware configurations with different microcontrollers and CAN transceivers, making it accessible and cost-effective. Whether you're using a microcontroller's built-in CAN controller or an **MCP2515** (SPI to CAN) module, **Doggie** adapts to your needs.
 
@@ -20,9 +20,11 @@ The project emphasizes **modularity**, allowing users to select from various har
 - Built-in CAN controllers (if supported by the microcontroller)  
 - **MCP2515** (SPI to CAN, see [compatibility modification](./docs/mcp_mod.md))  
 
-### USB/Serial Connectivity:
+### Serial Connectivity:
 - **Microcontroller USB** (native USB support)
-- **UART with USB Bridge**  
+- **UART with USB Bridge**
+- **Bluetooth**  
+
 
 Each hardware configuration is detailed in its respective subdirectory under the `doggie_{bsp}` folder.
 
@@ -65,10 +67,10 @@ First we start the slcan daemon with the configuration:
   - s6: 500 kbit/s
   - s7: 800 kbit/s
   - s8: 1 Mbit/s
-* The `-S{baudrate}` determines the serial interface baudrate (Not nessesary on most USB implementations)
+* The `-S{baudrate}` determines the serial interface baudrate (Not necessary on most USB implementations)
 
 ```bash
-# Strart the slcan daemon:
+# Start the slcan daemon:
 sudo slcand -s5 -S115200 /dev/ttyUSB0 can0
 
 # Set the interface UP
@@ -89,6 +91,31 @@ sudo ifconfig can0 up
 For more advanced commands, refer to the [SocketCAN documentation](https://www.kernel.org/doc/Documentation/networking/can.txt).
 
 ---
+
+## BLE ##
+
+As some boards supports BLE to send and receive serial information we need a way to bridge the BLE data to a serial interface.
+In linux we could use the `ble-serial` package as we show:
+
+First we install the package
+```
+$ pip install ble-serial
+```
+
+And then we run the bridge with the mac address of our device
+```
+$ ble-serial -d 12:00:3B:01:B2:A5 --write-with-response
+10:38:57.733 | INFO | linux_pty.py: Port endpoint created on /tmp/ttyBLE -> /dev/pts/4
+10:38:57.733 | INFO | ble_client.py: Receiver set up
+10:38:57.938 | INFO | ble_client.py: Trying to connect with 12:00:3B:01:B2:A5: esp32c3
+10:38:59.627 | INFO | ble_client.py: Device 12:00:3B:01:B2:A5 connected
+10:38:59.628 | INFO | ble_client.py: Found write characteristic 6e400002-b5a3-f393-e0a9-e50e24dcca9e (H. 2)
+10:38:59.628 | INFO | ble_client.py: Found notify characteristic 6e400003-b5a3-f393-e0a9-e50e24dcca9e (H. 4)
+10:38:59.699 | INFO | main.py: Running main loop!
+```
+
+We could see in the logs that the program creates a virtual interface in `/dev/pts/4`, that's the interface we will use as a serial can.
+
 
 ## **Disclaimer**  
 This project is a **work in progress**, and contributions are highly encouraged! While it is functional, some features may still be under development.  

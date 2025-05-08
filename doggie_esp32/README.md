@@ -8,41 +8,78 @@ This implementation provides a **CAN Bus to USB adapter** using the **ESP32** mi
 
 ## **Supported Configurations**
 
-The ESP32 implementation supports the following configuration.
+The ESP32 implementation supports the following configurations.
 
-As the ESP32 doesn't have 5v tolerant GPIOs, we shoud modify the MCP2515 or use a logic level shifter in order to make it compatible. Read [MCP2515 module compatibility note](../docs/mcp_mod.md) for more information.
+As the ESP32 doesn't have 5v tolerant GPIOs, we should modify the MCP2515 or use a logic level shifter in order to make it compatible. Read [MCP2515 module compatibility note](../docs/mcp_mod.md) for more information.
 
-1. **USB, UART0 and MCP2515 (SPI to CAN)**  
-   - The **USB** port and the **UART0** port of the ESP32 can be used for communication with the host system.  
+1. **USB, UART0 or BLE, and MCP2515 (SPI to CAN)**  
+   - The **USB** port, the **UART0** port and the BLE of the ESP32 can be used for communication with the host system.  
    - The **MCP2515** (SPI to CAN) module is used for CAN Bus communication.  
-   - This configuration allows the device to interface with a CAN network while communicating with the host via USB.
+   - This configuration allows the device to interface with a CAN network while communicating with the host via USB or BLE.
 
     __Connections__ (MCP2515 mod):  
-    | Function |   ESP32  |    MCP2515     |
-    | -------- | -------- | -------------- |
-    |   Vcc 3.3|   3v3    |       VCC      |
-    |   Vcc 5v |  VIN/5v  | Tranceiver Vcc |
-    |   GND    |   GND    |       GND      |
-    |   MOSI   |   D13    |       SI       |
-    |   MISO   |   D12    |       SO       |
-    |   Clock  |   D14    |       SCK      |
-    |   CS     |   D15    |       CS       |
+    | Function |    MCP2515     |
+    | -------- | -------------- |
+    |   Vcc 3.3|       VCC      |
+    |   Vcc 5v | Tranceiver Vcc |
+    |   GND    |       GND      |
+    |   MOSI   |       SI       |
+    |   MISO   |       SO       |
+    |   Clock  |       SCK      |
+    |   CS     |       CS       |
 
     ![alt text](../docs/esp32_mcp_mod.png)
 
     __Connections__ (MCP2515 with level shifter):  
-    | Function |   ESP32  | Level Shifter | MCP2515 |
-    | -------- | -------- | ------------- | ------- |
-    |   Vcc    |  VIN/5v  |        -      |    5v   |
-    |   GND    |   GND    |        -      |    GND  |
-    |   MOSI   |   D13    | <-----------> |    SI   |
-    |   MISO   |   D12    | <-----------> |    SO   |
-    |   Clock  |   D14    | <-----------> |    SCK  |
-    |   CS     |   D15    | <-----------> |    CS   |
+    | Function | Level Shifter | MCP2515 |
+    | -------- | ------------- | ------- |
+    |   Vcc    |        -      |    5v   |
+    |   GND    |        -      |    GND  |
+    |   MOSI   | <-----------> |    SI   |
+    |   MISO   | <-----------> |    SO   |
+    |   Clock  | <-----------> |    SCK  |
+    |   CS     | <-----------> |    CS   |
 
     ![alt text](../docs/esp32_mcp_ls.png)
 
+
+2. **USB, UART0 or BLE, and TWAI (Internal controller)**  
+   - The **USB** port, the **UART0** port and the BLE of the ESP32 can be used for communication with the host system.  
+   - The TWAI controller is used for CAN Bus communication.  
+   - This configuration allows the device to interface with a CAN network using only a transceiver while communicating with the host via USB or BLE.
+
+    ![alt text](../docs/esp32_twai.png)
+
+    __Connections__ (MCP2515 mod):  
+    | Function |   Tranceiver   |
+    | -------- |--------------- |
+    |   Vcc    |       VCC      |
+    |   GND    |       GND      |
+    |    TX    |       TX       |
+    |    RX    |       RX       |
+
+
+    For each esp32 varian we will use different pins that are defined but they could be easily changed in the code. Some variants are not implemented but are compatible and will be implemented on demand.
+
+   __Connections variants__: 
+    | Function  |   ESP32  | ESP32c3  |
+    | ----------- | -------- | -------- |
+    |    Vcc 3.3  |   3v3    |    3.3   |
+    |    Vcc 5v   |  VIN/5v  |    5v    |
+    |    GND      |   GND    |     G    |
+    |    MOSI     |   D13    |     6    |
+    |    MISO     |   D12    |     5    |
+    |    Clock    |   D14    |     9    |
+    |    CS       |   D15    |     7    |
+    |    CAN TX   |   D4     |     1    |
+    |    CAN RX   |   D3     |     0    |
+    | LOGS (UART) |    -     |     3    |
 ---
+
+## **Notes on debugging**
+
+The UART-USB or SerialJtagUsb bridge of the esp32 is usually used to flash, write logs and debugging, but as we will be using it as a serial interface for CAN Bus, we need another way to log and debug. For that we set up another UART interface that will print logs. In the "Connections Variants" table we could find the corresponding UART TX pins as **LOGS**.
+
 
 ## **How to Flash a Release**
 1. Install `espflash`
@@ -77,9 +114,22 @@ As the ESP32 doesn't have 5v tolerant GPIOs, we shoud modify the MCP2515 or use 
 
 ### **Compile and Flash the Firmware**
 
+First we have to choose witch firmware variant we want to use. All the variants starts a BLE server and the USB port, so they will wait for data to select witch one to use. There are three variants:
+
+* **doggie_esp32_twai**: This variant will use only the TWAI controller.
+* **doggie_esp32_mcp**: This variant will use the MCP2515 with the SPI interface.
+* **doggie_esp32**: This variant will check if the MCP2515 is connected, if it is not connected it will use the TWAI controller. This version has a little overhead and is not the most robust.
+
+We need to select the used board (**esp32**, **esp32c3**, etc).
+
 1. Connect ESP32 to the PC via USB
 
 3. Build and flash:
     ```
-    DEFMT_LOG=off cargo run --release
+    DEFMT_LOG=off cargo {BOARD} --bin {VARIANT}
+    ```
+
+    For example:
+    ```
+    DEFMT_LOG=off cargo esp32c3 --bin doggie_esp32
     ```
