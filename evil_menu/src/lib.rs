@@ -346,9 +346,10 @@ fn add_match<I: Read + Write, C: TicksClock, T: Tranceiver>(
         None => false,
     };
 
-    if let Some(id_str) = id_str {
+    if let Some(mut id_str) = id_str {
         // Parse id as u32
-        if let Ok(id_val) = id_str.parse::<u32>() {
+        id_str = id_str.trim_start_matches("0x");
+        if let Ok(id_val) = u32::from_str_radix(id_str, 16) {
             // Default to standard ID unless specified as extended
 
             let id = if is_extended {
@@ -362,26 +363,27 @@ fn add_match<I: Read + Write, C: TicksClock, T: Tranceiver>(
                 Some(s) => {
                     let mut data_array = [0u8; 8];
                     let mut data_len = 0;
-                    
+
                     for (i, hex_str) in s.split(',').enumerate() {
                         if i >= 8 {
-                            writeln!(interface, "Error: Data exceeds maximum length of 8 bytes").unwrap();
+                            writeln!(interface, "Error: Data exceeds maximum length of 8 bytes")
+                                .unwrap();
                             return;
                         }
-                        
+
                         let trimmed = hex_str.trim().trim_start_matches("0x");
                         match u8::from_str_radix(trimmed, 16) {
                             Ok(value) => {
                                 data_array[i] = value;
                                 data_len += 1;
-                            },
+                            }
                             Err(_) => {
                                 writeln!(interface, "Error parsing hex data").unwrap();
                                 return;
                             }
                         }
                     }
-                    
+
                     (Some(data_array), data_len)
                 }
                 None => (None, 0),
