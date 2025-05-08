@@ -241,25 +241,48 @@ where
                     help: Some("Set the baudrate of the adapter"),
                 },
                 &Item {
-                    item_type: ItemType::Callback {
-                        function: add_match,
-                        parameters: &[
-                            Parameter::Mandatory {
-                                parameter_name: "id",
-                                help: Some("CAN ID to match in hex (e.g, 0x123))"),
-                            },
-                            Parameter::Named {
-                                parameter_name: "extended",
-                                help: Some("Whether this is an extended ID (defaults to standard ID)"),
-                            },
-                            Parameter::Optional {
-                                parameter_name: "data",
-                                help: Some("Optional data bytes as comma-separated hex values (e.g., 0x10,0x20,0x30)"),
-                            },
-                        ],
-                    },
-                    command: "add_match",
-                    help: Some("Add a CAN frame match condition to the attack"),
+                    item_type: ItemType::Menu(&Menu {
+                                    label: "custom_attack",
+                                    items: &[
+                                        &Item {
+                                            item_type: ItemType::Callback {
+                                                function: match_id,
+                                                parameters: &[
+                                                    Parameter::Mandatory {
+                                                        parameter_name: "id",
+                                                        help: Some("CAN ID to match in hex (e.g, 0x123))"),
+                                                    },
+                                                    Parameter::Named {
+                                                        parameter_name: "extended",
+                                                        help: Some("Whether this is an extended ID (defaults to standard ID)"),
+                                                    },
+                                                ],
+                                            },
+                                            command: "match_id",
+                                            help: Some("Add a CAN frame Id match condition to the attack"),
+                                        },
+                                        &Item {
+                                            item_type: ItemType::Callback {
+                                                function: match_data,
+                                                parameters: &[
+                                                    Parameter::Mandatory {
+                                                        parameter_name: "dlc",
+                                                        help: Some("Data length code (0 to 8)"),
+                                                    },
+                                                    Parameter::Optional {
+                                                        parameter_name: "data",
+                                                        help: Some("Optional data bytes as comma-separated hex values (e.g., 0x10,0x20,0x30)"),
+                                                    },
+                                                ],
+                                            },
+                                            command: "match_data",
+                                            help: Some("Add a CAN frame data match condition to the attack. If dlc > len(data) will match data partially (e.g., dlc = 3 and data 0x10,0x20 will match frames whith data starting 0x10,0x20 and any value for the 3rd byte."),
+                                        },
+                                    ],
+                                    entry: Some(enter_custom_attack),
+                                    exit: Some(exit_custom_attack)}),
+                                command: "custom_attack",
+                                help: Some("Build a custom attack"),
                 },
                 &Item {
                     item_type: ItemType::Callback {
@@ -350,7 +373,24 @@ fn cmd_set_baudrate<I: Read + Write, C: TicksClock, T: Tranceiver>(
     };
 }
 
-// Menu callbacks
+fn enter_custom_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
+    _menu: &Menu<I, Context<C, T>>,
+    interface: &mut I,
+    _context: &mut Context<C, T>,
+) {
+    writeln!(interface, "In enter_custom_attack").unwrap();
+    todo!()
+}
+
+fn exit_custom_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
+    _menu: &Menu<I, Context<C, T>>,
+    interface: &mut I,
+    _context: &mut Context<C, T>,
+) {
+    writeln!(interface, "In exit_custom_attack").unwrap();
+    todo!()
+}
+
 fn test_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
     _menu: &Menu<I, Context<C, T>>,
     _item: &Item<I, Context<C, T>>,
@@ -362,7 +402,7 @@ fn test_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
     context.attack_builder.set_test_attack();
 }
 
-fn add_match<I: Read + Write, C: TicksClock, T: Tranceiver>(
+fn match_id<I: Read + Write, C: TicksClock, T: Tranceiver>(
     _menu: &Menu<I, Context<C, T>>,
     item: &Item<I, Context<C, T>>,
     args: &[&str],
@@ -370,7 +410,6 @@ fn add_match<I: Read + Write, C: TicksClock, T: Tranceiver>(
     context: &mut Context<C, T>,
 ) {
     let id_str = argument_finder(item, args, "id").unwrap();
-    let data_str = argument_finder(item, args, "data").unwrap();
     let is_extended = match argument_finder(item, args, "extended").unwrap() {
         Some(_) => true,
         None => false,
@@ -388,11 +427,37 @@ fn add_match<I: Read + Write, C: TicksClock, T: Tranceiver>(
                 Id::Standard(embedded_can::StandardId::new(id_val as u16).unwrap())
             };
 
+            // Add the match command
+            context
+                .attack_builder
+                .push_high_level_attack_cmd(HighLevelAttackCmd::MatchId { id });
+
+            writeln!(interface, "Added Match Id command with Id: {:?}", id).unwrap();
+        } else {
+            writeln!(interface, "Invalid ID format").unwrap();
+        }
+    } else {
+        writeln!(interface, "ID is required").unwrap();
+    }
+}
+
+fn match_data<I: Read + Write, C: TicksClock, T: Tranceiver>(
+    _menu: &Menu<I, Context<C, T>>,
+    item: &Item<I, Context<C, T>>,
+    args: &[&str],
+    interface: &mut I,
+    context: &mut Context<C, T>,
+) {
+    let dlc_str = argument_finder(item, args, "dlc").unwrap();
+    let data_str = argument_finder(item, args, "data").unwrap();
+
+    if let Some(dlc_str) = dlc_str {
+        // Parse id as u32
+        if let Ok(data_len) = str::parse(dlc_str) {
             // Parse data if provided
-            let (data_opt, data_len) = match data_str {
+            let data = match data_str {
                 Some(s) => {
                     let mut data_array = [0u8; 8];
-                    let mut data_len = 0;
 
                     for (i, hex_str) in s.split(',').enumerate() {
                         if i >= 8 {
@@ -405,7 +470,6 @@ fn add_match<I: Read + Write, C: TicksClock, T: Tranceiver>(
                         match u8::from_str_radix(trimmed, 16) {
                             Ok(value) => {
                                 data_array[i] = value;
-                                data_len += 1;
                             }
                             Err(_) => {
                                 writeln!(interface, "Error parsing hex data").unwrap();
@@ -414,26 +478,20 @@ fn add_match<I: Read + Write, C: TicksClock, T: Tranceiver>(
                         }
                     }
 
-                    (Some(data_array), data_len)
+                    Some(data_array)
                 }
-                None => (None, 0),
+                None => None,
             };
 
             // Add the match command
             context
                 .attack_builder
-                .push_high_level_attack_cmd(HighLevelAttackCmd::Match {
-                    id,
-                    data: data_opt,
-                    data_len,
-                });
+                .push_high_level_attack_cmd(HighLevelAttackCmd::MatchData { data_len, data });
 
             writeln!(
                 interface,
-                "Added match command with ID: {:?} and data: {:?} with len {}",
-                id,
-                data_opt.unwrap(),
-                data_len
+                "Added match data command with data: {:?} with len {}",
+                data, data_len
             )
             .unwrap();
         } else {
