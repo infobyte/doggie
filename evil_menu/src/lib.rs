@@ -398,7 +398,14 @@ fn add_match<I: Read + Write, C: TicksClock, T: Tranceiver>(
                     data_len,
                 });
 
-            writeln!(interface, "Added match command with ID: {:?}", id).unwrap();
+            writeln!(
+                interface,
+                "Added match command with ID: {:?} and data: {:?} with len {}",
+                id,
+                data_opt.unwrap(),
+                data_len
+            )
+            .unwrap();
         } else {
             writeln!(interface, "Invalid ID format").unwrap();
         }
