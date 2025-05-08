@@ -90,11 +90,15 @@ async fn main(spawner: Spawner) {
     
     // Serial logging initialization
     // info!("Debug serial init");
+
+    #[cfg(feature = "esp32c3")]
+    let (dbg_tx_pin, dbg_rx_pin) = (peripherals.GPIO3, peripherals.GPIO2);
+    #[cfg(feature = "esp32")]
+    let (dbg_tx_pin, dbg_rx_pin) = (peripherals.GPIO10, peripherals.GPIO9);
     let dbg_serial = {
-        let (tx_pin, rx_pin) = (peripherals.GPIO3, peripherals.GPIO2);
         let config = esp_hal::uart::Config::default().baudrate(115200);
 
-        Uart::new_with_config(peripherals.UART1, config, rx_pin, tx_pin)
+        Uart::new_with_config(peripherals.UART1, config, dbg_rx_pin, dbg_tx_pin)
             .unwrap()
     };
 

@@ -2,7 +2,7 @@
 
 
 ## **Description**  
-This implementation provides a **CAN Bus to USB adapter** using the **ESP32** microcontroller (commonly available in devkits such as the ESP-WROOM-32 we will use as example). The adapter uses the **slcan protocol** (CAN over Serial), making it compatible with popular software tools such as **SocketCAN**, **Python-can**, and other slcan-compatible applications. Since these boards include a UART bridge connected to the UART0 peripheral, SLCAN will be available through UART0 and USB using the default configuration.
+This implementation provides a **CAN Bus to USB or BLE adapter** using the **ESP32** microcontroller (commonly available in devkits such as the ESP-WROOM-32 we will use as example). The adapter uses the **slcan protocol** (CAN over Serial), making it compatible with popular software tools such as **SocketCAN**, **Python-can**, and other slcan-compatible applications. Since these boards include a UART bridge connected to the UART0 peripheral, SLCAN will be available through UART0 and USB using the default configuration.
 
 ---
 
@@ -73,7 +73,7 @@ As the ESP32 doesn't have 5v tolerant GPIOs, we should modify the MCP2515 or use
     |    CS       |   D15    |     7    |
     |    CAN TX   |   D4     |     1    |
     |    CAN RX   |   D3     |     0    |
-    | LOGS (UART) |    -     |     3    |
+    | LOGS (UART) |   D10    |     3    |
 ---
 
 ## **Notes on debugging**
