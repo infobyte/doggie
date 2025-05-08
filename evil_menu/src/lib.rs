@@ -1,7 +1,5 @@
 #![no_std]
 
-use core::num::ParseIntError;
-
 use embedded_can::Id;
 use embedded_io::{Read, Write};
 use evil_core::{
@@ -14,11 +12,40 @@ use noline::builder::EditorBuilder;
 #[derive(Clone, Copy, PartialEq)]
 enum HighLevelAttackCmd {
     None,
+    // Provisorio
     Match {
+        id: Id,
+        data_len: usize,
+        data: Option<[u8; 8]>,
+    },
+    MatchId {
+        id: Id,
+    },
+    MatchData {
+        data_len: usize,
+        data: Option<[u8; 8]>,
+    },
+    SkipData,
+    Wait {
+        bits: usize,
+    },
+    SendError {
+        count: usize,
+    },
+    SendRaw {
+        bits: u64,
+        bits_count: usize,
+        force: bool,
+    },
+    WaitEof,
+    SendMsg {
         id: Id,
         data: Option<[u8; 8]>,
         data_len: usize,
+        rtr: bool,
+        force: bool,
     },
+    SendOverloadFrame,
 }
 
 struct AttackBuilder {
@@ -139,6 +166,9 @@ impl AttackBuilder {
                         }
                     }
                 },
+                _ => {
+                    todo!()
+                }
             }
         }
 
