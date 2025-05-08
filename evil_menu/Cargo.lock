@@ -92,6 +92,7 @@ dependencies = [
 name = "evil_menu"
 version = "0.1.0"
 dependencies = [
+ "embedded-can",
  "embedded-io",
  "evil_core",
  "menu",

@@ -69,6 +69,13 @@ where
         self.ticks_per_quantum = ticks_per_quantum;
     }
 
+    pub fn get_baudrate(&self) -> CanBitrates {
+        let baudrate = (self.ticks_per_quantum * AttackMachine::<Tr>::QUANTA_PER_BIT) * 1_000
+            / (Clock::TICKS_PER_SEC / 1_000_000);
+
+        CanBitrates::from_period_ns(baudrate)
+    }
+
     pub fn arm(&mut self, attack: &[AttackCmd]) -> Result<(), AttackError> {
         self.machine.arm(attack)
     }

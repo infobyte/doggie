@@ -3,36 +3,26 @@
 
 mod soft_timer;
 mod spi_device;
-use soft_timer::SoftTimer;
 
-use evil_core::{
-    clock::TicksClock, tranceiver::Tranceiver, AttackCmd, BitStream, CanBitrates, EvilBsp,
-    EvilCore, FastBitQueue,
-};
-
-use evil_menu::EvilMenu;
-
+use defmt::{info, println};
 use embassy_executor::Spawner;
 use esp_backtrace as _;
 use esp_hal::{
     clock::Clocks,
-    delay::Delay,
     gpio::{Input, Level, Output, Pull},
     peripheral::Peripheral,
     prelude::*,
-    spi::{master::Spi, SpiMode},
     timer::timg::TimerGroup,
     uart::Uart,
 };
 use esp_println as _;
-
-use defmt::{info, println};
-use spi_device::CustomSpiDevice;
+use evil_core::{clock::TicksClock, tranceiver::Tranceiver, CanBitrates, EvilBsp, EvilCore};
+use evil_menu::EvilMenu;
 
 const READ_BUF_SIZE: usize = 64;
 
 struct TimerBasedClock {
-    timer: esp_hal::timer::timg::Timer<
+    _timer: esp_hal::timer::timg::Timer<
         esp_hal::timer::timg::TimerX<<esp_hal::peripherals::TIMG1 as Peripheral>::P>,
         esp_hal::Blocking,
     >,
@@ -40,7 +30,7 @@ struct TimerBasedClock {
 
 impl TimerBasedClock {
     pub fn new(
-        mut timer: esp_hal::timer::timg::Timer<
+        timer: esp_hal::timer::timg::Timer<
             esp_hal::timer::timg::TimerX<<esp_hal::peripherals::TIMG1 as Peripheral>::P>,
             esp_hal::Blocking,
         >,
@@ -60,28 +50,15 @@ impl TimerBasedClock {
         println!("Divider: {}", divider);
         println!("Timer freq: {} Hz", apb_freq / divider);
 
-        Self { timer }
+        Self { _timer: timer }
     }
 }
-
-static mut COUNTER: u32 = 0;
 
 impl TicksClock for TimerBasedClock {
     const TICKS_PER_SEC: u32 = 40_000_000; // Adjust this to match your timer frequency
 
     #[inline(always)]
     fn ticks(&self) -> u32 {
-        // // Access timer registers to read current count
-        // let regs = self.timer.register_block().t(self.timer.timer_number().into());
-
-        // regs.update().write(|w| w.update().set_bit());
-        // while regs.update().read().update().bit_is_set() {
-        //     // Wait for the update to complete
-        // }
-        // regs.lo().read().bits()
-        // unsafe {
-        //     COUNTER
-        // }
         unsafe {
             let timg1_t0_update: *mut u32 = 0x3ff6_000c as *mut u32;
             let timg1_t0_lo: *mut u32 = 0x3ff6_0004 as *mut u32;
@@ -93,28 +70,27 @@ impl TicksClock for TimerBasedClock {
     #[inline(always)]
     fn add_ticks(t1: u32, t2: u32) -> u32 {
         // Handle potential overflow with wrapping_add
-        t1 + t2
-        // unsafe {
-        //     COUNTER += t2 + 1;
-        //     COUNTER
-        // }
+        t1.wrapping_add(t2)
     }
 }
 
-const GPIO_OUT_REG: *mut u32 = 0x3FF4_4004 as *mut u32; // GPIO output register
 const GPIO_OUT_W1TS_REG: *mut u32 = 0x3FF4_4008 as *mut u32; // GPIO bit set register
 const GPIO_OUT_W1TC_REG: *mut u32 = 0x3FF4_400C as *mut u32; // GPIO bit clear register
 const GPIO_IN_REG: *mut u32 = 0x3FF4_403c as *mut u32; // GPIO input register
 
 struct EspTranceiver<'a> {
-    tx: Output<'a>,
-    rx: Input<'a>,
-    force: Output<'a>,
+    _tx: Output<'a>,
+    _rx: Input<'a>,
+    _force: Output<'a>,
 }
 
 impl<'a> EspTranceiver<'a> {
     pub fn new(tx: Output<'a>, rx: Input<'a>, force: Output<'a>) -> Self {
-        EspTranceiver { tx, rx, force }
+        EspTranceiver {
+            _tx: tx,
+            _rx: rx,
+            _force: force,
+        }
     }
 }
 
@@ -167,7 +143,7 @@ fn esp32_attack(core: &mut EvilCore<TimerBasedClock, EspTranceiver<'_>>) {
 }
 
 #[esp_hal_embassy::main]
-async fn main(spawner: Spawner) {
+async fn main(_spawner: Spawner) {
     info!("Init!");
 
     let mut cfg = esp_hal::Config::default();
@@ -183,7 +159,9 @@ async fn main(spawner: Spawner) {
     // Setup serial
     let (tx_pin, rx_pin) = (p.GPIO1, p.GPIO3);
     let config = esp_hal::uart::Config::default().rx_fifo_full_threshold(READ_BUF_SIZE as u16);
-    let serial = Uart::new_with_config(p.UART0, config, rx_pin, tx_pin).unwrap();
+    let serial = Uart::new_with_config(p.UART0, config, rx_pin, tx_pin)
+        .unwrap()
+        .into_async();
 
     info!("Serial init ok");
 
@@ -207,7 +185,7 @@ async fn main(spawner: Spawner) {
     info!("BSP created");
 
     // Create and run the EvilDoggie core
-    let core = EvilCore::new(bsp, CanBitrates::Kbps1000, 0, esp32_attack);
+    let core = EvilCore::new(bsp, CanBitrates::Kbps250, 0, esp32_attack);
     info!("Core created");
 
     let mut menu = EvilMenu::new(serial, core);

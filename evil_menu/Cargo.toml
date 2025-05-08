@@ -9,3 +9,4 @@ menu = { version = "0.6.1", features = ["noline"] }
 noline = "0.5.1"
 
 evil_core = { version = "0.1.0", path = "../evil_core" }
+embedded-can = "0.4.1"
