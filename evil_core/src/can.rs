@@ -60,6 +60,26 @@ impl CanBitrates {
             Self::Kbps1000 => 1000,
         }
     }
+
+    pub fn from_period_ns(period: u32) -> Self {
+        match period {
+            200_000 => Self::Kbps5,
+            100_000 => Self::Kbps10,
+            50_000 => Self::Kbps20,
+            32_000 => Self::Kbps31_25,
+            30_030 => Self::Kbps33_3,
+            25000 => Self::Kbps40,
+            20000 => Self::Kbps50,
+            12500 => Self::Kbps80,
+            10000 => Self::Kbps100,
+            8000 => Self::Kbps125,
+            5000 => Self::Kbps200,
+            4000 => Self::Kbps250,
+            2000 => Self::Kbps500,
+            1000 => Self::Kbps1000,
+            _ => Self::Kbps250,
+        }
+    }
 }
 
 pub trait CanDevice: Can {

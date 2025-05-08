@@ -32,7 +32,7 @@ impl<const SIZE: usize> BitStream<SIZE> {
         Self {
             data: [false; SIZE],
             start: 0,
-            end: 0
+            end: 0,
         }
     }
 
@@ -110,25 +110,24 @@ impl<const SIZE: usize> BitStream<SIZE> {
     }
 }
 
-
 #[derive(Clone, Copy)]
 pub struct FastBitQueue {
-    value: u32,
+    value: u64,
     len: u8,
 }
 
 impl FastBitQueue {
-    pub fn new(value: u32, len: usize) -> Self {
+    pub fn new(value: u64, len: usize) -> Self {
         Self {
-            value: value << (32 - len),
-            len: len as u8
+            value: value << (64 - len),
+            len: len as u8,
         }
-    } 
+    }
 
     #[inline(always)]
     pub fn pop(&mut self) -> bool {
         self.len -= 1;
-        let res = (self.value & (1 << 31)) != 0;
+        let res = (self.value & (1 << 63)) != 0;
         self.value = self.value << 1;
         res
     }
@@ -137,9 +136,7 @@ impl FastBitQueue {
     pub fn len(&self) -> u8 {
         self.len
     }
-    
 }
-
 
 pub struct FastBitStack {
     value: u8,
@@ -147,9 +144,7 @@ pub struct FastBitStack {
 
 impl FastBitStack {
     pub fn new() -> Self {
-        Self {
-            value: 0
-        }
+        Self { value: 0 }
     }
 
     #[inline(always)]

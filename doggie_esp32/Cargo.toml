@@ -14,10 +14,16 @@ path = "src/doggie_esp32_twai.rs"
 [[bin]]
 name = "doggie_esp32"
 path = "src/doggie_esp32.rs"
+test = false
+doctest = false
+bench = false
 
 [[bin]]
 name = "evildoggie_esp32"
 path = "src/evildoggie_esp32.rs"
+test = false
+doctest = false
+bench = false
 
 [dependencies]
 esp-hal = { version = "0.22.0" }
