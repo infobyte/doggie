@@ -25,7 +25,7 @@ pub enum HighLevelAttackCmd {
         count: usize,
     },
     SendRaw {
-        bits: u64,
+        bits: u128,
         bits_count: usize,
         force: bool,
     },
