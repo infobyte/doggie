@@ -133,7 +133,7 @@ impl HighLevelAttackCmd {
         // Pre condition: We are in the DLC position
         // Post condition: We are in the end of the data
         attack[0] = AttackCmd::Read { len: 4 };
-        attack[2] = AttackCmd::WaitBuffered;
+        attack[1] = AttackCmd::WaitBuffered;
 
         Ok(2)
     }

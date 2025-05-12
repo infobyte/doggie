@@ -3,6 +3,12 @@ use crate::commands::{AttackCmd, FastBitStack};
 use crate::tranceiver::Tranceiver;
 use crate::TranceiverState;
 
+pub enum HandleResult {
+    Wait { quantas: u32 },
+    Stop,
+    WaitForSoF,
+}
+
 pub const MAX_ATTACK_SIZE: usize = 32;
 
 pub struct AttackMachine<Tr>
@@ -92,6 +98,14 @@ where
                     };
                 }
             }
+            AttackCmd::WaitForSof => {
+                // On WaifForSof we need to return control to the core
+                // and it will come after start of frame, so we need to
+                // prepare the state after the SoF
+                self.index += 1;
+                self.pre_calculate();
+                self.index -= 1;
+            }
             _ => {}
         }
     }
@@ -140,6 +154,10 @@ where
                 Ok(*len <= 0)
             }
             AttackCmd::None => Err(()),
+            AttackCmd::WaitForEof => {
+                // Wait for EOF (7) + IFS (3) recessives
+                Ok(self.bit_stuffing_cnt >= 7 + 3 && self.bit_stuffing_polarity)
+            }
             _ => Ok(false),
         }
     }
@@ -152,12 +170,20 @@ where
     }
 
     #[inline(always)]
-    pub fn handle(&mut self) -> Option<u32> {
+    pub fn handle(&mut self) -> HandleResult {
+        // We have an special case for the WaitForSof as we already
+        // have prepared the following state, we return the control
+        // to the core until the Sof is found
+        if let AttackCmd::WaitForSof = self.attack[self.index] {
+            self.index += 1;
+            return HandleResult::WaitForSoF;
+        }
+
         if self.on_start {
             self.tranceiver.apply(&self.next_state);
             self.on_start = false;
 
-            Some(1)
+            HandleResult::Wait { quantas: 1 }
         } else {
             let rx = self.tranceiver.get_rx();
 
@@ -172,23 +198,28 @@ where
             match self.handle_middle(rx) {
                 Ok(true) => {
                     if !self.next_cmd() {
-                        return None;
+                        return HandleResult::Stop;
                     }
                 }
-                Err(_) => return None,
+                Err(_) => return HandleResult::Stop,
                 Ok(_) => {}
             };
 
+            let waiting_for_eof = match self.attack[self.index] {
+                AttackCmd::WaitForEof => true,
+                _ => false,
+            };
+
             // Bit stuffing
-            if self.bit_stuffing_cnt >= 5 {
+            if self.bit_stuffing_cnt >= 5 && !waiting_for_eof {
                 self.bit_stuffing_cnt = 0;
 
-                Some(8)
+                HandleResult::Wait { quantas: 8 }
             } else {
                 self.on_start = true;
                 // pre_calculate
                 self.pre_calculate();
-                Some(7)
+                HandleResult::Wait { quantas: 7 }
             }
         }
     }

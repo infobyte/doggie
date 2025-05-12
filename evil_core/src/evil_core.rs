@@ -3,7 +3,7 @@ use core::u32;
 use defmt::info;
 
 use crate::attack_errors::AttackError;
-use crate::attack_machine::AttackMachine;
+use crate::attack_machine::{AttackMachine, HandleResult};
 pub use crate::bsp::EvilBsp;
 pub use crate::can::CanBitrates;
 use crate::clock::TicksClock;
@@ -86,30 +86,32 @@ where
 
     #[inline(always)]
     pub fn attack(&mut self) {
-        self.machine.tranceiver.wait_for_sof();
-
-        self.attack_on_sof()
-    }
-
-    #[inline(always)]
-    pub fn attack_on_sof(&mut self) {
-        let mut next_instant = self.clock.ticks() - self.sof_offset_ticks;
+        // let mut next_instant = self.clock.ticks() - self.sof_offset_ticks;
+        // Set inital time
+        let mut next_instant = self.clock.ticks();
 
         loop {
-            let wait_quantas_opt = self.machine.handle();
+            // Handle the command
+            let handle_result = self.machine.handle();
 
-            match wait_quantas_opt {
-                Some(wait_quantas) => {
-                    if wait_quantas == 0 {
+            // Wait for quantas, wait for start of frame or exit
+            match handle_result {
+                HandleResult::Wait { quantas } => {
+                    if quantas == 0 {
                         continue;
                     }
 
-                    next_instant =
-                        Clock::add_ticks(next_instant, wait_quantas * self.ticks_per_quantum);
+                    next_instant = Clock::add_ticks(next_instant, quantas * self.ticks_per_quantum);
                 }
-                None => return,
+                HandleResult::Stop => return,
+                HandleResult::WaitForSoF => {
+                    // Wait for SoF and restart the counter
+                    self.machine.tranceiver.wait_for_sof();
+                    next_instant = self.clock.ticks() - self.sof_offset_ticks;
+                }
             };
 
+            // Wait for to the next target
             while next_instant > self.clock.ticks() {}
         }
     }
