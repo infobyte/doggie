@@ -15,7 +15,7 @@ where
     CLK: TicksClock,
     TR: Tranceiver,
 {
-    attack_builder: AttackBuilder,
+    attack_builder: AttackBuilder<{ evil_core::MAX_ATTACK_SIZE }>,
     core: EvilCore<CLK, TR>,
 }
 
