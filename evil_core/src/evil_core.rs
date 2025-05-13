@@ -1,6 +1,6 @@
 use core::u32;
 
-use defmt::info;
+use defmt::{debug, info};
 
 use crate::attack_errors::AttackError;
 use crate::attack_machine::{AttackMachine, HandleResult};
@@ -103,11 +103,16 @@ where
 
                     next_instant = Clock::add_ticks(next_instant, quantas * self.ticks_per_quantum);
                 }
-                HandleResult::Stop => return,
+                HandleResult::Stop => {
+                    debug!("[core] Attack finished");
+                    return;
+                }
                 HandleResult::WaitForSoF => {
                     // Wait for SoF and restart the counter
+                    debug!("[core] Waiting for SoF");
                     self.machine.tranceiver.wait_for_sof();
                     next_instant = self.clock.ticks() - self.sof_offset_ticks;
+                    // debug!("[core] SoF reached");
                 }
             };
 

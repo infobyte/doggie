@@ -1,3 +1,5 @@
+use defmt::debug;
+
 use crate::attack_errors::AttackError;
 use crate::commands::{AttackCmd, FastBitStack};
 use crate::tranceiver::Tranceiver;
@@ -171,6 +173,7 @@ where
 
     #[inline(always)]
     pub fn handle(&mut self) -> HandleResult {
+        // debug!("{:?}", defmt::Debug2Format(&self.attack[self.index]));
         // We have an special case for the WaitForSof as we already
         // have prepared the following state, we return the control
         // to the core until the Sof is found

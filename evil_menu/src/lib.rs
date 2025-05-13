@@ -334,10 +334,6 @@ fn exit_custom_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
     context: &mut Context<C, T>,
 ) {
     writeln!(interface, "In exit_custom_attack").unwrap();
-
-    let mut tmp_attack: [AttackCmd; MAX_ATTACK_SIZE] = [AttackCmd::None; MAX_ATTACK_SIZE];
-    context.attack_builder.build(&mut tmp_attack).unwrap();
-    context.core.arm(&tmp_attack).unwrap();
 }
 
 fn test_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
@@ -721,6 +717,11 @@ fn attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
     interface: &mut I,
     context: &mut Context<C, T>,
 ) {
+    writeln!(interface, "Arming the attack").unwrap();
+    let mut tmp_attack: [AttackCmd; MAX_ATTACK_SIZE] = [AttackCmd::None; MAX_ATTACK_SIZE];
+    context.attack_builder.build(&mut tmp_attack).unwrap();
+    context.core.arm(&tmp_attack).unwrap();
+
     writeln!(interface, "Launching attack").unwrap();
     context.core.board_specific_attack();
 }

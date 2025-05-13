@@ -1,7 +1,7 @@
-use core::cmp::{max, min};
-
 use crate::builder::BuildError;
+use core::cmp::{max, min};
 use crc_any::CRC;
+use defmt::Format;
 use embedded_can::Id;
 use evil_core::{AttackCmd, FastBitQueue, FastBitStack};
 

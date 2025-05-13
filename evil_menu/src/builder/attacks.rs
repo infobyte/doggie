@@ -1,6 +1,5 @@
-use heapless::Vec;
-
 use super::{BuildError, HighLevelAttackCmd};
+use heapless::Vec;
 
 pub enum PredefAttacks {
     TestAttack,

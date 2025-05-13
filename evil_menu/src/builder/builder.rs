@@ -1,6 +1,6 @@
-use core::slice::Iter;
-
 use crate::builder::{BuildError, HighLevelAttackCmd};
+use core::slice::Iter;
+use defmt::debug;
 use evil_core::AttackCmd;
 use heapless::Vec;
 
@@ -88,8 +88,10 @@ impl<const SIZE: usize> AttackBuilder<SIZE> {
     }
 
     pub fn build(&mut self, attack: &mut [AttackCmd]) -> Result<usize, BuildError> {
+        debug!("Building HL commands");
         let mut index = 0;
-        for cmd in self.hl_cmd_vec.iter() {
+        for (cmd_pos, cmd) in self.hl_cmd_vec.iter().enumerate() {
+            debug!("[{}] {:?}", cmd_pos, defmt::Debug2Format(cmd));
             match cmd.build(&mut attack[index..]) {
                 Ok(written) => index += written,
                 Err(error) => return Err(error),
