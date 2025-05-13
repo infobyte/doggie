@@ -52,12 +52,14 @@ embedded-hal = "1.0.0"
 embedded-can = "0.4.1"
 mcp2515 = "0.3.0"
 nb = "1.1.0"
-xtensa-lx = "0.9.0"
 
 bleps = { git = "https://github.com/bjoernQ/bleps", package = "bleps", rev = "a5148d8ae679e021b78f53fd33afb8bb35d0b62e", features = [ "macros", "async"] }
 esp-wifi = { version = "0.11.0", features = ["ble"] }
 esp-alloc = { version = "0.5.0", features = ["nightly"] }
 cfg-if = "1.0.0"
+
+xtensa-lx = "0.9.0"
+riscv = "0.10.1"
 
 
 [features]

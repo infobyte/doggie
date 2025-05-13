@@ -3,7 +3,9 @@
 
 mod soft_timer;
 mod spi_device;
+mod logging;
 
+use logging::init_logs;
 use defmt::{info, println};
 use embassy_executor::Spawner;
 use esp_backtrace as _;
@@ -15,9 +17,9 @@ use esp_hal::{
     timer::timg::TimerGroup,
     uart::Uart,
 };
-use esp_println as _;
 use evil_core::{clock::TicksClock, tranceiver::Tranceiver, CanBitrates, EvilBsp, EvilCore};
 use evil_menu::EvilMenu;
+use esp_hal::usb_serial_jtag::UsbSerialJtag;
 
 const READ_BUF_SIZE: usize = 64;
 
@@ -136,39 +138,81 @@ impl<'a> Tranceiver for EspTranceiver<'a> {
 #[no_mangle]
 #[ram]
 fn esp32_attack(core: &mut EvilCore<TimerBasedClock, EspTranceiver<'_>>) {
+    #[cfg(feature = "esp32")]
     xtensa_lx::interrupt::free(|_| {
         // Interrupts disabled
+        core.attack();
+    });
+
+    #[cfg(feature = "esp32c3")]
+    riscv::interrupt::free(|| {
         core.attack();
     });
 }
 
 #[esp_hal_embassy::main]
 async fn main(_spawner: Spawner) {
-    info!("Init!");
+    // info!("Init!");
 
-    let mut cfg = esp_hal::Config::default();
-    cfg.cpu_clock = CpuClock::Clock240MHz;
+    let mut config = esp_hal::Config::default();
+    #[cfg(feature = "esp32c3")]
+    {
+        config.cpu_clock = CpuClock::Clock160MHz;
+    }
 
-    info!("CPU clock: {}", cfg.cpu_clock.hz());
+    #[cfg(feature = "esp32")]
+    {
+        config.cpu_clock = CpuClock::Clock240MHz;
+    }
 
-    let p = esp_hal::init(cfg);
+    // info!("CPU clock: {}", config.cpu_clock.hz());
+    let p = esp_hal::init(config);
 
     let timg0 = TimerGroup::new(p.TIMG0);
     esp_hal_embassy::init(timg0.timer0);
 
-    // Setup serial
-    let (tx_pin, rx_pin) = (p.GPIO1, p.GPIO3);
-    let config = esp_hal::uart::Config::default().rx_fifo_full_threshold(READ_BUF_SIZE as u16);
-    let serial = Uart::new_with_config(p.UART0, config, rx_pin, tx_pin)
-        .unwrap()
-        .into_async();
+    #[cfg(feature = "esp32c3")]
+    let (dbg_tx_pin, dbg_rx_pin) = (p.GPIO3, p.GPIO2);
+    #[cfg(feature = "esp32")]
+    let (dbg_tx_pin, dbg_rx_pin) = (p.GPIO10, p.GPIO9);
+    let dbg_serial = {
+        let config = esp_hal::uart::Config::default().baudrate(115200);
+
+        Uart::new_with_config(p.UART1, config, dbg_rx_pin, dbg_tx_pin)
+            .unwrap()
+    };
+
+    let (_, dbg_tx) = dbg_serial.split();
+    init_logs(dbg_tx);
+    
+    info!("Wired serial init");
+    // Wired serial initialization
+    #[cfg(feature = "esp32c3")]
+    let wired_serial = UsbSerialJtag::new(p.USB_DEVICE).into_async();
+
+    // Setup UART (using these pins, also passes through USB)
+    #[cfg(not(feature = "esp32c3"))]
+    let wired_serial = {
+        let (tx_pin, rx_pin) = (p.GPIO1, p.GPIO3);
+        let config = esp_hal::uart::Config::default().rx_fifo_full_threshold(READ_BUF_SIZE as u16);
+
+        Uart::new_with_config(p.UART0, config, rx_pin, tx_pin)
+            .unwrap()
+            .into_async()
+    };
 
     info!("Serial init ok");
 
     // Setup tx, rx, and force pins, and tranceiver
-    let tx = Output::new(p.GPIO25, Level::Low);
-    let rx = Input::new(p.GPIO26, Pull::None);
-    let force = Output::new(p.GPIO27, Level::Low);
+    #[cfg(feature = "esp32")]
+    let (tx_pin, rx_pin, force_pin) = (p.GPIO25, p.GPIO26, p.GPIO27);
+
+    #[cfg(feature = "esp32c3")]
+    let (tx_pin, rx_pin, force_pin) = (p.GPIO1, p.GPIO0, p.GPIO10);
+    
+    let tx = Output::new(tx_pin, Level::Low);
+    let rx = Input::new(rx_pin, Pull::None);
+    let force = Output::new(force_pin, Level::Low);
 
     let tranceiver = EspTranceiver::new(tx, rx, force);
     info!("Tranceiver init ok");
@@ -186,9 +230,9 @@ async fn main(_spawner: Spawner) {
 
     // Create and run the EvilDoggie core
     let core = EvilCore::new(bsp, CanBitrates::Kbps250, 0, esp32_attack);
-    info!("Core created");
+    info!("Evil core created, running evil menu");
 
-    let mut menu = EvilMenu::new(serial, core);
+    let mut menu = EvilMenu::new(wired_serial, core);
     menu.run();
 
     // Delay::new().delay_millis(100);
@@ -220,8 +264,3 @@ async fn main(_spawner: Spawner) {
     //     info!("Attack has finished");
     // }
 }
-
-// core_create_tasks!(
-//     Uart<'static, Async>,
-//     MCP2515<CustomSpiDevice<'static, Blocking>>
-// );
