@@ -1,14 +1,14 @@
 #![no_std]
 #![no_main]
 
+mod logging;
 mod soft_timer;
 mod spi_device;
-mod logging;
 
-use logging::init_logs;
-use defmt::{info, println};
+use defmt::{debug, info, println};
 use embassy_executor::Spawner;
 use esp_backtrace as _;
+use esp_hal::usb_serial_jtag::UsbSerialJtag;
 use esp_hal::{
     clock::Clocks,
     gpio::{Input, Level, Output, Pull},
@@ -19,7 +19,7 @@ use esp_hal::{
 };
 use evil_core::{clock::TicksClock, tranceiver::Tranceiver, CanBitrates, EvilBsp, EvilCore};
 use evil_menu::EvilMenu;
-use esp_hal::usb_serial_jtag::UsbSerialJtag;
+use logging::init_logs;
 
 const READ_BUF_SIZE: usize = 64;
 
@@ -31,6 +31,15 @@ struct TimerBasedClock {
 }
 
 impl TimerBasedClock {
+    #[cfg(feature = "esp32")]
+    const TIMG1_BASE: u32 = 0x3FF6_0000;
+
+    #[cfg(feature = "esp32c3")]
+    const TIMG1_BASE: u32 = 0x6002_0000;
+
+    const TIMG1_UPDATE_OFFSET: u32 = 0xC;
+    const TIMG1_LO_OFFSET: u32 = 0x4;
+
     pub fn new(
         timer: esp_hal::timer::timg::Timer<
             esp_hal::timer::timg::TimerX<<esp_hal::peripherals::TIMG1 as Peripheral>::P>,
@@ -61,12 +70,15 @@ impl TicksClock for TimerBasedClock {
 
     #[inline(always)]
     fn ticks(&self) -> u32 {
-        unsafe {
-            let timg1_t0_update: *mut u32 = 0x3ff6_000c as *mut u32;
-            let timg1_t0_lo: *mut u32 = 0x3ff6_0004 as *mut u32;
+        let res = unsafe {
+            let timg1_t0_update: *mut u32 =
+                (Self::TIMG1_BASE + Self::TIMG1_UPDATE_OFFSET) as *mut u32;
+            let timg1_t0_lo: *mut u32 = (Self::TIMG1_BASE + Self::TIMG1_LO_OFFSET) as *mut u32;
             core::ptr::write_volatile(timg1_t0_update, 1);
             core::ptr::read_volatile(timg1_t0_lo)
-        }
+        };
+
+        res
     }
 
     #[inline(always)]
@@ -76,10 +88,6 @@ impl TicksClock for TimerBasedClock {
     }
 }
 
-const GPIO_OUT_W1TS_REG: *mut u32 = 0x3FF4_4008 as *mut u32; // GPIO bit set register
-const GPIO_OUT_W1TC_REG: *mut u32 = 0x3FF4_400C as *mut u32; // GPIO bit clear register
-const GPIO_IN_REG: *mut u32 = 0x3FF4_403c as *mut u32; // GPIO input register
-
 struct EspTranceiver<'a> {
     _tx: Output<'a>,
     _rx: Input<'a>,
@@ -87,6 +95,32 @@ struct EspTranceiver<'a> {
 }
 
 impl<'a> EspTranceiver<'a> {
+    #[cfg(feature = "esp32")]
+    const GPIO_OUT_W1TS_REG: *mut u32 = 0x3FF4_4008 as *mut u32; // GPIO bit set register
+    #[cfg(feature = "esp32")]
+    const GPIO_OUT_W1TC_REG: *mut u32 = 0x3FF4_400C as *mut u32; // GPIO bit clear register
+    #[cfg(feature = "esp32")]
+    const GPIO_IN_REG: *mut u32 = 0x3FF4_403C as *mut u32; // GPIO input register
+    #[cfg(feature = "esp32")]
+    const TX_OFFSET: u32 = 25;
+    #[cfg(feature = "esp32")]
+    const RX_OFFSET: u32 = 26;
+    #[cfg(feature = "esp32")]
+    const FORCE_OFFSET: u32 = 27;
+
+    #[cfg(feature = "esp32c3")]
+    const GPIO_OUT_W1TS_REG: *mut u32 = 0x6000_4008 as *mut u32; // GPIO bit set register
+    #[cfg(feature = "esp32c3")]
+    const GPIO_OUT_W1TC_REG: *mut u32 = 0x6000_400C as *mut u32; // GPIO bit clear register
+    #[cfg(feature = "esp32c3")]
+    const GPIO_IN_REG: *mut u32 = 0x6000_403C as *mut u32; // GPIO input register
+    #[cfg(feature = "esp32c3")]
+    const TX_OFFSET: u32 = 1;
+    #[cfg(feature = "esp32c3")]
+    const RX_OFFSET: u32 = 0;
+    #[cfg(feature = "esp32c3")]
+    const FORCE_OFFSET: u32 = 10;
+
     pub fn new(tx: Output<'a>, rx: Input<'a>, force: Output<'a>) -> Self {
         EspTranceiver {
             _tx: tx,
@@ -99,37 +133,27 @@ impl<'a> EspTranceiver<'a> {
 impl<'a> Tranceiver for EspTranceiver<'a> {
     #[inline(always)]
     fn set_tx(&mut self, state: bool) {
-        // Direct memory access to GPIO25 as output
         unsafe {
             if state {
-                // Set GPIO25 high
-                core::ptr::write_volatile(GPIO_OUT_W1TS_REG, 1 << 25);
+                core::ptr::write_volatile(Self::GPIO_OUT_W1TS_REG, 1 << Self::TX_OFFSET);
             } else {
-                // Set GPIO25 low
-                core::ptr::write_volatile(GPIO_OUT_W1TC_REG, 1 << 25);
+                core::ptr::write_volatile(Self::GPIO_OUT_W1TC_REG, 1 << Self::TX_OFFSET);
             }
         }
     }
 
     #[inline(always)]
     fn get_rx(&self) -> bool {
-        // Direct memory access to GPIO26 as input
-        unsafe {
-            // Read PA9 (bit 9) and check if it's high
-            (core::ptr::read_volatile(GPIO_IN_REG) & (1 << 26)) != 0
-        }
+        unsafe { (core::ptr::read_volatile(Self::GPIO_IN_REG) & (1 << Self::RX_OFFSET)) != 0 }
     }
 
     #[inline(always)]
     fn set_force(&mut self, state: bool) {
-        // Direct memory access to GPIO27 as output
         unsafe {
             if state {
-                // Set GPIO27 high
-                core::ptr::write_volatile(GPIO_OUT_W1TS_REG, 1 << 27);
+                core::ptr::write_volatile(Self::GPIO_OUT_W1TS_REG, 1 << Self::FORCE_OFFSET);
             } else {
-                // Set GPIO27 low
-                core::ptr::write_volatile(GPIO_OUT_W1TC_REG, 1 << 27);
+                core::ptr::write_volatile(Self::GPIO_OUT_W1TC_REG, 1 << Self::FORCE_OFFSET);
             }
         }
     }
@@ -178,13 +202,12 @@ async fn main(_spawner: Spawner) {
     let dbg_serial = {
         let config = esp_hal::uart::Config::default().baudrate(115200);
 
-        Uart::new_with_config(p.UART1, config, dbg_rx_pin, dbg_tx_pin)
-            .unwrap()
+        Uart::new_with_config(p.UART1, config, dbg_rx_pin, dbg_tx_pin).unwrap()
     };
 
     let (_, dbg_tx) = dbg_serial.split();
     init_logs(dbg_tx);
-    
+
     info!("Wired serial init");
     // Wired serial initialization
     #[cfg(feature = "esp32c3")]
@@ -209,7 +232,7 @@ async fn main(_spawner: Spawner) {
 
     #[cfg(feature = "esp32c3")]
     let (tx_pin, rx_pin, force_pin) = (p.GPIO1, p.GPIO0, p.GPIO10);
-    
+
     let tx = Output::new(tx_pin, Level::Low);
     let rx = Input::new(rx_pin, Pull::None);
     let force = Output::new(force_pin, Level::Low);

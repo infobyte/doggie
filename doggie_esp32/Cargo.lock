@@ -859,6 +859,7 @@ name = "evil_menu"
 version = "0.1.0"
 dependencies = [
  "crc-any",
+ "defmt 0.3.100",
  "embedded-can",
  "embedded-io",
  "evil_core",
