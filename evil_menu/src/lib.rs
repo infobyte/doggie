@@ -2,11 +2,13 @@
 
 mod builder;
 
-use builder::{AttackBuilder, HighLevelAttackCmd};
+use builder::{AttackBuilder, HighLevelAttackCmd, PredefAttacks};
 
 use embedded_can::Id;
 use embedded_io::{Read, Write};
-use evil_core::{clock::TicksClock, tranceiver::Tranceiver, CanBitrates, EvilCore};
+use evil_core::{
+    clock::TicksClock, tranceiver::Tranceiver, AttackCmd, CanBitrates, EvilCore, MAX_ATTACK_SIZE,
+};
 use menu::{argument_finder, Item, ItemType, Menu, Parameter, Runner};
 use noline::builder::EditorBuilder;
 
@@ -194,14 +196,6 @@ where
                                         },
                                         &Item {
                                             item_type: ItemType::Callback {
-                                                function: send_overload_frame,
-                                                parameters: &[],
-                                            },
-                                            command: "send_overload_frame",
-                                            help: Some("Add a send overload frame command to the attack"),
-                                        },
-                                        &Item {
-                                            item_type: ItemType::Callback {
                                                 function: delete,
                                                 parameters: &[
                                                     Parameter::Mandatory {
@@ -340,10 +334,10 @@ fn exit_custom_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
     context: &mut Context<C, T>,
 ) {
     writeln!(interface, "In exit_custom_attack").unwrap();
-    context
-        .core
-        .arm(&context.attack_builder.build().unwrap())
-        .unwrap();
+
+    let mut tmp_attack: [AttackCmd; MAX_ATTACK_SIZE] = [AttackCmd::None; MAX_ATTACK_SIZE];
+    context.attack_builder.build(&mut tmp_attack).unwrap();
+    context.core.arm(&tmp_attack).unwrap();
 }
 
 fn test_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
@@ -354,7 +348,10 @@ fn test_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
     context: &mut Context<C, T>,
 ) {
     writeln!(interface, "Test attack").unwrap();
-    context.attack_builder.set_test_attack();
+    context
+        .attack_builder
+        .push_attack(PredefAttacks::TestAttack)
+        .unwrap();
 }
 
 fn match_id<I: Read + Write, C: TicksClock, T: Tranceiver>(
@@ -530,7 +527,7 @@ fn send_raw<I: Read + Write, C: TicksClock, T: Tranceiver>(
     };
 
     if let Some(bits_str) = bits_opt {
-        if let Ok(bits) = u128::from_str_radix(bits_str, 2) {
+        if let Ok(bits) = u64::from_str_radix(bits_str, 2) {
             context
                 .attack_builder
                 .push(HighLevelAttackCmd::SendRaw {
@@ -654,20 +651,6 @@ fn send_msg<I: Read + Write, C: TicksClock, T: Tranceiver>(
     }
 }
 
-fn send_overload_frame<I: Read + Write, C: TicksClock, T: Tranceiver>(
-    _menu: &Menu<I, Context<C, T>>,
-    _item: &Item<I, Context<C, T>>,
-    _args: &[&str],
-    interface: &mut I,
-    context: &mut Context<C, T>,
-) {
-    context
-        .attack_builder
-        .push(HighLevelAttackCmd::SendOverloadFrame);
-
-    writeln!(interface, "Added Send Overload Frame command").unwrap();
-}
-
 fn delete<I: Read + Write, C: TicksClock, T: Tranceiver>(
     _menu: &Menu<I, Context<C, T>>,
     item: &Item<I, Context<C, T>>,
@@ -679,7 +662,7 @@ fn delete<I: Read + Write, C: TicksClock, T: Tranceiver>(
 
     if let Some(idx_str) = idx_opt {
         if let Ok(idx) = str::parse(idx_str) {
-            context.attack_builder.remove(idx);
+            context.attack_builder.remove(idx).unwrap();
             writeln!(interface, "Deleted command at idx {}", idx).unwrap();
         } else {
             writeln!(interface, "Invalid idx format").unwrap();
@@ -703,7 +686,7 @@ fn relocate<I: Read + Write, C: TicksClock, T: Tranceiver>(
         if let Ok(from) = str::parse(from_str) {
             if let Some(to_str) = to_opt {
                 if let Ok(to) = str::parse(to_str) {
-                    context.attack_builder.relocate(from, to);
+                    context.attack_builder.relocate(from, to).unwrap();
                     writeln!(interface, "Moving command at from {} to {}", from, to).unwrap();
                 } else {
                     writeln!(interface, "Invalid to format").unwrap();

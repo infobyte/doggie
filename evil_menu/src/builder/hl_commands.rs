@@ -18,7 +18,6 @@ fn append_bits(bitstream: &mut [u8], bit_pos: &mut usize, value: u32, num_bits: 
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum HighLevelAttackCmd {
-    None,
     MatchId {
         id: Id,
     },
@@ -52,7 +51,6 @@ pub enum HighLevelAttackCmd {
 impl HighLevelAttackCmd {
     pub fn build(self, attack: &mut [AttackCmd]) -> Result<usize, BuildError> {
         match self {
-            Self::None => Ok(0),
             Self::MatchId { id } => Self::build_match_id(attack, id),
             Self::SkipData => Self::build_skip_data(attack),
             Self::Wait { bits } => Self::build_wait(attack, bits),
@@ -329,11 +327,3 @@ impl HighLevelAttackCmd {
         Ok(attack_index)
     }
 }
-
-// pub fn set_test_attack(&mut self) {
-//     self.low_level_attack = [AttackCmd::None; MAX_ATTACK_SIZE];
-//     self.low_level_attack[0] = AttackCmd::Wait { bits: 1 };
-//     self.low_level_attack[1] = AttackCmd::Force {
-//         stream: FastBitQueue::new(0b1010_101, 7),
-//     };
-// }

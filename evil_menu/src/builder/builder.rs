@@ -4,6 +4,8 @@ use crate::builder::{BuildError, HighLevelAttackCmd};
 use evil_core::AttackCmd;
 use heapless::Vec;
 
+use super::PredefAttacks;
+
 pub struct AttackBuilder<const SIZE: usize> {
     hl_cmd_vec: Vec<HighLevelAttackCmd, SIZE>,
 }
@@ -58,7 +60,7 @@ impl<const SIZE: usize> AttackBuilder<SIZE> {
             Ok(_) => Ok(()),
             Err(error) => {
                 // It must not fail, reverting
-                self.relocate(to, from);
+                self.relocate(to, from).unwrap();
                 Err(error)
             }
         }
@@ -75,7 +77,7 @@ impl<const SIZE: usize> AttackBuilder<SIZE> {
         match self.validate() {
             Ok(_) => Ok(()),
             Err(error) => {
-                self.hl_cmd_vec.insert(index, cmd);
+                self.hl_cmd_vec.insert(index, cmd).unwrap();
                 Err(error)
             }
         }
@@ -95,6 +97,22 @@ impl<const SIZE: usize> AttackBuilder<SIZE> {
         }
 
         Ok(index)
+    }
+
+    pub fn push_attack(&mut self, attack: PredefAttacks) -> Result<(), BuildError> {
+        match attack.build(&mut self.hl_cmd_vec) {
+            Err(e) => Err(e),
+            Ok(size) => match self.validate() {
+                Ok(_) => Ok(()),
+                Err(error) => {
+                    for _ in 0..size {
+                        self.hl_cmd_vec.pop();
+                    }
+
+                    Err(error)
+                }
+            },
+        }
     }
 
     fn validate(&self) -> Result<(), BuildError> {
