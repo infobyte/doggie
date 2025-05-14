@@ -8,7 +8,6 @@ mod spi_device;
 use defmt::{debug, info, println};
 use embassy_executor::Spawner;
 use esp_backtrace as _;
-use esp_hal::usb_serial_jtag::UsbSerialJtag;
 use esp_hal::{
     clock::Clocks,
     gpio::{Input, Level, Output, Pull},
@@ -20,6 +19,9 @@ use esp_hal::{
 use evil_core::{clock::TicksClock, tranceiver::Tranceiver, CanBitrates, EvilBsp, EvilCore};
 use evil_menu::EvilMenu;
 use logging::init_logs;
+
+#[cfg(feature = "esp32c3")]
+use esp_hal::usb_serial_jtag::UsbSerialJtag;
 
 const READ_BUF_SIZE: usize = 64;
 
