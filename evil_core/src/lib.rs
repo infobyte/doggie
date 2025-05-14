@@ -9,6 +9,6 @@ mod commands;
 mod evil_core;
 pub mod tranceiver;
 
-pub use attack_machine::MAX_ATTACK_SIZE;
+pub use attack_machine::new_attack_buf;
 pub use commands::*;
 pub use evil_core::*;

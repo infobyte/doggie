@@ -12,12 +12,15 @@ use evil_core::{
 use menu::{argument_finder, Item, ItemType, Menu, Parameter, Runner};
 use noline::builder::EditorBuilder;
 
+const MAX_BUILDER_SIZE: usize = 32;
+
 struct Context<CLK, TR>
 where
     CLK: TicksClock,
     TR: Tranceiver,
 {
-    attack_builder: AttackBuilder<{ evil_core::MAX_ATTACK_SIZE }>,
+    // Hay que chequear esto porque un comando de alto nivel puede dar lugar a multiples de bajo nivel.
+    attack_builder: AttackBuilder<{ MAX_BUILDER_SIZE }>,
     core: EvilCore<CLK, TR>,
 }
 

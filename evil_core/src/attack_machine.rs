@@ -11,7 +11,11 @@ pub enum HandleResult {
     WaitForSoF,
 }
 
-pub const MAX_ATTACK_SIZE: usize = 32;
+const MAX_ATTACK_SIZE: usize = 32;
+
+pub fn new_attack_buf() -> [AttackCmd; MAX_ATTACK_SIZE] {
+    [AttackCmd::None; MAX_ATTACK_SIZE]
+}
 
 pub struct AttackMachine<Tr>
 where
@@ -36,7 +40,7 @@ where
     pub fn new(tranceiver: Tr) -> Self {
         Self {
             index: 0,
-            attack: [AttackCmd::None; MAX_ATTACK_SIZE],
+            attack: new_attack_buf(),
             tranceiver,
             buffer: FastBitStack::new(),
             bit_stuffing_cnt: 0,
