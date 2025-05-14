@@ -7,7 +7,7 @@ use builder::{AttackBuilder, HighLevelAttackCmd, PredefAttacks};
 use embedded_can::Id;
 use embedded_io::{Read, Write};
 use evil_core::{
-    clock::TicksClock, tranceiver::Tranceiver, AttackCmd, CanBitrates, EvilCore, MAX_ATTACK_SIZE,
+    clock::TicksClock, tranceiver::Tranceiver, AttackCmd, CanBitrates, EvilCore, new_attack_buf
 };
 use menu::{argument_finder, Item, ItemType, Menu, Parameter, Runner};
 use noline::builder::EditorBuilder;
@@ -721,7 +721,7 @@ fn attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
     context: &mut Context<C, T>,
 ) {
     writeln!(interface, "Arming the attack").unwrap();
-    let mut tmp_attack: [AttackCmd; MAX_ATTACK_SIZE] = [AttackCmd::None; MAX_ATTACK_SIZE];
+    let mut tmp_attack = new_attack_buf()`;
     context.attack_builder.build(&mut tmp_attack).unwrap();
     context.core.arm(&tmp_attack).unwrap();
 
