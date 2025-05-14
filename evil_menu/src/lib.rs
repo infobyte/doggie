@@ -64,7 +64,7 @@ where
                         parameters: &[Parameter::Mandatory {
                             parameter_name: "baudrate",
                             help: Some(
-                                "In kbps. Valid baudrates are 5, 10, 20, 50, 100, 125, 250 and 500",
+                                "In kbps. Valid baudrates are 5, 10, 20, 50, 100, 125, 250, 500, 1000",
                             ),
                         }],
                     },
@@ -305,11 +305,16 @@ fn cmd_set_baudrate<I: Read + Write, C: TicksClock, T: Tranceiver>(
             // Set the baudrate of the adapter
             let baudrate = CanBitrates::from(baudrate_str.parse::<u16>().unwrap());
             if [
+                //5, 10, 20, 50, 100, 125, 250, 500, 1000
+                CanBitrates::Kbps5,
+                CanBitrates::Kbps10,
+                CanBitrates::Kbps20,
                 CanBitrates::Kbps50,
                 CanBitrates::Kbps100,
                 CanBitrates::Kbps125,
                 CanBitrates::Kbps250,
                 CanBitrates::Kbps500,
+                CanBitrates::Kbps1000,
             ]
             .contains(&baudrate)
             {
