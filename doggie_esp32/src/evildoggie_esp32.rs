@@ -42,6 +42,9 @@ impl TimerBasedClock {
     const TIMG1_UPDATE_OFFSET: u32 = 0xC;
     const TIMG1_LO_OFFSET: u32 = 0x4;
 
+    const TIMG1_UPDATE: *mut u32 = (Self::TIMG1_BASE + Self::TIMG1_UPDATE_OFFSET) as *mut u32;
+    const TIMG1_LO: *mut u32 = (Self::TIMG1_BASE + Self::TIMG1_LO_OFFSET) as *mut u32;
+
     pub fn new(
         timer: esp_hal::timer::timg::Timer<
             esp_hal::timer::timg::TimerX<<esp_hal::peripherals::TIMG1 as Peripheral>::P>,
@@ -59,9 +62,10 @@ impl TimerBasedClock {
         let apb_freq = Clocks::get().apb_clock.to_Hz();
         let divider = timer.divider();
 
-        println!("APB clock freq: {} Hz", apb_freq);
-        println!("Divider: {}", divider);
-        println!("Timer freq: {} Hz", apb_freq / divider);
+        info!("TIMG1 initialization");
+        println!("\tAPB clock freq: {} Hz", apb_freq);
+        println!("\tDivider: {}", divider);
+        println!("\tTimer freq: {} Hz", apb_freq / divider);
 
         Self { _timer: timer }
     }
@@ -73,11 +77,17 @@ impl TicksClock for TimerBasedClock {
     #[inline(always)]
     fn ticks(&self) -> u32 {
         let res = unsafe {
-            let timg1_t0_update: *mut u32 =
-                (Self::TIMG1_BASE + Self::TIMG1_UPDATE_OFFSET) as *mut u32;
-            let timg1_t0_lo: *mut u32 = (Self::TIMG1_BASE + Self::TIMG1_LO_OFFSET) as *mut u32;
-            core::ptr::write_volatile(timg1_t0_update, 1);
-            core::ptr::read_volatile(timg1_t0_lo)
+            core::ptr::write_volatile(Self::TIMG1_UPDATE, 1);
+
+            // We need to give some time to the timer register to be updated
+            // The amount of nops are calculated for the board used in development
+            // and may vary
+            #[cfg(feature = "esp32c3")]
+            for _ in 0..11 {
+                riscv::asm::nop();
+            }
+
+            core::ptr::read_volatile(Self::TIMG1_LO)
         };
 
         res
@@ -164,13 +174,13 @@ impl<'a> Tranceiver for EspTranceiver<'a> {
 #[no_mangle]
 #[ram]
 fn esp32_attack(core: &mut EvilCore<TimerBasedClock, EspTranceiver<'_>>) {
-    #[cfg(feature = "esp32")]
+    #[cfg(target_arch = "xtensa")]
     xtensa_lx::interrupt::free(|_| {
         // Interrupts disabled
         core.attack();
     });
 
-    #[cfg(feature = "esp32c3")]
+    #[cfg(target_arch = "riscv32")]
     riscv::interrupt::free(|| {
         core.attack();
     });
@@ -178,20 +188,11 @@ fn esp32_attack(core: &mut EvilCore<TimerBasedClock, EspTranceiver<'_>>) {
 
 #[esp_hal_embassy::main]
 async fn main(_spawner: Spawner) {
-    // info!("Init!");
-
     let mut config = esp_hal::Config::default();
-    #[cfg(feature = "esp32c3")]
-    {
-        config.cpu_clock = CpuClock::Clock160MHz;
-    }
+    // esp32   => 240MHz
+    // esp32c3 => 160MHz
+    config.cpu_clock = CpuClock::max();
 
-    #[cfg(feature = "esp32")]
-    {
-        config.cpu_clock = CpuClock::Clock240MHz;
-    }
-
-    // info!("CPU clock: {}", config.cpu_clock.hz());
     let p = esp_hal::init(config);
 
     let timg0 = TimerGroup::new(p.TIMG0);
@@ -209,6 +210,9 @@ async fn main(_spawner: Spawner) {
 
     let (_, dbg_tx) = dbg_serial.split();
     init_logs(dbg_tx);
+
+    info!("Evil Doggie initialization!");
+    // info!("CPU clock: {}", config.cpu_clock.hz());
 
     info!("Wired serial init");
     // Wired serial initialization
@@ -235,7 +239,7 @@ async fn main(_spawner: Spawner) {
     #[cfg(feature = "esp32c3")]
     let (tx_pin, rx_pin, force_pin) = (p.GPIO1, p.GPIO0, p.GPIO10);
 
-    let tx = Output::new(tx_pin, Level::Low);
+    let tx = Output::new(tx_pin, Level::High);
     let rx = Input::new(rx_pin, Pull::None);
     let force = Output::new(force_pin, Level::Low);
 
@@ -254,7 +258,13 @@ async fn main(_spawner: Spawner) {
     info!("BSP created");
 
     // Create and run the EvilDoggie core
-    let core = EvilCore::new(bsp, CanBitrates::Kbps250, 0, esp32_attack);
+    #[cfg(feature = "esp32c3")]
+    let sof_delay_ns = 450;
+
+    #[cfg(feature = "esp32")]
+    let sof_delay_ns = 600;
+
+    let core = EvilCore::new(bsp, CanBitrates::Kbps250, sof_delay_ns, esp32_attack);
     info!("Evil core created, running evil menu");
 
     let mut menu = EvilMenu::new(wired_serial, core);

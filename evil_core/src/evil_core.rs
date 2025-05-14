@@ -1,6 +1,6 @@
 use core::u32;
 
-use defmt::{debug, info};
+use defmt::{info, println};
 
 use crate::attack_errors::AttackError;
 use crate::attack_machine::{AttackMachine, HandleResult};
@@ -48,7 +48,14 @@ where
             / AttackMachine::<Tr>::QUANTA_PER_BIT;
         let sof_offset_ticks = (Clock::TICKS_PER_SEC / 1_000_000 * sof_offset_ns) / 1_000;
 
-        info!("Ticks Per Quantum: {}", ticks_per_quantum);
+        info!("Evil core initialization:");
+        println!("\tQuantas per bit: {}", AttackMachine::<Tr>::QUANTA_PER_BIT);
+        println!("\tTicks per second: {}", Clock::TICKS_PER_SEC);
+        println!("\tTicks Per Quantum: {}", ticks_per_quantum);
+        println!(
+            "\tSoF offset: {}ns = {}ticks",
+            sof_offset_ns, sof_offset_ticks
+        );
 
         EvilCore {
             clock,
@@ -86,7 +93,6 @@ where
 
     #[inline(always)]
     pub fn attack(&mut self) {
-        // let mut next_instant = self.clock.ticks() - self.sof_offset_ticks;
         // Set inital time
         let mut next_instant = self.clock.ticks();
 
@@ -104,15 +110,13 @@ where
                     next_instant = Clock::add_ticks(next_instant, quantas * self.ticks_per_quantum);
                 }
                 HandleResult::Stop => {
-                    debug!("[core] Attack finished");
+                    // debug!("[core] Attack finished");
                     return;
                 }
                 HandleResult::WaitForSoF => {
                     // Wait for SoF and restart the counter
-                    debug!("[core] Waiting for SoF");
                     self.machine.tranceiver.wait_for_sof();
                     next_instant = self.clock.ticks() - self.sof_offset_ticks;
-                    // debug!("[core] SoF reached");
                 }
             };
 
