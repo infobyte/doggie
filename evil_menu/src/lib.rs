@@ -7,7 +7,7 @@ use builder::{AttackBuilder, HighLevelAttackCmd, PredefAttacks};
 use embedded_can::Id;
 use embedded_io::{Read, Write};
 use evil_core::{
-    clock::TicksClock, tranceiver::Tranceiver, AttackCmd, CanBitrates, EvilCore, new_attack_buf
+    clock::TicksClock, new_attack_buf, tranceiver::Tranceiver, AttackCmd, CanBitrates, EvilCore,
 };
 use menu::{argument_finder, Item, ItemType, Menu, Parameter, Runner};
 use noline::builder::EditorBuilder;
@@ -54,7 +54,7 @@ where
     CLK: TicksClock,
     TR: Tranceiver,
 {
-    pub fn new(serial: SERIAL, core: EvilCore<CLK, TR>) -> Self {
+    pub fn new(serial: SERIAL, mut core: EvilCore<CLK, TR>) -> Self {
         let menu = Menu {
             label: "root",
             items: &[
@@ -261,6 +261,10 @@ where
             entry: None,
             exit: None,
         };
+
+        // Warmup attack
+        core.arm(&new_attack_buf()).unwrap();
+        core.board_specific_attack();
 
         EvilMenu {
             serial: Some(serial),
