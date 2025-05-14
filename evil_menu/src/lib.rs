@@ -721,7 +721,7 @@ fn attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
     context: &mut Context<C, T>,
 ) {
     writeln!(interface, "Arming the attack").unwrap();
-    let mut tmp_attack = new_attack_buf()`;
+    let mut tmp_attack = new_attack_buf();
     context.attack_builder.build(&mut tmp_attack).unwrap();
     context.core.arm(&tmp_attack).unwrap();
 
