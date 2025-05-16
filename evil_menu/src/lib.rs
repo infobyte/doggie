@@ -4,11 +4,11 @@ mod builder;
 
 use builder::{AttackBuilder, HighLevelAttackCmd, PredefAttacks};
 
+use defmt::{info, println, Debug2Format};
 use embedded_can::Id;
 use embedded_io::{Read, Write};
-use evil_core::{
-    clock::TicksClock, new_attack_buf, tranceiver::Tranceiver, AttackCmd, CanBitrates, EvilCore,
-};
+use evil_core::{clock::TicksClock, new_attack_buf, tranceiver::Tranceiver, CanBitrates, EvilCore};
+use heapless::Vec;
 use menu::{argument_finder, Item, ItemType, Menu, Parameter, Runner};
 use noline::builder::EditorBuilder;
 
@@ -249,6 +249,33 @@ where
                     command: "test_attack",
                     help: Some("Choose the test attack"),
                 },
+
+                &Item {
+                    item_type: ItemType::Callback {
+                        function: spoofing_attack,
+                        parameters: &[
+                            Parameter::Mandatory {
+                                parameter_name: "id",
+                                help: Some("CAN ID to send in hex (e.g, 0x123)"),
+                            },
+                            Parameter::Mandatory {
+                                parameter_name: "spoofed_data",
+                                help: Some("Data bytes to spoof as comma-separated hex values (e.g., 0x10,0x20,0x30)"),
+                            },
+                            Parameter::Optional {
+                                parameter_name: "match_data",
+                                help: Some("First data bytes to match as comma-separated hex values (e.g., 0x10,0x20,0x30)"),
+                            },
+                            Parameter::Named {
+                                parameter_name: "extended",
+                                help: Some("Whether this is an extended ID (defaults to standard ID)"),
+                            },
+                        ],
+                    },
+                    command: "spoofing_attack",
+                    help: Some("Push a spoofing attack over an ID"),
+                },
+
                 &Item {
                     item_type: ItemType::Callback {
                         function: attack,
@@ -343,9 +370,102 @@ fn enter_custom_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
 fn exit_custom_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
     _menu: &Menu<I, Context<C, T>>,
     interface: &mut I,
-    context: &mut Context<C, T>,
+    _context: &mut Context<C, T>,
 ) {
     writeln!(interface, "In exit_custom_attack").unwrap();
+}
+
+fn parse_data<'a>(
+    input_str: &'a str,
+    data_array: &'a mut Vec<u8, 8>,
+) -> Result<usize, &'static str> {
+    for (i, hex_str) in input_str.split(',').enumerate() {
+        if i >= 8 {
+            return Err("Error: Data exceeds maximum length of 8 bytes");
+        }
+
+        let trimmed = hex_str.trim().trim_start_matches("0x");
+        match u8::from_str_radix(trimmed, 16) {
+            Ok(value) => {
+                data_array.push(value).unwrap();
+            }
+            Err(_) => {
+                return Err("Error parsing hex data");
+            }
+        }
+    }
+
+    Ok(data_array.len())
+}
+
+fn spoofing_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
+    _menu: &Menu<I, Context<C, T>>,
+    item: &Item<I, Context<C, T>>,
+    args: &[&str],
+    interface: &mut I,
+    context: &mut Context<C, T>,
+) {
+    writeln!(interface, "Spoofing attack").unwrap();
+    let mut id_str = argument_finder(item, args, "id").unwrap().unwrap();
+    let match_data_str_opt = argument_finder(item, args, "match_data").unwrap();
+    let spoof_data_str = argument_finder(item, args, "spoofed_data")
+        .unwrap()
+        .unwrap();
+    let is_extended = match argument_finder(item, args, "extended").unwrap() {
+        Some(_) => true,
+        None => false,
+    };
+
+    id_str = id_str.trim_start_matches("0x");
+    let id = if let Ok(id_val) = u32::from_str_radix(id_str, 16) {
+        if is_extended {
+            Id::Extended(embedded_can::ExtendedId::new(id_val).unwrap())
+        } else {
+            Id::Standard(embedded_can::StandardId::new(id_val as u16).unwrap())
+        }
+    } else {
+        writeln!(interface, "Invalid ID format").unwrap();
+        return;
+    };
+
+    let mut spoof_data: Vec<u8, 8> = Vec::new();
+
+    match parse_data(spoof_data_str, &mut spoof_data) {
+        Err(err_str) => {
+            writeln!(interface, "{}", err_str).unwrap();
+            return;
+        }
+        _ => {}
+    }
+
+    let mut match_data: Vec<u8, 8> = Vec::new();
+
+    match match_data_str_opt {
+        Some(match_data_str) => match parse_data(match_data_str, &mut match_data) {
+            Err(err_str) => {
+                writeln!(interface, "{}", err_str).unwrap();
+                return;
+            }
+            _ => {}
+        },
+        _ => {}
+    }
+
+    context
+        .attack_builder
+        .push_attack(PredefAttacks::SpoofingAttack {
+            id,
+            spoof_data: spoof_data.clone(),
+            match_data: match_data.clone(),
+        })
+        .unwrap();
+
+    writeln!(
+        interface,
+        "Added Spoofing attack with:\n\tid: {:?}\n\tspoof data: {:?}\n\tdata to match {:?}",
+        id, spoof_data, match_data
+    )
+    .unwrap();
 }
 
 fn test_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
@@ -386,7 +506,7 @@ fn match_id<I: Read + Write, C: TicksClock, T: Tranceiver>(
 
             context
                 .attack_builder
-                .push(HighLevelAttackCmd::MatchId { id })
+                .push(HighLevelAttackCmd::MatchId { id, rtr: false }) // TODO: Add RTR to the command
                 .unwrap();
 
             writeln!(interface, "Added Match Id command with Id: {:?}", id).unwrap();
@@ -432,14 +552,17 @@ fn match_data<I: Read + Write, C: TicksClock, T: Tranceiver>(
                             }
                         }
                     }
-                    Some(data_array)
+                    data_array
                 }
-                None => None,
+                None => [0; 8],
             };
 
             context
                 .attack_builder
-                .push(HighLevelAttackCmd::MatchData { data_len, data })
+                .push(HighLevelAttackCmd::MatchData {
+                    match_size: data_len,
+                    data,
+                })
                 .unwrap();
 
             writeln!(
@@ -731,8 +854,13 @@ fn attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
 ) {
     writeln!(interface, "Arming the attack").unwrap();
     let mut tmp_attack = new_attack_buf();
-    context.attack_builder.build(&mut tmp_attack).unwrap();
+    let attack_size = context.attack_builder.build(&mut tmp_attack).unwrap();
     context.core.arm(&tmp_attack).unwrap();
+
+    info!("About to run attack with:");
+    for cmd in &tmp_attack[0..attack_size] {
+        println!("\t{:?}", Debug2Format(cmd));
+    }
 
     writeln!(interface, "Launching attack").unwrap();
     context.core.board_specific_attack();

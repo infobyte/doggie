@@ -1,5 +1,3 @@
-use core::ops::{BitOr, Shr};
-
 pub struct TranceiverState {
     pub tx: bool,
     pub force: bool,
@@ -141,7 +139,7 @@ impl FastBitQueue {
 }
 
 pub struct FastBitStack {
-    value: u64,
+    value: u32,
 }
 
 impl FastBitStack {
@@ -151,19 +149,17 @@ impl FastBitStack {
 
     #[inline(always)]
     pub fn push(&mut self, value: bool) {
-        self.value = (self.value << 1) | (value as u64);
+        self.value = (self.value << 1) | (value as u32);
     }
 
     #[inline(always)]
-    pub fn push_num<T: Shr + BitOr + Into<usize>>(&mut self, value: T, size: usize) {
-        let ival: usize = value.into();
-        for index in (size - 1)..=0 {
-            self.push(ival & (index << 0x1) > 0)
-        }
+    pub fn push_num<T: Into<u32>>(&mut self, value: T, size: usize) {
+        let ival: u32 = value.into();
+        self.value = (self.value << size) | (ival & (u32::pow(2, size as u32) - 1));
     }
 
     #[inline(always)]
-    pub fn value(&self) -> u64 {
+    pub fn value(&self) -> u32 {
         self.value
     }
 
@@ -181,7 +177,9 @@ pub enum AttackCmd {
     Match { stream: FastBitQueue },
     Read { len: usize },
     WaitBuffered,
-    WaitForSof, // TODO
-    WaitForEof, // TODO
+    MulBuffered { mult: u8 },
+    SubBuffered { sub: u32 },
+    WaitForSof,
+    WaitForEof,
     None,
 }

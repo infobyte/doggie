@@ -1,18 +1,111 @@
 use crate::builder::BuildError;
-use core::cmp::{max, min};
+use core::{
+    cmp::{max, min},
+    ops::MulAssign,
+};
 use crc_any::CRC;
-use defmt::Format;
+use defmt::info;
 use embedded_can::Id;
 use evil_core::{AttackCmd, FastBitQueue, FastBitStack};
 
-fn append_bits(bitstream: &mut [u8], bit_pos: &mut usize, value: u32, num_bits: usize) {
-    // [...,[9,10,11,12,13,14,15],[0, 1, 2, 3, 4, 5, 6, 7, 8]]
-    for i in (0..num_bits).rev() {
-        let bit = ((value >> i) & 1) as u8;
-        let byte_idx = *bit_pos / 8;
-        let bit_offset = 7 - (*bit_pos % 8);
-        bitstream[byte_idx] |= bit << bit_offset;
-        *bit_pos += 1;
+struct MsgBitQueue {
+    data: [u8; 13],
+    end: usize,
+    start: usize,
+    crc: u16,
+}
+
+impl MsgBitQueue {
+    const CRC_POLY: u16 = 0xC599;
+    const CRC_WIDTH: u16 = 15;
+
+    fn crc_process_bit(&mut self, bit: u8) {
+        // Get bit at the left
+        let crc_high_bit = self.crc >> (Self::CRC_WIDTH - 1) & 1;
+
+        // Append the new bit at right
+        self.crc = (self.crc << 1) | (bit as u16);
+
+        // If higher bit is 1, make a xor
+        if crc_high_bit == 1 {
+            self.crc ^= Self::CRC_POLY;
+        }
+
+        // Save only the 15 bits
+        self.crc &= (1 << Self::CRC_WIDTH) - 1;
+    }
+
+    fn crc_calculate(&mut self) -> u16 {
+        // Get the reminder of the divition
+        for _ in 0..Self::CRC_WIDTH {
+            self.crc_process_bit(0);
+        }
+
+        self.crc
+    }
+
+    fn new() -> Self {
+        Self {
+            data: [0; 13],
+            end: 0,
+            start: 0,
+            crc: 0,
+        }
+    }
+
+    fn append(&mut self, value: u32, num_bits: usize) {
+        for i in (0..num_bits).rev() {
+            let bit = (value >> i) as u8 & 1;
+            let byte_idx = self.end / 8;
+            let bit_offset = 7 - (self.end % 8);
+            self.data[byte_idx] |= bit << bit_offset;
+            self.end += 1;
+
+            self.crc_process_bit(bit);
+        }
+    }
+
+    fn pop(&mut self) -> u8 {
+        let byte_idx = self.start / 8;
+        let bit_offset = 7 - (self.start % 8);
+
+        let res = (self.data[byte_idx] >> bit_offset) & 1;
+
+        self.start += 1;
+
+        res
+    }
+
+    fn as_ref(&self) -> &[u8; 13] {
+        &self.data
+    }
+
+    fn len(&self) -> usize {
+        let bits = self.end - self.start;
+        bits / 8 + if bits % 8 != 0 { 1 } else { 0 }
+    }
+
+    fn pop_chunk(&mut self) -> Option<(u64, usize)> {
+        if self.end == self.start {
+            None
+        } else {
+            let size = min(64, self.end - self.start);
+
+            let mut value: u64 = 0;
+            for _ in 0..size {
+                value = (value << 1) | self.pop() as u64;
+            }
+
+            Some((value, size))
+        }
+    }
+
+    fn append_crc(&mut self) {
+        let crc = self.crc_calculate();
+
+        info!("CRC: {:X}", crc);
+
+        self.append(crc as u32, 15);
     }
 }
 
@@ -20,10 +113,11 @@ fn append_bits(bitstream: &mut [u8], bit_pos: &mut usize, value: u32, num_bits: 
 pub enum HighLevelAttackCmd {
     MatchId {
         id: Id,
+        rtr: bool,
     },
     MatchData {
-        data_len: usize,
-        data: Option<[u8; 8]>,
+        data: [u8; 8],
+        match_size: u8,
     },
     SkipData,
     Wait {
@@ -51,10 +145,12 @@ pub enum HighLevelAttackCmd {
 impl HighLevelAttackCmd {
     pub fn build(self, attack: &mut [AttackCmd]) -> Result<usize, BuildError> {
         match self {
-            Self::MatchId { id } => Self::build_match_id(attack, id),
+            Self::MatchId { id, rtr } => Self::build_match_id(attack, id, rtr),
             Self::SkipData => Self::build_skip_data(attack),
             Self::Wait { bits } => Self::build_wait(attack, bits),
-            Self::MatchData { data_len, data } => Self::build_match_data(attack, data_len, data),
+            Self::MatchData { data, match_size } => {
+                Self::build_match_data(attack, data, match_size)
+            }
             Self::SendError { count } => Self::build_send_error(attack, count),
             Self::SendRaw {
                 bits,
@@ -73,7 +169,7 @@ impl HighLevelAttackCmd {
         }
     }
 
-    fn build_match_id(attack: &mut [AttackCmd], id: Id) -> Result<usize, BuildError> {
+    fn build_match_id(attack: &mut [AttackCmd], id: Id, rtr: bool) -> Result<usize, BuildError> {
         // Validation: It has to be after a WaitSof command
         // Pre condition: We are at the second bit of the frame (after SOF)
         // Post condition: At the end we are in the beginning of the DLC
@@ -85,8 +181,10 @@ impl HighLevelAttackCmd {
                 // Push the ID
                 id_bits.push_num(id.as_raw(), 11);
 
+                info!("RAW ID: {}", id.as_raw());
+
                 // Push RTR
-                id_bits.push(false);
+                id_bits.push(rtr);
 
                 // Push IDE
                 id_bits.push(false);
@@ -98,7 +196,7 @@ impl HighLevelAttackCmd {
             }
             Id::Extended(id) => {
                 // Push STD ID
-                id_bits.push_num((id.as_raw() >> 7) as usize, 11);
+                id_bits.push_num((id.as_raw() >> 7) as u32, 11);
 
                 // Push SSR
                 id_bits.push(true);
@@ -107,13 +205,13 @@ impl HighLevelAttackCmd {
                 id_bits.push(true);
 
                 // Push EXT ID
-                id_bits.push_num(id.as_raw() as usize, 18);
+                id_bits.push_num(id.as_raw() as u32, 18);
 
                 // Push RTR
-                id_bits.push(false);
+                id_bits.push(rtr);
 
                 // Push Reserved
-                id_bits.push_num(0 as usize, 2);
+                id_bits.push_num(0 as u32, 2);
 
                 34
             }
@@ -131,9 +229,10 @@ impl HighLevelAttackCmd {
         // Pre condition: We are in the DLC position
         // Post condition: We are in the end of the data
         attack[0] = AttackCmd::Read { len: 4 };
-        attack[1] = AttackCmd::WaitBuffered;
+        attack[1] = AttackCmd::MulBuffered { mult: 8 };
+        attack[2] = AttackCmd::WaitBuffered;
 
-        Ok(2)
+        Ok(3)
     }
 
     fn build_wait(attack: &mut [AttackCmd], bits: usize) -> Result<usize, BuildError> {
@@ -143,35 +242,38 @@ impl HighLevelAttackCmd {
 
     fn build_match_data(
         attack: &mut [AttackCmd],
-        data_len: usize,
-        data: Option<[u8; 8]>,
+        data: [u8; 8],
+        match_size: u8,
     ) -> Result<usize, BuildError> {
+        // This will match the first {match_size} bytes of the data and wait
+        // for the rest of the data.
         // Validation: This has to be after a MatchId command
         // Pre condition: We are at the DLC position
         // Post condition: We are at the end of the data or the match has faild
 
-        if data_len > 8 || (data.is_none() && data_len != 0) {
-            return Err(BuildError::IndexOutOfBounds);
+        // Read DLC
+        attack[0] = AttackCmd::Read { len: 4 };
+
+        // Match data
+        let mut raw_data: u64 = 0;
+        for byte_index in 0..match_size {
+            raw_data |= (data[byte_index as usize] as u64) << (8 * byte_index);
         }
 
-        attack[0] = AttackCmd::Match {
-            stream: FastBitQueue::new(data_len as u64, 4),
+        attack[1] = AttackCmd::Match {
+            stream: FastBitQueue::new(raw_data, match_size as usize * 8),
         };
 
-        Ok(match data {
-            Some(data_arr) => {
-                let mut raw_data: u64 = 0;
-                for byte_index in 0..data_len {
-                    raw_data |= (data_arr[byte_index] as u64) << (8 * byte_index);
-                }
+        // Operate with the buffered value
+        attack[2] = AttackCmd::SubBuffered {
+            sub: match_size as u32,
+        };
+        attack[3] = AttackCmd::MulBuffered { mult: 8 };
 
-                attack[0] = AttackCmd::Match {
-                    stream: FastBitQueue::new(raw_data, data_len * 8),
-                };
-                2
-            }
-            None => 1,
-        })
+        // Wait the rest of the data
+        attack[4] = AttackCmd::WaitBuffered;
+
+        Ok(5)
     }
 
     fn build_send_error(attack: &mut [AttackCmd], mut count: usize) -> Result<usize, BuildError> {
@@ -238,86 +340,65 @@ impl HighLevelAttackCmd {
         force: bool,
     ) -> Result<usize, BuildError> {
         // Precondition: The bus is not bussy
-        let mut msg: [u8; 13] = [0; 13];
-        let mut msg_pos = 0;
+        let mut msg_queue = MsgBitQueue::new();
 
         // SoF
-        append_bits(&mut msg, &mut msg_pos, 0, 1);
+        msg_queue.append(0, 1);
 
         // ID
         match id {
             Id::Standard(id_value) => {
-                append_bits(&mut msg, &mut msg_pos, id_value.as_raw() as u32, 11);
+                msg_queue.append(id_value.as_raw() as u32, 11);
             }
             Id::Extended(id_value) => {
                 // STD id bits
-                append_bits(&mut msg, &mut msg_pos, id_value.as_raw() >> 18, 11);
+                msg_queue.append(id_value.as_raw() >> 18, 11);
 
                 // SRR and IDE
-                append_bits(&mut msg, &mut msg_pos, 0b11, 2);
+                msg_queue.append(0b11, 2);
 
                 // EXT id bits
-                append_bits(&mut msg, &mut msg_pos, id_value.as_raw(), 18);
+                msg_queue.append(id_value.as_raw(), 18);
             }
         }
 
         // RTR
-        append_bits(&mut msg, &mut msg_pos, rtr.into(), 1);
+        msg_queue.append(rtr.into(), 1);
 
         // IDE for std and reserved bits
-        append_bits(&mut msg, &mut msg_pos, 0b00, 2);
+        msg_queue.append(0b00, 2);
 
         // DLC
-        append_bits(&mut msg, &mut msg_pos, data_len as u32, 4);
+        msg_queue.append(data_len as u32, 4);
 
         // DATA
         if let Some(data_arr) = data {
             for byte in &data_arr[0..data_len] {
-                append_bits(&mut msg, &mut msg_pos, (*byte).into(), 8);
+                msg_queue.append((*byte).into(), 8);
             }
         }
 
-        // CRC
-        let mut crc = CRC::crc15can();
-        msg.reverse();
-        crc.digest(&msg);
-        msg.reverse();
-
-        append_bits(&mut msg, &mut msg_pos, crc.get_crc() as u32, 15);
+        // msg_queue.append(crc.get_crc() as u32, 15);
+        msg_queue.append_crc();
 
         // ACK
-        append_bits(&mut msg, &mut msg_pos, 0b11, 2);
+        // msg_queue.append(0b10, 2);
 
         // EoF and IFS
-        append_bits(&mut msg, &mut msg_pos, 0b0000000000, 7 + 3);
+        // msg_queue.append(0b1111111111, 7 + 3);
 
-        // Pack the message in u64 chunks
-        // 64 bits (max queue length)
+        defmt::info!("MSG: {}", msg_queue.as_ref());
+
         let mut attack_index = 0;
-        let msg_len = msg_pos / 8 + if msg_pos % 8 != 0 { 1 } else { 0 };
 
-        let mut chunk_offset = 0;
-        while msg_len > 0 {
-            let chunk_len = min(8, msg_len - chunk_offset);
-
-            // Pack the value from chunk_offset to chunk_len
-            let mut value: u64 = 0;
-            for byte in &msg[chunk_offset..(chunk_offset + chunk_len)] {
-                value = (value << 8) | *byte as u64;
-            }
-
-            let bits_left = msg_pos - (chunk_offset * 8);
-            let bits_chunk = max(64, bits_left);
-            chunk_offset += chunk_len;
-
-            // Attach the attack
+        while let Some((value, size)) = msg_queue.pop_chunk() {
             attack[attack_index] = if force {
                 AttackCmd::Force {
-                    stream: FastBitQueue::new(value, bits_chunk),
+                    stream: FastBitQueue::new(value, size),
                 }
             } else {
                 AttackCmd::Send {
-                    stream: FastBitQueue::new(value, bits_chunk),
+                    stream: FastBitQueue::new(value, size),
                 }
             };
 

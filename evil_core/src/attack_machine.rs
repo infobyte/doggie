@@ -1,5 +1,3 @@
-use defmt::debug;
-
 use crate::attack_errors::AttackError;
 use crate::commands::{AttackCmd, FastBitStack};
 use crate::tranceiver::Tranceiver;
@@ -11,7 +9,7 @@ pub enum HandleResult {
     WaitForSoF,
 }
 
-const MAX_ATTACK_SIZE: usize = 32;
+const MAX_ATTACK_SIZE: usize = 64;
 
 pub fn new_attack_buf() -> [AttackCmd; MAX_ATTACK_SIZE] {
     [AttackCmd::None; MAX_ATTACK_SIZE]
@@ -25,8 +23,10 @@ where
     attack: [AttackCmd; MAX_ATTACK_SIZE],
     pub tranceiver: Tr,
     buffer: FastBitStack,
+    buffer_value: u32,
     bit_stuffing_cnt: u8,
     bit_stuffing_polarity: bool,
+    bit_stuffing_active: bool,
     on_start: bool,
     next_state: TranceiverState,
 }
@@ -43,8 +43,10 @@ where
             attack: new_attack_buf(),
             tranceiver,
             buffer: FastBitStack::new(),
+            buffer_value: 0,
             bit_stuffing_cnt: 0,
             bit_stuffing_polarity: true,
+            bit_stuffing_active: false,
             on_start: true,
             next_state: TranceiverState::new(),
         }
@@ -88,19 +90,28 @@ where
                 self.next_state.set_force(stream.pop());
             }
             AttackCmd::Send { ref mut stream } => {
-                self.next_state.set_tx(!stream.pop());
+                self.next_state.set_tx(stream.pop());
+            }
+            AttackCmd::MulBuffered { mult } => {
+                self.buffer_value *= mult as u32;
+
+                self.next_cmd();
+                self.pre_calculate();
+            }
+            AttackCmd::SubBuffered { sub } => {
+                self.buffer_value -= sub;
+
+                self.next_cmd();
+                self.pre_calculate();
             }
             AttackCmd::WaitBuffered => {
-                let value = self.buffer.value() * 8;
-                self.buffer.clean();
-
-                if value == 0 {
+                if self.buffer_value == 0 {
                     self.index += 1;
                     // We shouldn't have two WaitBuffered together
                     self.pre_calculate();
                 } else {
                     self.attack[self.index] = AttackCmd::Wait {
-                        bits: (value - 1) as usize,
+                        bits: (self.buffer_value - 1) as usize,
                     };
                 }
             }
@@ -157,13 +168,25 @@ where
                 self.buffer.push(rx);
                 *len -= 1;
 
-                Ok(*len <= 0)
+                let finished = *len <= 0;
+                if finished {
+                    self.buffer_value = self.buffer.value();
+                    self.buffer.clean();
+                }
+
+                Ok(finished)
             }
             AttackCmd::None => Err(()),
-            AttackCmd::WaitForEof => {
-                // Wait for EOF (7) + IFS (3) recessives
-                Ok(self.bit_stuffing_cnt >= 7 + 3 && self.bit_stuffing_polarity)
-            }
+            // AttackCmd::WaitForEof => {
+            //     // Wait for EOF (7) + IFS (3) recessives
+            //     if self.bit_stuffing_cnt >= 7 + 3 && self.bit_stuffing_polarity {
+            //         self.bit_stuffing_cnt = 0;
+
+            //         Ok(true)
+            //     } else {
+            //         Ok(false)
+            //     }
+            // }
             _ => Ok(false),
         }
     }
@@ -176,6 +199,31 @@ where
     }
 
     #[inline(always)]
+    fn pre_calculate_bs(&mut self) {
+        match self.attack[self.index] {
+            AttackCmd::Send { stream } => {
+                self.next_state.set_tx(!self.bit_stuffing_polarity);
+            }
+            AttackCmd::Force { stream } => {
+                self.next_state.set_force(!self.bit_stuffing_polarity);
+            }
+            AttackCmd::WaitForEof => {
+                if self.bit_stuffing_cnt >= 7 + 3 && self.bit_stuffing_polarity {
+                    self.bit_stuffing_cnt = 0;
+
+                    self.next_cmd();
+                } else {
+                    return;
+                }
+            }
+            _ => {}
+        }
+
+        self.bit_stuffing_cnt = 0;
+        self.bit_stuffing_active = true;
+    }
+
+    #[inline(always)]
     pub fn handle(&mut self) -> HandleResult {
         // debug!("{:?}", defmt::Debug2Format(&self.attack[self.index]));
         // We have an special case for the WaitForSof as we already
@@ -183,6 +231,7 @@ where
         // to the core until the Sof is found
         if let AttackCmd::WaitForSof = self.attack[self.index] {
             self.index += 1;
+            self.bit_stuffing_cnt = 0;
             return HandleResult::WaitForSoF;
         }
 
@@ -201,33 +250,32 @@ where
                 self.bit_stuffing_polarity = rx;
             }
 
-            // handle_middle return false if we finished the attack
-            match self.handle_middle(rx) {
-                Ok(true) => {
-                    if !self.next_cmd() {
-                        return HandleResult::Stop;
+            if !self.bit_stuffing_active {
+                // handle_middle return false if we finished the attack
+                match self.handle_middle(rx) {
+                    Ok(true) => {
+                        if !self.next_cmd() {
+                            return HandleResult::Stop;
+                        }
                     }
+                    Err(_) => return HandleResult::Stop,
+                    Ok(_) => {}
                 }
-                Err(_) => return HandleResult::Stop,
-                Ok(_) => {}
-            };
-
-            let waiting_for_eof = match self.attack[self.index] {
-                AttackCmd::WaitForEof => true,
-                _ => false,
-            };
+            } else {
+                self.bit_stuffing_active = false;
+            }
 
             // Bit stuffing
-            if self.bit_stuffing_cnt >= 5 && !waiting_for_eof {
-                self.bit_stuffing_cnt = 0;
-
-                HandleResult::Wait { quantas: 8 }
+            if self.bit_stuffing_cnt >= 5 {
+                self.pre_calculate_bs();
             } else {
-                self.on_start = true;
                 // pre_calculate
                 self.pre_calculate();
-                HandleResult::Wait { quantas: 7 }
             }
+
+            self.on_start = true;
+
+            HandleResult::Wait { quantas: 7 }
         }
     }
 }
