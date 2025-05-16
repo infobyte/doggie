@@ -8,6 +8,10 @@ edition = "2021"
 defmt = "0.3"
 embedded-hal = "1.0.0"
 embedded-can = "0.4.1"
+embedded-io = "0.6.1"
+heapless = "0.8.0"
+menu = { version = "0.6.1", features = ["noline"] }
+noline = " 0.5.1"
 
 [profile.dev]
 opt-level = 3

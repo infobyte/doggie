@@ -1,6 +1,5 @@
-use crate::clock::TicksClock;
-use crate::tranceiver::Tranceiver;
-
+use super::clock::TicksClock;
+use super::tranceiver::Tranceiver;
 
 pub struct EvilBsp<Clock, Tr>
 where
@@ -17,13 +16,10 @@ where
     Tr: Tranceiver,
 {
     pub fn new(clock: Clock, tr: Tr) -> Self {
-        EvilBsp {
-            clock,
-            tr
-        }
+        EvilBsp { clock, tr }
     }
 
     pub fn split(self) -> (Clock, Tr) {
-        (self.clock, self. tr)
+        (self.clock, self.tr)
     }
 }

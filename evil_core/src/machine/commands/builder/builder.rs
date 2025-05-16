@@ -1,7 +1,7 @@
-use crate::builder::{BuildError, HighLevelAttackCmd};
+use super::super::AttackCmd;
+use super::{BuildError, HighLevelAttackCmd};
 use core::slice::Iter;
 use defmt::debug;
-use evil_core::AttackCmd;
 use heapless::Vec;
 
 use super::PredefAttacks;

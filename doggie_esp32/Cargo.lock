@@ -140,12 +140,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "crc-any"
-version = "2.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a62ec9ff5f7965e4d7280bd5482acd20aadb50d632cf6c1d74493856b011fa73"
-
-[[package]]
 name = "critical-section"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -286,7 +280,6 @@ dependencies = [
  "esp-hal-embassy",
  "esp-wifi",
  "evil_core",
- "evil_menu",
  "log",
  "mcp2515",
  "nb 1.1.0",
@@ -852,17 +845,7 @@ dependencies = [
  "defmt 0.3.100",
  "embedded-can",
  "embedded-hal 1.0.0",
-]
-
-[[package]]
-name = "evil_menu"
-version = "0.1.0"
-dependencies = [
- "crc-any",
- "defmt 0.3.100",
- "embedded-can",
  "embedded-io",
- "evil_core",
  "heapless",
  "menu",
  "noline",

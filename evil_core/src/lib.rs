@@ -1,14 +1,9 @@
 #![no_std]
 
-mod attack_errors;
-mod attack_machine;
-mod bsp;
-mod can;
-pub mod clock;
-mod commands;
+pub mod bsp;
 mod evil_core;
-pub mod tranceiver;
+mod machine;
+mod menu;
 
-pub use attack_machine::new_attack_buf;
-pub use commands::*;
-pub use evil_core::*;
+pub use evil_core::{BoardSpecificAttackFn, EvilCore};
+pub use menu::EvilMenu;

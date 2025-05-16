@@ -1,25 +1,3 @@
-pub struct TranceiverState {
-    pub tx: bool,
-    pub force: bool,
-}
-
-impl TranceiverState {
-    pub fn new() -> Self {
-        Self {
-            tx: true,
-            force: false,
-        }
-    }
-
-    pub fn set_tx(&mut self, state: bool) {
-        self.tx = state;
-    }
-
-    pub fn set_force(&mut self, state: bool) {
-        self.force = state;
-    }
-}
-
 #[derive(Clone, Copy)]
 pub struct BitStream<const SIZE: usize> {
     data: [bool; SIZE],

@@ -1,12 +1,7 @@
-use crate::builder::BuildError;
-use core::{
-    cmp::{max, min},
-    ops::MulAssign,
-};
-use crc_any::CRC;
+use crate::machine::commands::{builder::BuildError, AttackCmd, FastBitQueue, FastBitStack};
+use core::cmp::min;
 use defmt::info;
 use embedded_can::Id;
-use evil_core::{AttackCmd, FastBitQueue, FastBitStack};
 
 struct MsgBitQueue {
     data: [u8; 13],

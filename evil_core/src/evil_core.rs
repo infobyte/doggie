@@ -2,13 +2,8 @@ use core::u32;
 
 use defmt::{info, println};
 
-use crate::attack_errors::AttackError;
-use crate::attack_machine::{AttackMachine, HandleResult};
-pub use crate::bsp::EvilBsp;
-pub use crate::can::CanBitrates;
-use crate::clock::TicksClock;
-use crate::commands::AttackCmd;
-use crate::tranceiver::Tranceiver;
+use super::bsp::{CanBitrates, EvilBsp, TicksClock, Tranceiver};
+use super::machine::{commands::AttackCmd, AttackError, AttackMachine, HandleResult};
 
 pub type BoardSpecificAttackFn<C, T> = fn(core: &mut EvilCore<C, T>);
 

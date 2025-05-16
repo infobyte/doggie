@@ -16,8 +16,13 @@ use esp_hal::{
     timer::timg::TimerGroup,
     uart::Uart,
 };
-use evil_core::{clock::TicksClock, tranceiver::Tranceiver, CanBitrates, EvilBsp, EvilCore};
-use evil_menu::EvilMenu;
+use evil_core::{
+    bsp::{
+        TicksClock, Tranceiver, CanBitrates, EvilBsp
+    },
+    EvilCore,
+    EvilMenu,
+};
 use logging::init_logs;
 
 #[cfg(feature = "esp32c3")]

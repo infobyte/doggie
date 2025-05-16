@@ -1,7 +1,6 @@
-use crate::attack_errors::AttackError;
-use crate::commands::{AttackCmd, FastBitStack};
-use crate::tranceiver::Tranceiver;
-use crate::TranceiverState;
+use super::super::bsp::{Tranceiver, TranceiverState};
+use super::commands::{AttackCmd, FastBitStack};
+use super::errors::AttackError;
 
 pub enum HandleResult {
     Wait { quantas: u32 },
@@ -201,10 +200,10 @@ where
     #[inline(always)]
     fn pre_calculate_bs(&mut self) {
         match self.attack[self.index] {
-            AttackCmd::Send { stream } => {
+            AttackCmd::Send { stream: _ } => {
                 self.next_state.set_tx(!self.bit_stuffing_polarity);
             }
-            AttackCmd::Force { stream } => {
+            AttackCmd::Force { stream: _ } => {
                 self.next_state.set_force(!self.bit_stuffing_polarity);
             }
             AttackCmd::WaitForEof => {

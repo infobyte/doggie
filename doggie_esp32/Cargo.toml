@@ -46,7 +46,6 @@ static_cell = "2.1.0"
 
 doggie_core = { version = "0.1.0", path = "../doggie_core"}
 evil_core = { version = "0.1.0", path = "../evil_core"}
-evil_menu = { version = "0.1.0", path = "../evil_menu" }
 defmt = { version = "0.3.8", features = ["encoding-raw"] }
 embedded-hal = "1.0.0"
 embedded-can = "0.4.1"
