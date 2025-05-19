@@ -72,8 +72,6 @@ impl<const IN_SIZE: usize, const OUT_SIZE: usize, B: Buildable<OUT_SIZE>>
     }
 
     pub fn build(&mut self, out_vec: &mut Vec<B::Res, OUT_SIZE>) -> Result<usize, BuildError> {
-        debug!("Building HL commands");
-
         for attack in self.attack_vec.iter() {
             match attack.build(out_vec) {
                 Ok(_) => {}

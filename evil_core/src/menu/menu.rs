@@ -5,7 +5,7 @@ use crate::machine::commands::builder::{
 };
 use crate::machine::new_attack_buf;
 use crate::menu::callbacks::*;
-use defmt::info;
+use defmt::{info, Debug2Format};
 use embedded_can::Id;
 use embedded_io::{Read, Write};
 use heapless::Vec;
@@ -486,7 +486,7 @@ fn attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
 
     info!("Result:");
     for attack_cmd in &hl_attack_vec {
-        info!("\t{:?}", attack_cmd);
+        info!("\t{:?}", Debug2Format(attack_cmd));
     }
 
     hl_attack_vec
@@ -499,7 +499,7 @@ fn attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
 
     info!("About to run attack with:");
     for cmd in &attack_vec {
-        info!("\t{:?}", cmd);
+        info!("\t{:?}", Debug2Format(cmd));
     }
 
     writeln!(interface, "Launching attack").unwrap();
