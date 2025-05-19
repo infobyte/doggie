@@ -1,16 +1,19 @@
 use crate::bsp::{CanBitrates, TicksClock, Tranceiver};
 use crate::evil_core::EvilCore;
-use crate::machine::commands::builder::{AttackBuilder, PredefAttacks};
+use crate::machine::commands::builder::{
+    AttackBuilder, HighLevelAttackCmd, PredefAttacks, MAX_HL_COMMANDS,
+};
 use crate::machine::new_attack_buf;
 use crate::menu::callbacks::*;
-use defmt::{info, println, Debug2Format};
+use defmt::info;
 use embedded_can::Id;
 use embedded_io::{Read, Write};
 use heapless::Vec;
 use menu::{argument_finder, Item, ItemType, Menu, Parameter, Runner};
 use noline::builder::EditorBuilder;
 
-const MAX_BUILDER_SIZE: usize = 32;
+pub const MAX_PLAN_SIZE: usize = 32;
+pub const MAX_ATTACK_SIZE: usize = 128;
 
 pub struct Context<CLK, TR>
 where
@@ -18,8 +21,10 @@ where
     TR: Tranceiver,
 {
     // Hay que chequear esto porque un comando de alto nivel puede dar lugar a multiples de bajo nivel.
-    pub attack_builder: AttackBuilder<{ MAX_BUILDER_SIZE }>,
-    pub core: EvilCore<CLK, TR>,
+    pub custom_attack: Vec<HighLevelAttackCmd, MAX_HL_COMMANDS>,
+    pub plan_builder: AttackBuilder<MAX_PLAN_SIZE, MAX_ATTACK_SIZE, PredefAttacks>,
+    attack_builder: AttackBuilder<MAX_ATTACK_SIZE, MAX_ATTACK_SIZE, HighLevelAttackCmd>,
+    core: EvilCore<CLK, TR>,
 }
 
 impl<CLK, TR> Context<CLK, TR>
@@ -29,6 +34,8 @@ where
 {
     fn new_with(core: EvilCore<CLK, TR>) -> Self {
         Self {
+            custom_attack: Vec::new(),
+            plan_builder: AttackBuilder::new(),
             attack_builder: AttackBuilder::new(),
             core,
         }
@@ -433,8 +440,8 @@ fn spoofing_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
     }
 
     context
-        .attack_builder
-        .push_attack(PredefAttacks::SpoofingAttack {
+        .plan_builder
+        .push(PredefAttacks::SpoofingAttack {
             id,
             spoof_data: spoof_data.clone(),
             match_data: match_data.clone(),
@@ -458,8 +465,8 @@ fn test_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
 ) {
     writeln!(interface, "Test attack").unwrap();
     context
-        .attack_builder
-        .push_attack(PredefAttacks::TestAttack)
+        .plan_builder
+        .push(PredefAttacks::TestAttack)
         .unwrap();
 }
 
@@ -471,13 +478,28 @@ fn attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
     context: &mut Context<C, T>,
 ) {
     writeln!(interface, "Arming the attack").unwrap();
-    let mut tmp_attack = new_attack_buf();
-    let attack_size = context.attack_builder.build(&mut tmp_attack).unwrap();
-    context.core.arm(&tmp_attack).unwrap();
+    let mut hl_attack_vec = Vec::new();
+    let mut attack_vec = Vec::new();
+
+    info!("Building the attack plan");
+    context.plan_builder.build(&mut hl_attack_vec).unwrap();
+
+    info!("Result:");
+    for attack_cmd in &hl_attack_vec {
+        info!("\t{:?}", attack_cmd);
+    }
+
+    hl_attack_vec
+        .iter()
+        .for_each(|attack_cmd| context.attack_builder.push(*attack_cmd).unwrap());
+
+    context.attack_builder.build(&mut attack_vec).unwrap();
+
+    context.core.arm(attack_vec.as_slice()).unwrap();
 
     info!("About to run attack with:");
-    for cmd in &tmp_attack[0..attack_size] {
-        println!("\t{:?}", Debug2Format(cmd));
+    for cmd in &attack_vec {
+        info!("\t{:?}", cmd);
     }
 
     writeln!(interface, "Launching attack").unwrap();

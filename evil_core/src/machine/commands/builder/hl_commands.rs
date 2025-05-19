@@ -1,7 +1,11 @@
-use crate::machine::commands::{builder::BuildError, AttackCmd, FastBitQueue, FastBitStack};
+use crate::machine::commands::{
+    builder::{BuildError, Buildable},
+    AttackCmd, FastBitQueue, FastBitStack,
+};
 use core::cmp::min;
 use defmt::info;
 use embedded_can::Id;
+use heapless::Vec;
 
 struct MsgBitQueue {
     data: [u8; 13],
@@ -137,8 +141,10 @@ pub enum HighLevelAttackCmd {
     },
 }
 
-impl HighLevelAttackCmd {
-    pub fn build(self, attack: &mut [AttackCmd]) -> Result<usize, BuildError> {
+impl<const OUT_SIZE: usize> Buildable<OUT_SIZE> for HighLevelAttackCmd {
+    type Res = AttackCmd;
+
+    fn build(&self, attack: &mut Vec<Self::Res, OUT_SIZE>) -> Result<usize, BuildError> {
         match self {
             Self::MatchId { id, rtr } => Self::build_match_id(attack, id, rtr),
             Self::SkipData => Self::build_skip_data(attack),
@@ -163,8 +169,40 @@ impl HighLevelAttackCmd {
             } => Self::build_send_msg(attack, id, data, data_len, rtr, force),
         }
     }
+}
 
-    fn build_match_id(attack: &mut [AttackCmd], id: Id, rtr: bool) -> Result<usize, BuildError> {
+impl HighLevelAttackCmd {
+    // pub fn build(self, attack: &mut [AttackCmd]) -> Result<usize, BuildError> {
+    //     match self {
+    //         Self::MatchId { id, rtr } => Self::build_match_id(attack, id, rtr),
+    //         Self::SkipData => Self::build_skip_data(attack),
+    //         Self::Wait { bits } => Self::build_wait(attack, bits),
+    //         Self::MatchData { data, match_size } => {
+    //             Self::build_match_data(attack, data, match_size)
+    //         }
+    //         Self::SendError { count } => Self::build_send_error(attack, count),
+    //         Self::SendRaw {
+    //             bits,
+    //             bits_count,
+    //             force,
+    //         } => Self::build_send_raw(attack, bits, bits_count, force),
+    //         Self::WaitEof => Self::build_wait_eof(attack),
+    //         Self::WaitSof => Self::build_wait_sof(attack),
+    //         Self::SendMsg {
+    //             id,
+    //             data,
+    //             data_len,
+    //             rtr,
+    //             force,
+    //         } => Self::build_send_msg(attack, id, data, data_len, rtr, force),
+    //     }
+    // }
+
+    fn build_match_id<const OUT_SIZE: usize>(
+        attack: &mut Vec<AttackCmd, OUT_SIZE>,
+        id: &Id,
+        rtr: &bool,
+    ) -> Result<usize, BuildError> {
         // Validation: It has to be after a WaitSof command
         // Pre condition: We are at the second bit of the frame (after SOF)
         // Post condition: At the end we are in the beginning of the DLC
@@ -179,7 +217,7 @@ impl HighLevelAttackCmd {
                 info!("RAW ID: {}", id.as_raw());
 
                 // Push RTR
-                id_bits.push(rtr);
+                id_bits.push(*rtr);
 
                 // Push IDE
                 id_bits.push(false);
@@ -203,7 +241,7 @@ impl HighLevelAttackCmd {
                 id_bits.push_num(id.as_raw() as u32, 18);
 
                 // Push RTR
-                id_bits.push(rtr);
+                id_bits.push(*rtr);
 
                 // Push Reserved
                 id_bits.push_num(0 as u32, 2);
@@ -212,33 +250,40 @@ impl HighLevelAttackCmd {
             }
         };
 
-        attack[0] = AttackCmd::Match {
-            stream: FastBitQueue::new(id_bits.value() as u64, len),
-        };
+        attack
+            .push(AttackCmd::Match {
+                stream: FastBitQueue::new(id_bits.value() as u64, len),
+            })
+            .unwrap();
 
         Ok(1)
     }
 
-    fn build_skip_data(attack: &mut [AttackCmd]) -> Result<usize, BuildError> {
+    fn build_skip_data<const OUT_SIZE: usize>(
+        attack: &mut Vec<AttackCmd, OUT_SIZE>,
+    ) -> Result<usize, BuildError> {
         // Validation: This has to be after a MatchId command
         // Pre condition: We are in the DLC position
         // Post condition: We are in the end of the data
-        attack[0] = AttackCmd::Read { len: 4 };
-        attack[1] = AttackCmd::MulBuffered { mult: 8 };
-        attack[2] = AttackCmd::WaitBuffered;
+        attack.push(AttackCmd::Read { len: 4 }).unwrap();
+        attack.push(AttackCmd::MulBuffered { mult: 8 }).unwrap();
+        attack.push(AttackCmd::WaitBuffered).unwrap();
 
         Ok(3)
     }
 
-    fn build_wait(attack: &mut [AttackCmd], bits: usize) -> Result<usize, BuildError> {
-        attack[0] = AttackCmd::Wait { bits };
+    fn build_wait<const OUT_SIZE: usize>(
+        attack: &mut Vec<AttackCmd, OUT_SIZE>,
+        bits: &usize,
+    ) -> Result<usize, BuildError> {
+        attack.push(AttackCmd::Wait { bits: *bits }).unwrap();
         Ok(1)
     }
 
-    fn build_match_data(
-        attack: &mut [AttackCmd],
-        data: [u8; 8],
-        match_size: u8,
+    fn build_match_data<const OUT_SIZE: usize>(
+        attack: &mut Vec<AttackCmd, OUT_SIZE>,
+        data: &[u8; 8],
+        match_size: &u8,
     ) -> Result<usize, BuildError> {
         // This will match the first {match_size} bytes of the data and wait
         // for the rest of the data.
@@ -247,92 +292,106 @@ impl HighLevelAttackCmd {
         // Post condition: We are at the end of the data or the match has faild
 
         // Read DLC
-        attack[0] = AttackCmd::Read { len: 4 };
+        attack.push(AttackCmd::Read { len: 4 }).unwrap();
 
         // Match data
         let mut raw_data: u64 = 0;
-        for byte_index in 0..match_size {
+        for byte_index in 0..*match_size {
             raw_data |= (data[byte_index as usize] as u64) << (8 * byte_index);
         }
 
-        attack[1] = AttackCmd::Match {
-            stream: FastBitQueue::new(raw_data, match_size as usize * 8),
-        };
+        attack
+            .push(AttackCmd::Match {
+                stream: FastBitQueue::new(raw_data, *match_size as usize * 8),
+            })
+            .unwrap();
 
         // Operate with the buffered value
-        attack[2] = AttackCmd::SubBuffered {
-            sub: match_size as u32,
-        };
-        attack[3] = AttackCmd::MulBuffered { mult: 8 };
+        attack
+            .push(AttackCmd::SubBuffered {
+                sub: *match_size as u32,
+            })
+            .unwrap();
+        attack.push(AttackCmd::MulBuffered { mult: 8 }).unwrap();
 
         // Wait the rest of the data
-        attack[4] = AttackCmd::WaitBuffered;
+        attack.push(AttackCmd::WaitBuffered).unwrap();
 
         Ok(5)
     }
 
-    fn build_send_error(attack: &mut [AttackCmd], mut count: usize) -> Result<usize, BuildError> {
+    fn build_send_error<const OUT_SIZE: usize>(
+        attack: &mut Vec<AttackCmd, OUT_SIZE>,
+        count: &usize,
+    ) -> Result<usize, BuildError> {
         // The active error will be 6 dominant bits and 8 recessive bits: 14 bits
         // In a 64 bits queue, we could put 4.5 error messages.
-        if count == 0 {
+        if *count == 0 {
             return Err(BuildError::BadArguments);
         }
 
         let mut attack_index = 0;
 
-        while count > 0 {
-            let error_cnt = min(4, count);
+        let mut c = *count;
+        while c > 0 {
+            let error_cnt = min(4, *count);
 
             let mut bits: u64 = 0;
             for index in 0..error_cnt {
                 bits = (bits << (14 * index)) | 0b00_0000_1111_1111;
             }
 
-            attack[attack_index] = AttackCmd::Send {
-                stream: FastBitQueue::new(bits, error_cnt * 14),
-            };
+            attack
+                .push(AttackCmd::Send {
+                    stream: FastBitQueue::new(bits, error_cnt * 14),
+                })
+                .unwrap();
 
             attack_index += 1;
-            count -= error_cnt;
+            c -= error_cnt;
         }
 
         Ok(attack_index + 1)
     }
 
-    fn build_send_raw(
-        attack: &mut [AttackCmd],
-        bits: u64,
-        bits_count: usize,
-        force: bool,
+    fn build_send_raw<const OUT_SIZE: usize>(
+        attack: &mut Vec<AttackCmd, OUT_SIZE>,
+        bits: &u64,
+        bits_count: &usize,
+        force: &bool,
     ) -> Result<usize, BuildError> {
-        let queue = FastBitQueue::new(bits, bits_count);
+        let queue = FastBitQueue::new(*bits, *bits_count);
 
-        if force {
-            attack[0] = AttackCmd::Force { stream: queue };
+        if *force {
+            attack.push(AttackCmd::Force { stream: queue }).unwrap();
         } else {
-            attack[0] = AttackCmd::Send { stream: queue };
+            attack.push(AttackCmd::Send { stream: queue }).unwrap();
         }
 
         Ok(1)
     }
 
-    fn build_wait_eof(attack: &mut [AttackCmd]) -> Result<usize, BuildError> {
-        attack[0] = AttackCmd::WaitForEof;
+    fn build_wait_eof<const OUT_SIZE: usize>(
+        attack: &mut Vec<AttackCmd, OUT_SIZE>,
+    ) -> Result<usize, BuildError> {
+        attack.push(AttackCmd::WaitForEof).unwrap();
         Ok(1)
     }
 
-    fn build_wait_sof(attack: &mut [AttackCmd]) -> Result<usize, BuildError> {
-        attack[0] = AttackCmd::WaitForSof;
+    fn build_wait_sof<const OUT_SIZE: usize>(
+        attack: &mut Vec<AttackCmd, OUT_SIZE>,
+    ) -> Result<usize, BuildError> {
+        attack.push(AttackCmd::WaitForSof).unwrap();
         Ok(1)
     }
 
-    fn build_send_msg(
-        attack: &mut [AttackCmd],
-        id: Id,
-        data: Option<[u8; 8]>,
-        data_len: usize,
-        rtr: bool,
-        force: bool,
+    fn build_send_msg<const OUT_SIZE: usize>(
+        attack: &mut Vec<AttackCmd, OUT_SIZE>,
+        id: &Id,
+        data: &Option<[u8; 8]>,
+        data_len: &usize,
+        rtr: &bool,
+        force: &bool,
     ) -> Result<usize, BuildError> {
         // Precondition: The bus is not bussy
         let mut msg_queue = MsgBitQueue::new();
@@ -358,17 +417,17 @@ impl HighLevelAttackCmd {
         }
 
         // RTR
-        msg_queue.append(rtr.into(), 1);
+        msg_queue.append(*rtr as u32, 1);
 
         // IDE for std and reserved bits
         msg_queue.append(0b00, 2);
 
         // DLC
-        msg_queue.append(data_len as u32, 4);
+        msg_queue.append(*data_len as u32, 4);
 
         // DATA
         if let Some(data_arr) = data {
-            for byte in &data_arr[0..data_len] {
+            for byte in &data_arr[0..*data_len] {
                 msg_queue.append((*byte).into(), 8);
             }
         }
@@ -387,15 +446,17 @@ impl HighLevelAttackCmd {
         let mut attack_index = 0;
 
         while let Some((value, size)) = msg_queue.pop_chunk() {
-            attack[attack_index] = if force {
-                AttackCmd::Force {
-                    stream: FastBitQueue::new(value, size),
-                }
-            } else {
-                AttackCmd::Send {
-                    stream: FastBitQueue::new(value, size),
-                }
-            };
+            attack
+                .push(if *force {
+                    AttackCmd::Force {
+                        stream: FastBitQueue::new(value, size),
+                    }
+                } else {
+                    AttackCmd::Send {
+                        stream: FastBitQueue::new(value, size),
+                    }
+                })
+                .unwrap();
 
             attack_index += 1;
         }

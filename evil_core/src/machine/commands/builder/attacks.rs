@@ -1,7 +1,10 @@
-use super::{BuildError, HighLevelAttackCmd};
+use super::{BuildError, Buildable, HighLevelAttackCmd};
 use embedded_can::Id;
 use heapless::Vec;
 
+pub const MAX_HL_COMMANDS: usize = 32;
+
+#[derive(Debug)]
 pub enum PredefAttacks {
     TestAttack,
     SpoofingAttack {
@@ -9,27 +12,46 @@ pub enum PredefAttacks {
         spoof_data: Vec<u8, 8>,
         match_data: Vec<u8, 8>,
     },
+    CustomAttack {
+        commands: Vec<HighLevelAttackCmd, MAX_HL_COMMANDS>,
+    },
 }
 
-impl PredefAttacks {
-    pub fn build<const SIZE: usize>(
-        self,
-        hl_attack: &mut Vec<HighLevelAttackCmd, SIZE>,
-    ) -> Result<usize, BuildError> {
+impl<const OUT_SIZE: usize> Buildable<OUT_SIZE> for PredefAttacks {
+    type Res = HighLevelAttackCmd;
+
+    fn build(&self, out_vec: &mut Vec<Self::Res, OUT_SIZE>) -> Result<usize, BuildError> {
         match self {
-            PredefAttacks::TestAttack => self.build_test_attack(hl_attack),
+            PredefAttacks::TestAttack => self.build_test_attack(out_vec),
             PredefAttacks::SpoofingAttack {
                 id,
                 ref spoof_data,
                 ref match_data,
-            } => self.build_spoofing_attack(hl_attack, id, spoof_data, match_data),
+            } => self.build_spoofing_attack(out_vec, id, spoof_data, match_data),
+            PredefAttacks::CustomAttack { ref commands } => {
+                self.build_custom_attack(out_vec, &commands)
+            }
         }
+    }
+}
+
+impl PredefAttacks {
+    fn build_custom_attack<const SIZE: usize>(
+        &self,
+        hl_attack: &mut Vec<HighLevelAttackCmd, SIZE>,
+        commands: &Vec<HighLevelAttackCmd, MAX_HL_COMMANDS>,
+    ) -> Result<usize, BuildError> {
+        for item in commands {
+            hl_attack.push(item.clone()).unwrap();
+        }
+
+        Ok(commands.len())
     }
 
     fn build_spoofing_attack<const SIZE: usize>(
         &self,
         hl_attack: &mut Vec<HighLevelAttackCmd, SIZE>,
-        id: Id,
+        id: &Id,
         spoof_data: &Vec<u8, 8>,
         match_data: &Vec<u8, 8>,
     ) -> Result<usize, BuildError> {
@@ -41,7 +63,10 @@ impl PredefAttacks {
             .unwrap();
         // Match the target ID
         hl_attack
-            .push(HighLevelAttackCmd::MatchId { id, rtr: false })
+            .push(HighLevelAttackCmd::MatchId {
+                id: *id,
+                rtr: false,
+            })
             .unwrap();
         // Match (or not) the data
         hl_attack
@@ -69,7 +94,7 @@ impl PredefAttacks {
         }
         hl_attack
             .push(HighLevelAttackCmd::SendMsg {
-                id,
+                id: *id,
                 data: Some(data),
                 data_len: spoof_data.len(),
                 rtr: false,

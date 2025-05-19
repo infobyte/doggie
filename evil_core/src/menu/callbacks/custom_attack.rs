@@ -1,10 +1,9 @@
 use crate::bsp::{TicksClock, Tranceiver};
-use crate::machine::commands::builder::HighLevelAttackCmd;
+use crate::machine::commands::builder::{HighLevelAttackCmd, PredefAttacks};
 use crate::menu::Context;
 use embedded_can::Id;
 use embedded_io::{Read, Write};
 use menu::{argument_finder, Item, Menu};
-use noline::builder::EditorBuilder;
 
 pub fn enter_custom_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
     _menu: &Menu<I, Context<C, T>>,
@@ -12,15 +11,21 @@ pub fn enter_custom_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
     context: &mut Context<C, T>,
 ) {
     writeln!(interface, "In enter_custom_attack").unwrap();
-    context.attack_builder.reset();
+    context.custom_attack.clear();
 }
 
 pub fn exit_custom_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
     _menu: &Menu<I, Context<C, T>>,
     interface: &mut I,
-    _context: &mut Context<C, T>,
+    context: &mut Context<C, T>,
 ) {
     writeln!(interface, "In exit_custom_attack").unwrap();
+    context
+        .plan_builder
+        .push(PredefAttacks::CustomAttack {
+            commands: context.custom_attack.clone(),
+        })
+        .unwrap();
 }
 
 pub fn match_id<I: Read + Write, C: TicksClock, T: Tranceiver>(
@@ -46,9 +51,9 @@ pub fn match_id<I: Read + Write, C: TicksClock, T: Tranceiver>(
             };
 
             context
-                .attack_builder
-                .push(HighLevelAttackCmd::MatchId { id, rtr: false }) // TODO: Add RTR to the command
-                .unwrap();
+                .custom_attack
+                .push(HighLevelAttackCmd::MatchId { id, rtr: false })
+                .unwrap(); // TODO: Add RTR to the command
 
             writeln!(interface, "Added Match Id command with Id: {:?}", id).unwrap();
         } else {
@@ -99,7 +104,7 @@ pub fn match_data<I: Read + Write, C: TicksClock, T: Tranceiver>(
             };
 
             context
-                .attack_builder
+                .custom_attack
                 .push(HighLevelAttackCmd::MatchData {
                     match_size: data_len,
                     data,
@@ -128,7 +133,7 @@ pub fn skip_data<I: Read + Write, C: TicksClock, T: Tranceiver>(
     context: &mut Context<C, T>,
 ) {
     context
-        .attack_builder
+        .custom_attack
         .push(HighLevelAttackCmd::SkipData)
         .unwrap();
 
@@ -147,7 +152,7 @@ pub fn wait<I: Read + Write, C: TicksClock, T: Tranceiver>(
     if let Some(bits_str) = bits_opt {
         if let Ok(bits) = str::parse(bits_str) {
             context
-                .attack_builder
+                .custom_attack
                 .push(HighLevelAttackCmd::Wait { bits })
                 .unwrap();
 
@@ -172,7 +177,7 @@ pub fn send_error<I: Read + Write, C: TicksClock, T: Tranceiver>(
     if let Some(count_str) = count_opt {
         if let Ok(count) = str::parse(count_str) {
             context
-                .attack_builder
+                .custom_attack
                 .push(HighLevelAttackCmd::SendError { count })
                 .unwrap();
 
@@ -201,7 +206,7 @@ pub fn send_raw<I: Read + Write, C: TicksClock, T: Tranceiver>(
     if let Some(bits_str) = bits_opt {
         if let Ok(bits) = u64::from_str_radix(bits_str, 2) {
             context
-                .attack_builder
+                .custom_attack
                 .push(HighLevelAttackCmd::SendRaw {
                     bits,
                     bits_count: bits_str.len(),
@@ -231,7 +236,7 @@ pub fn wait_eof<I: Read + Write, C: TicksClock, T: Tranceiver>(
     context: &mut Context<C, T>,
 ) {
     context
-        .attack_builder
+        .custom_attack
         .push(HighLevelAttackCmd::WaitEof)
         .unwrap();
 
@@ -299,7 +304,7 @@ pub fn send_msg<I: Read + Write, C: TicksClock, T: Tranceiver>(
             };
 
             context
-                .attack_builder
+                .custom_attack
                 .push(HighLevelAttackCmd::SendMsg {
                     id,
                     data,
@@ -334,7 +339,7 @@ pub fn delete<I: Read + Write, C: TicksClock, T: Tranceiver>(
 
     if let Some(idx_str) = idx_opt {
         if let Ok(idx) = str::parse(idx_str) {
-            context.attack_builder.remove(idx).unwrap();
+            context.custom_attack.remove(idx);
             writeln!(interface, "Deleted command at idx {}", idx).unwrap();
         } else {
             writeln!(interface, "Invalid idx format").unwrap();
@@ -358,7 +363,14 @@ pub fn relocate<I: Read + Write, C: TicksClock, T: Tranceiver>(
         if let Ok(from) = str::parse(from_str) {
             if let Some(to_str) = to_opt {
                 if let Ok(to) = str::parse(to_str) {
-                    context.attack_builder.relocate(from, to).unwrap();
+                    if from >= context.custom_attack.len() || to >= context.custom_attack.len() {
+                        writeln!(interface, "Index out of bounds").unwrap();
+                        return ();
+                    }
+
+                    let from_cmd = context.custom_attack.remove(from);
+                    // Shouldn fail
+                    context.custom_attack.insert(to, from_cmd).unwrap();
                     writeln!(interface, "Moving command at from {} to {}", from, to).unwrap();
                 } else {
                     writeln!(interface, "Invalid to format").unwrap();
@@ -381,7 +393,7 @@ pub fn list<I: Read + Write, C: TicksClock, T: Tranceiver>(
     interface: &mut I,
     context: &mut Context<C, T>,
 ) {
-    for (idx, cmd) in context.attack_builder.iter().enumerate() {
+    for (idx, cmd) in context.custom_attack.iter().enumerate() {
         writeln!(interface, "\t{}: {:?}", idx, cmd).unwrap();
     }
 }
