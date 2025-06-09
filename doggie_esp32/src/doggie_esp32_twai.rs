@@ -1,46 +1,28 @@
 #![no_std]
 #![no_main]
 
-mod ble;
 mod twai_can;
 mod logging;
-mod serial_mux;
-mod can_mux;
-mod spi_device;
-mod soft_timer;
 
-use can_mux::CanMux;
 use twai_can::CanWrapper;
-use ble::{BleSerial, BleServer, PIPE_CAPACITY};
 use logging::init_logs;
-use serial_mux::SerialMux;
-use spi_device::CustomSpiDevice;
-use soft_timer::SoftTimer;
 
 use embassy_executor::Spawner;
 use embassy_time::Timer;
-use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
-use embassy_sync::pipe::Pipe;
 
 use esp_alloc as _;
 use esp_backtrace as _;
 use esp_hal::{
-    spi::{master::Spi, SpiMode},
     clock::CpuClock,
     gpio::{Level, Output},
     uart::Uart,
     Async,
-    Blocking,
-    prelude::*,
     usb_serial_jtag::UsbSerialJtag,
 };
 
 use defmt::info;
 use doggie_core::*;
 
-
-static mut BLE_TX_PIPE: Pipe<CriticalSectionRawMutex, PIPE_CAPACITY> = Pipe::new();
-static mut BLE_RX_PIPE: Pipe<CriticalSectionRawMutex, PIPE_CAPACITY> = Pipe::new();
 
 #[embassy_executor::task]
 async fn blink_task(mut led: Output<'static>) {
@@ -51,11 +33,6 @@ async fn blink_task(mut led: Output<'static>) {
         led.set_low();
         Timer::after_millis(300).await;
     }
-}
-
-#[embassy_executor::task]
-pub async fn ble_task(mut server: BleServer<'static>) {
-    server.run().await;
 }
 
 #[esp_hal_embassy::main]
@@ -73,12 +50,15 @@ async fn main(spawner: Spawner) {
 
     // Setup embassy timer
     cfg_if::cfg_if! {
-        if #[cfg(feature = "esp32")] {
+     if #[cfg(feature = "esp32")] {
+            use esp_hal::timer::timg::TimerGroup,
+
             let timg1 = TimerGroup::new(peripherals.TIMG1);
             esp_hal_embassy::init(timg1.timer0);
         } else {
-            use esp_hal::timer::systimer::{SystemTimer, Target};
-            let systimer = SystemTimer::new(peripherals.SYSTIMER).split::<Target>();
+            use esp_hal::timer::systimer::SystemTimer;
+
+            let systimer = SystemTimer::new(peripherals.SYSTIMER);
             esp_hal_embassy::init(systimer.alarm0);
         }
     }
@@ -88,13 +68,12 @@ async fn main(spawner: Spawner) {
     spawner.spawn(blink_task(led)).unwrap();
     
     // Serial logging initialization
-    // info!("Debug serial init");
+    info!("Debug serial init");
     let dbg_serial = {
         let (tx_pin, rx_pin) = (peripherals.GPIO3, peripherals.GPIO2);
-        let config = esp_hal::uart::Config::default().baudrate(115200);
+        let config = esp_hal::uart::Config::default().with_baudrate(115200);
 
-        Uart::new_with_config(peripherals.UART1, config, rx_pin, tx_pin)
-            .unwrap()
+        Uart::new(peripherals.UART1, config).unwrap().with_rx(rx_pin).with_tx(tx_pin)
     };
 
     let (_, dbg_tx) = dbg_serial.split();
@@ -102,23 +81,6 @@ async fn main(spawner: Spawner) {
 
     // BLE initialization
     info!("BLE init");
-    let (ble_tx_reader, ble_tx_writer) = unsafe { BLE_TX_PIPE.split() };
-    let (ble_rx_reader, ble_rx_writer) = unsafe { BLE_RX_PIPE.split() };
-
-    let ble_server = BleServer::new(
-        peripherals.BT,
-        peripherals.TIMG0,
-        peripherals.RNG,
-        peripherals.RADIO_CLK,
-        ble_tx_reader,
-        ble_rx_writer,
-    );
-    
-    spawner.spawn(ble_task(ble_server)).unwrap();
-
-    let ble_serial = BleSerial::new(
-        ble_tx_writer, ble_rx_reader
-    );
 
     info!("Wired serial init");
     // Wired serial initialization
@@ -136,7 +98,7 @@ async fn main(spawner: Spawner) {
             .into_async()
     };
 
-    let serial = SerialMux::new(ble_serial, wired_serial);
+    // let serial = SerialMux::new(ble_serial, wired_serial);
     
     // CAN bus initialization
     info!("CAN Bus init");
@@ -150,7 +112,7 @@ async fn main(spawner: Spawner) {
 
     // Create the Bsp
     info!("BSP creation");
-    let bsp = Bsp::new(twai_can, serial);
+    let bsp = Bsp::new(twai_can, wired_serial);
 
     // Create and run the Doggie core
     info!("Core creation");
@@ -166,4 +128,4 @@ type UartType = UsbSerialJtag<'static, Async>;
 #[cfg(not(feature = "esp32c3"))]
 type UartType = Uart<'static, Async>;
 
-core_create_tasks!(SerialMux<BleSerial, UartType>,  CanWrapper<'static>);
+core_create_tasks!(UartType,  CanWrapper<'static>);

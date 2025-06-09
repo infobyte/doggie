@@ -1,5 +1,5 @@
 use esp_hal::{
-    Mode,
+    DriverMode as Mode,
     spi::master::Spi,
     spi::Error
 };

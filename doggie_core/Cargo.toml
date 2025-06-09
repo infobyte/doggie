@@ -8,8 +8,8 @@ version = "0.1.0"
 
 defmt = "0.3"
 
-embassy-time = { version = "0.3.2", features = ["defmt", "defmt-timestamp-uptime"] }
-embassy-executor = { version = "0.6.1", features = ["executor-thread", "defmt", "integrated-timers"] }
+embassy-time = { version = "0.4.0", features = ["defmt", "defmt-timestamp-uptime"] }
+embassy-executor = { version = "0.7.0", features = ["executor-thread", "defmt"] }
 embassy-futures = { version = "0.1.0" }
 embassy-sync = { version = "0.6.0", features = ["defmt"] }
 

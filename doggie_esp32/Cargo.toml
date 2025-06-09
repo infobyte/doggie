@@ -16,35 +16,35 @@ name = "doggie_esp32"
 path = "src/doggie_esp32.rs"
 
 [dependencies]
-esp-hal = { version = "0.22.0" }
-esp-backtrace = { version = "0.14.1", features = [
+esp-hal = { version = "0.23.1", features = ["unstable"] }
+esp-backtrace = { version = "0.15.0", features = [
     "exception-handler",
     "panic-handler",
     "defmt",
 ] }
-esp-hal-embassy = { version = "0.5.0", features = ["defmt"] }
+# esp-println = { version = "0.13.0", features = ["esp32c3", "defmt-espflash"] }
+esp-hal-embassy = { version = "0.6.0", features = ["defmt"] }
+esp-wifi = { version = "0.12.0", features = ["ble"] }
+esp-alloc = { version = "0.6.0" }
 
-embassy-time = { version = "0.3.2" }
-embassy-executor = { version = "0.6.1", features = ["task-arena-size-20480"] }
+embassy-time = { version = "0.4.0" }
+embassy-executor = { version = "0.7.0", features = ["task-arena-size-32768"] }
 embassy-sync = { version = "0.6.0" }
 embassy-futures = "0.1.0"
 
 embedded-io-async = "0.6.1"
+embedded-hal = "1.0.0"
+embedded-can = "0.4.1"
 
 log = { version = "0.4.22" }
 static_cell = "2.1.0"
-
-doggie_core = { version = "0.1.0", path = "../doggie_core"}
-defmt = { version = "0.3.8", features = ["encoding-raw"] }
-embedded-hal = "1.0.0"
-embedded-can = "0.4.1"
+defmt = { version = "0.3.8" }
 mcp2515 = "0.3.0"
 nb = "1.1.0"
-
-bleps = { git = "https://github.com/bjoernQ/bleps", package = "bleps", rev = "a5148d8ae679e021b78f53fd33afb8bb35d0b62e", features = [ "macros", "async"] }
-esp-wifi = { version = "0.11.0", features = ["ble"] }
-esp-alloc = { version = "0.5.0", features = ["nightly"] }
 cfg-if = "1.0.0"
+bt-hci = { version = "0.2" }    
+
+doggie_core = { version = "0.1.0", path = "../doggie_core"}
 
 
 [features]
