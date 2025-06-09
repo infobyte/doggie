@@ -1,13 +1,15 @@
+use embassy_sync::blocking_mutex::{raw::CriticalSectionRawMutex, Mutex};
 use esp_hal::uart::UartTx;
+use core::cell::RefCell;
 
-static mut LOGGER: Option<UartTx<'static, esp_hal::Blocking>> = None;
-static mut ENCODER: defmt::Encoder = defmt::Encoder::new();
+static LOGGER: Mutex<CriticalSectionRawMutex, RefCell<Option<UartTx<'static, esp_hal::Blocking>>>> = Mutex::new(RefCell::new(None));
+static ENCODER: Mutex<CriticalSectionRawMutex, RefCell<defmt::Encoder>> = Mutex::new(RefCell::new(defmt::Encoder::new()));
 
 
 pub fn init_logs(dbg_tx: UartTx<'static, esp_hal::Blocking>) {
-    unsafe {
-        LOGGER.replace(dbg_tx);
-    }
+    LOGGER.lock(|logger| {
+        logger.replace(Some(dbg_tx))
+    });
 }
 
 
@@ -17,29 +19,39 @@ struct Logger;
 
 impl Logger {
     fn do_write(bytes: &[u8]) {
-        unsafe {
-            let logger = LOGGER.as_mut().unwrap();
-            logger.write_bytes(bytes).unwrap();
-        }
+        LOGGER.lock(|logger_opt| {
+            if let Some(logger) = logger_opt.borrow_mut().as_mut() {
+                let _ = logger.write_bytes(bytes);
+            }
+        });
     }
 }
 
 unsafe impl defmt::Logger for Logger {
     fn acquire() {
-        unsafe { ENCODER.start_frame(Logger::do_write) }
+        ENCODER.lock(|encoder| {
+           encoder.borrow_mut().start_frame(Logger::do_write);
+        });
     }
 
     unsafe fn flush() {
-        let logger = LOGGER.as_mut().unwrap();
 
-        logger.flush_tx().unwrap();
+        LOGGER.lock(|logger_opt| {
+            if let Some(logger) = logger_opt.borrow_mut().as_mut() {
+                let _ = logger.flush();
+            }
+        });
     }
 
     unsafe fn release() {
-        ENCODER.end_frame(Logger::do_write);
+        ENCODER.lock(|encoder| {
+           encoder.borrow_mut().end_frame(Logger::do_write);
+        });
     }
 
     unsafe fn write(bytes: &[u8]) {
-        ENCODER.write(bytes, Logger::do_write);
+        ENCODER.lock(|encoder| {
+           encoder.borrow_mut().write(bytes, Logger::do_write);
+        });
     }
 }
