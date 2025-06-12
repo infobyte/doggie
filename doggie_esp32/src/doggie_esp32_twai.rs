@@ -1,13 +1,20 @@
 #![no_std]
 #![no_main]
 
-mod twai_can;
 mod logging;
+mod serial_mux;
+mod twai_can;
 
-use twai_can::CanWrapper;
 use logging::init_logs;
+use serial_mux::SerialMux;
+use twai_can::CanWrapper;
 
 use embassy_executor::Spawner;
+use embassy_futures::join::join;
+use embassy_sync::{
+    blocking_mutex::raw::CriticalSectionRawMutex,
+    pipe::{Pipe, Reader, Writer},
+};
 use embassy_time::Timer;
 
 use esp_alloc as _;
@@ -15,14 +22,27 @@ use esp_backtrace as _;
 use esp_hal::{
     clock::CpuClock,
     gpio::{Level, Output},
+    peripheral::{self, Peripheral},
     uart::Uart,
-    Async,
     usb_serial_jtag::UsbSerialJtag,
+    Async,
 };
 
-use defmt::info;
+use bt_hci::controller::ExternalController;
+use esp_hal::timer::timg::TimerGroup;
+use esp_wifi::ble::controller::BleConnector;
+use esp_wifi::EspWifiController;
+
+use defmt::{error, info};
+use doggie_ble;
 use doggie_core::*;
 
+use doggie_ble::host::{BleSerial, BleServer, L2CAP_MTU};
+
+use embedded_io_async::{Read, Write};
+
+static mut BLE_TX_PIPE: Pipe<CriticalSectionRawMutex, L2CAP_MTU> = Pipe::new();
+static mut BLE_RX_PIPE: Pipe<CriticalSectionRawMutex, L2CAP_MTU> = Pipe::new();
 
 #[embassy_executor::task]
 async fn blink_task(mut led: Output<'static>) {
@@ -34,6 +54,32 @@ async fn blink_task(mut led: Output<'static>) {
         Timer::after_millis(300).await;
     }
 }
+
+#[embassy_executor::task]
+async fn ble_task(
+    timg0_p: esp_hal::peripherals::TIMG0,
+    rng_p: esp_hal::peripherals::RNG,
+    clk_p: esp_hal::peripherals::RADIO_CLK,
+    bt: esp_hal::peripherals::BT,
+    reader: Reader<'static, CriticalSectionRawMutex, L2CAP_MTU>,
+    writer: Writer<'static, CriticalSectionRawMutex, L2CAP_MTU>,
+) {
+    let timg0 = TimerGroup::new(timg0_p);
+
+    let init = esp_wifi::init(timg0.timer0, esp_hal::rng::Rng::new(rng_p), clk_p).unwrap();
+
+    let connector = BleConnector::new(&init, bt);
+    let controller: ExternalController<BleConnector<'_>, 20> = ExternalController::new(connector);
+
+    let mut ble_server = BleServer::new(reader, writer);
+
+    info!("[BLE] About to run BLE server");
+
+    ble_server.run(controller).await;
+    error!("[BLE] Ble task exited");
+}
+
+static mut BLE: Option<EspWifiController<'static>> = None;
 
 #[esp_hal_embassy::main]
 async fn main(spawner: Spawner) {
@@ -66,14 +112,17 @@ async fn main(spawner: Spawner) {
     // Blink initialization
     let led = Output::new(peripherals.GPIO8, Level::Low);
     spawner.spawn(blink_task(led)).unwrap();
-    
+
     // Serial logging initialization
     info!("Debug serial init");
     let dbg_serial = {
         let (tx_pin, rx_pin) = (peripherals.GPIO3, peripherals.GPIO2);
         let config = esp_hal::uart::Config::default().with_baudrate(115200);
 
-        Uart::new(peripherals.UART1, config).unwrap().with_rx(rx_pin).with_tx(tx_pin)
+        Uart::new(peripherals.UART1, config)
+            .unwrap()
+            .with_rx(rx_pin)
+            .with_tx(tx_pin)
     };
 
     let (_, dbg_tx) = dbg_serial.split();
@@ -81,6 +130,28 @@ async fn main(spawner: Spawner) {
 
     // BLE initialization
     info!("BLE init");
+
+    let (ble_tx_reader, ble_tx_writer) = unsafe { BLE_TX_PIPE.split() };
+    let (ble_rx_reader, ble_rx_writer) = unsafe { BLE_RX_PIPE.split() };
+
+    let mut ble_serial = BleSerial::new(ble_tx_writer, ble_rx_reader);
+
+    spawner
+        .spawn(ble_task(
+            peripherals.TIMG0,
+            peripherals.RNG,
+            peripherals.RADIO_CLK,
+            peripherals.BT,
+            ble_tx_reader,
+            ble_rx_writer,
+        ))
+        .unwrap();
+
+    // loop {
+    //     let mut buffer = [0; L2CAP_MTU];
+    //     let size = ble_serial.read(&mut buffer).await.unwrap();
+    //     ble_serial.write_all(&buffer[0..size]).await;
+    // }
 
     info!("Wired serial init");
     // Wired serial initialization
@@ -98,8 +169,8 @@ async fn main(spawner: Spawner) {
             .into_async()
     };
 
-    // let serial = SerialMux::new(ble_serial, wired_serial);
-    
+    let serial = SerialMux::new(ble_serial, wired_serial);
+
     // CAN bus initialization
     info!("CAN Bus init");
     #[cfg(feature = "esp32c3")]
@@ -112,7 +183,7 @@ async fn main(spawner: Spawner) {
 
     // Create the Bsp
     info!("BSP creation");
-    let bsp = Bsp::new(twai_can, wired_serial);
+    let bsp = Bsp::new(twai_can, serial);
 
     // Create and run the Doggie core
     info!("Core creation");
@@ -128,4 +199,4 @@ type UartType = UsbSerialJtag<'static, Async>;
 #[cfg(not(feature = "esp32c3"))]
 type UartType = Uart<'static, Async>;
 
-core_create_tasks!(UartType,  CanWrapper<'static>);
+core_create_tasks!(SerialMux<BleSerial, UartType>, CanWrapper<'static>);

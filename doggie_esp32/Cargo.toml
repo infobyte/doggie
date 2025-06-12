@@ -44,7 +44,8 @@ nb = "1.1.0"
 cfg-if = "1.0.0"
 bt-hci = { version = "0.2" }    
 
-doggie_core = { version = "0.1.0", path = "../doggie_core"}
+doggie_core = { version = "0.1.0", path = "../doggie_core" }
+doggie_ble = { version = "0.1.0", path = "../doggie_ble" }
 
 
 [features]

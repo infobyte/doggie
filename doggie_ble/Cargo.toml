@@ -1,0 +1,19 @@
+[package]
+name = "doggie_ble"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+trouble-host = { version = "0.1.0", features = ["defmt", "peripheral"] }
+bt-hci = { version = "0.3", features = ["defmt"] }
+embassy-executor = { version = "0.7.0" }
+embassy-futures = "0.1.0"
+embassy-sync = { version = "0.6" }
+embassy-time = "0.4.0"
+embedded-hal = { version = "1.0", features = ["defmt-03"] }
+embedded-io-async = "0.6.1"
+embedded-io = { version = "0.6", features = ["defmt-03"] }
+static_cell = "2"
+heapless = "0.8"
+rand_core = { version = "0.6", default-features = false }
+defmt = { version = "0.3"}
