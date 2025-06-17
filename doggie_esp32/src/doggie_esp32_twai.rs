@@ -10,7 +10,6 @@ use serial_mux::SerialMux;
 use twai_can::CanWrapper;
 
 use embassy_executor::Spawner;
-use embassy_futures::join::join;
 use embassy_sync::{
     blocking_mutex::raw::CriticalSectionRawMutex,
     pipe::{Pipe, Reader, Writer},
@@ -22,7 +21,6 @@ use esp_backtrace as _;
 use esp_hal::{
     clock::CpuClock,
     gpio::{Level, Output},
-    peripheral::{self, Peripheral},
     uart::Uart,
     usb_serial_jtag::UsbSerialJtag,
     Async,
@@ -34,15 +32,11 @@ use esp_wifi::ble::controller::BleConnector;
 use esp_wifi::EspWifiController;
 
 use defmt::{error, info};
-use doggie_ble;
+use doggie_ble::{constants as ble_const, types as ble_types, BleSerial, BleServer};
 use doggie_core::*;
 
-use doggie_ble::host::{BleSerial, BleServer, L2CAP_MTU};
-
-use embedded_io_async::{Read, Write};
-
-static mut BLE_TX_PIPE: Pipe<CriticalSectionRawMutex, L2CAP_MTU> = Pipe::new();
-static mut BLE_RX_PIPE: Pipe<CriticalSectionRawMutex, L2CAP_MTU> = Pipe::new();
+static mut BLE_TX_PIPE: ble_types::BlePipe = Pipe::new();
+static mut BLE_RX_PIPE: ble_types::BlePipe = Pipe::new();
 
 #[embassy_executor::task]
 async fn blink_task(mut led: Output<'static>) {
@@ -61,8 +55,8 @@ async fn ble_task(
     rng_p: esp_hal::peripherals::RNG,
     clk_p: esp_hal::peripherals::RADIO_CLK,
     bt: esp_hal::peripherals::BT,
-    reader: Reader<'static, CriticalSectionRawMutex, L2CAP_MTU>,
-    writer: Writer<'static, CriticalSectionRawMutex, L2CAP_MTU>,
+    reader: ble_types::BlePipeReader,
+    writer: ble_types::BlePipeWriter,
 ) {
     let timg0 = TimerGroup::new(timg0_p);
 
@@ -75,7 +69,9 @@ async fn ble_task(
 
     info!("[BLE] About to run BLE server");
 
-    ble_server.run(controller).await;
+    ble_server
+        .run::<ExternalController<BleConnector<'_>, 20>>(controller)
+        .await;
     error!("[BLE] Ble task exited");
 }
 
@@ -147,12 +143,6 @@ async fn main(spawner: Spawner) {
         ))
         .unwrap();
 
-    // loop {
-    //     let mut buffer = [0; L2CAP_MTU];
-    //     let size = ble_serial.read(&mut buffer).await.unwrap();
-    //     ble_serial.write_all(&buffer[0..size]).await;
-    // }
-
     info!("Wired serial init");
     // Wired serial initialization
     #[cfg(feature = "esp32c3")]
@@ -199,4 +189,7 @@ type UartType = UsbSerialJtag<'static, Async>;
 #[cfg(not(feature = "esp32c3"))]
 type UartType = Uart<'static, Async>;
 
-core_create_tasks!(SerialMux<BleSerial, UartType>, CanWrapper<'static>);
+core_create_tasks!(
+    SerialMux<BleSerial, UartType>,
+    CanWrapper<'static>
+);
