@@ -7,6 +7,7 @@ mod spi_device;
 mod unique_id;
 mod usb_device;
 
+use cyw43::bluetooth::BtDriver;
 use static_cell::StaticCell;
 use unique_id::serial_number;
 
@@ -68,7 +69,11 @@ async fn blink_task(mut led: Output<'static>) {
 }
 
 #[embassy_executor::task]
-async fn ble_task() -> ! {}
+async fn ble_task(mut server: BleServer, controller: ExternalController<BtDriver<'static>, 10>) {
+    info!("[BLE] About to run BLE server");
+    server.run(controller).await;
+    error!("[BLE] Ble task exited");
+}
 
 #[embassy_executor::task]
 async fn usb_task(mut usb: UsbDevice<'static, Driver<'static, USB>>) -> ! {
@@ -80,8 +85,8 @@ async fn main(spawner: Spawner) {
     info!("Device initialization");
     let p = embassy_rp::init(Default::default());
 
-    let led = Output::new(p.PIN_25, Level::Low);
-    spawner.spawn(blink_task(led)).unwrap();
+    // let led = Output::new(p.PIN_25, Level::Low);
+    // spawner.spawn(blink_task(led)).unwrap();
 
     let device_id: &str = serial_number(p.FLASH, p.DMA_CH0);
 
@@ -93,7 +98,7 @@ async fn main(spawner: Spawner) {
     };
 
     let pwr = Output::new(p.PIN_23, Level::Low);
-    let cs = Output::new(p.PIN_22, Level::High);
+    let cs = Output::new(p.PIN_25, Level::High);
     let mut pio = Pio::new(p.PIO0, Irqs);
     let spi = PioSpi::new(
         &mut pio.common,
@@ -118,18 +123,11 @@ async fn main(spawner: Spawner) {
     let (ble_tx_reader, ble_tx_writer) = unsafe { BLE_TX_PIPE.split() };
     let (ble_rx_reader, ble_rx_writer) = unsafe { BLE_RX_PIPE.split() };
 
-    let mut ble_server = BleServer::new(ble_tx_reader, ble_rx_writer);
+    let ble_server = BleServer::new(ble_tx_reader, ble_rx_writer);
 
-    // spawner.spawn(ble_task())
+    spawner.spawn(ble_task(ble_server, controller)).unwrap();
 
-    let mut ble_serial = BleSerial::new(ble_tx_writer, ble_rx_reader);
-
-    info!("[BLE] About to run BLE server");
-
-    ble_server.run(controller).await;
-    error!("[BLE] Ble task exited");
-
-    // ble_bas_peripheral::run::<_, 128>(controller).await;
+    let ble_serial = BleSerial::new(ble_tx_writer, ble_rx_reader);
 
     info!("Serial number: {}", device_id);
 
@@ -198,6 +196,8 @@ async fn main(spawner: Spawner) {
         serial
     };
 
+    let serial_mux = SerialMux::new(serial, ble_serial);
+
     // Setup SPI
     let spi = create_default_spi!(p);
     info!("SPI init ok");
@@ -207,7 +207,7 @@ async fn main(spawner: Spawner) {
 
     // Create the Bsp
     // let bsp = Bsp::new(can, uart);
-    let bsp = Bsp::new_with_mcp2515(spi, delay, serial);
+    let bsp = Bsp::new_with_mcp2515(spi, delay, serial_mux);
 
     info!("MCP2515 init ok");
 
@@ -217,7 +217,7 @@ async fn main(spawner: Spawner) {
     core_run!(core);
 }
 
-type SerialType = UsbWrapper<'static>;
+type SerialType = SerialMux<UsbWrapper<'static>, BleSerial>;
 type CanType = MCP2515<CustomSpiDevice<'static, SPI0, Blocking>>;
 
 core_create_tasks!(SerialType, CanType);
