@@ -7,19 +7,20 @@ mod spi_device;
 mod unique_id;
 mod usb_device;
 
+use static_cell::StaticCell;
 use unique_id::serial_number;
 
 use defmt::info;
 use doggie_core::{
     core_create_tasks, core_run, Bsp, CanChannel, CanChannelReceiver, CanChannelSender, Core,
 };
-use embassy_executor::Spawner;
 use embassy_rp::{
     bind_interrupts,
     gpio::{Level, Output},
     peripherals::{SPI0, USB},
+    pio::{self, Pio},
     spi::Blocking,
-    usb::{Driver, InterruptHandler},
+    usb::{self, Driver},
 };
 use embassy_time::Timer;
 use embassy_usb::{
@@ -29,13 +30,31 @@ use embassy_usb::{
 use mcp2515::MCP2515;
 use soft_timer::SoftTimer;
 use spi_device::CustomSpiDevice;
-use static_cell::StaticCell;
 use usb_device::UsbWrapper;
 use {defmt_rtt as _, panic_probe as _};
 
+use bt_hci::controller::ExternalController;
+use cyw43_pio::PioSpi;
+use defmt::*;
+use embassy_executor::Spawner;
+use embassy_rp::peripherals::{DMA_CH0, PIO0};
+
+use doggie_ble::{types as ble_types, BleSerial, BleServer, SerialMux};
+
+static mut BLE_TX_PIPE: ble_types::BlePipe = ble_types::BlePipe::new();
+static mut BLE_RX_PIPE: ble_types::BlePipe = ble_types::BlePipe::new();
+
 bind_interrupts!(struct Irqs {
-    USBCTRL_IRQ => InterruptHandler<USB>;
+    USBCTRL_IRQ => usb::InterruptHandler<USB>;
+    PIO0_IRQ_0 => pio::InterruptHandler<PIO0>;
 });
+
+#[embassy_executor::task]
+async fn cyw43_task(
+    runner: cyw43::Runner<'static, Output<'static>, PioSpi<'static, PIO0, 0, DMA_CH0>>,
+) -> ! {
+    runner.run().await
+}
 
 #[embassy_executor::task]
 async fn blink_task(mut led: Output<'static>) {
@@ -47,6 +66,9 @@ async fn blink_task(mut led: Output<'static>) {
         Timer::after_millis(250).await;
     }
 }
+
+#[embassy_executor::task]
+async fn ble_task() -> ! {}
 
 #[embassy_executor::task]
 async fn usb_task(mut usb: UsbDevice<'static, Driver<'static, USB>>) -> ! {
@@ -62,6 +84,52 @@ async fn main(spawner: Spawner) {
     spawner.spawn(blink_task(led)).unwrap();
 
     let device_id: &str = serial_number(p.FLASH, p.DMA_CH0);
+
+    let (fw, clm, btfw) = {
+        let fw = include_bytes!("../cyw43/43439A0.bin");
+        let clm = include_bytes!("../cyw43/43439A0_clm.bin");
+        let btfw = include_bytes!("../cyw43/43439A0_btfw.bin");
+        (fw, clm, btfw)
+    };
+
+    let pwr = Output::new(p.PIN_23, Level::Low);
+    let cs = Output::new(p.PIN_22, Level::High);
+    let mut pio = Pio::new(p.PIO0, Irqs);
+    let spi = PioSpi::new(
+        &mut pio.common,
+        pio.sm0,
+        cyw43_pio::DEFAULT_CLOCK_DIVIDER,
+        pio.irq0,
+        cs,
+        p.PIN_24,
+        p.PIN_29,
+        unsafe { embassy_rp::peripherals::DMA_CH0::steal() },
+    );
+
+    static STATE: StaticCell<cyw43::State> = StaticCell::new();
+    let state = STATE.init(cyw43::State::new());
+    let (_net_device, bt_device, mut control, runner) =
+        cyw43::new_with_bluetooth(state, pwr, spi, fw, btfw).await;
+    unwrap!(spawner.spawn(cyw43_task(runner)));
+    control.init(clm).await;
+
+    let controller: ExternalController<_, 10> = ExternalController::new(bt_device);
+
+    let (ble_tx_reader, ble_tx_writer) = unsafe { BLE_TX_PIPE.split() };
+    let (ble_rx_reader, ble_rx_writer) = unsafe { BLE_RX_PIPE.split() };
+
+    let mut ble_server = BleServer::new(ble_tx_reader, ble_rx_writer);
+
+    // spawner.spawn(ble_task())
+
+    let mut ble_serial = BleSerial::new(ble_tx_writer, ble_rx_reader);
+
+    info!("[BLE] About to run BLE server");
+
+    ble_server.run(controller).await;
+    error!("[BLE] Ble task exited");
+
+    // ble_bas_peripheral::run::<_, 128>(controller).await;
 
     info!("Serial number: {}", device_id);
 
