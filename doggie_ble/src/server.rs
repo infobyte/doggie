@@ -52,12 +52,9 @@ impl BleServer {
     where
         C: Controller,
     {
-        let address: Address = Address::random([0xff, 0x8f, 0x1a, 0x05, 0xe4, 0xff]);
-        info!("[BLE] Our address = {:?}", address);
-
         let mut resources: HostResources<CONNECTIONS_MAX, L2CAP_CHANNELS_MAX, L2CAP_MTU> =
             HostResources::new();
-        let stack = trouble_host::new(controller, &mut resources).set_random_address(address);
+        let stack = trouble_host::new(controller, &mut resources);
         let Host {
             mut peripheral,
             runner,
@@ -67,7 +64,7 @@ impl BleServer {
         info!("[BLE] Starting advertising and GATT service");
         let server = Server::new_with_config(GapConfig::Peripheral(PeripheralConfig {
             name: "Doggie BLE",
-            appearance: &appearance::power_device::GENERIC_POWER_DEVICE,
+            appearance: &appearance::network_device::GENERIC_NETWORK_DEVICE,
         }))
         .unwrap();
 
