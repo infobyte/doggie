@@ -2,11 +2,10 @@
 #![no_main]
 
 mod logging;
-mod serial_mux;
 mod twai_can;
 
 use logging::init_logs;
-use serial_mux::SerialMux;
+use static_cell::StaticCell;
 use twai_can::CanWrapper;
 
 use embassy_executor::Spawner;
@@ -32,11 +31,10 @@ use esp_wifi::ble::controller::BleConnector;
 use esp_wifi::EspWifiController;
 
 use defmt::{error, info};
-use doggie_ble::{constants as ble_const, types as ble_types, BleSerial, BleServer};
+use doggie_ble::{
+    constants as ble_const, create_ble_pipe, types as ble_types, BleSerial, BleServer, SerialMux,
+};
 use doggie_core::*;
-
-static mut BLE_TX_PIPE: ble_types::BlePipe = Pipe::new();
-static mut BLE_RX_PIPE: ble_types::BlePipe = Pipe::new();
 
 #[embassy_executor::task]
 async fn blink_task(mut led: Output<'static>) {
@@ -51,24 +49,10 @@ async fn blink_task(mut led: Output<'static>) {
 
 #[embassy_executor::task]
 async fn ble_task(
-    timg0_p: esp_hal::peripherals::TIMG0,
-    rng_p: esp_hal::peripherals::RNG,
-    clk_p: esp_hal::peripherals::RADIO_CLK,
-    bt: esp_hal::peripherals::BT,
-    reader: ble_types::BlePipeReader,
-    writer: ble_types::BlePipeWriter,
+    mut ble_server: BleServer,
+    controller: ExternalController<BleConnector<'static>, 20>,
 ) {
-    let timg0 = TimerGroup::new(timg0_p);
-
-    let init = esp_wifi::init(timg0.timer0, esp_hal::rng::Rng::new(rng_p), clk_p).unwrap();
-
-    let connector = BleConnector::new(&init, bt);
-    let controller: ExternalController<BleConnector<'_>, 20> = ExternalController::new(connector);
-
-    let mut ble_server = BleServer::new(reader, writer);
-
     info!("[BLE] About to run BLE server");
-
     ble_server
         .run::<ExternalController<BleConnector<'_>, 20>>(controller)
         .await;
@@ -76,6 +60,8 @@ async fn ble_task(
 }
 
 static mut BLE: Option<EspWifiController<'static>> = None;
+
+static BLE_CONT_AUX: StaticCell<EspWifiController<'static>> = StaticCell::new();
 
 #[esp_hal_embassy::main]
 async fn main(spawner: Spawner) {
@@ -127,21 +113,24 @@ async fn main(spawner: Spawner) {
     // BLE initialization
     info!("BLE init");
 
-    let (ble_tx_reader, ble_tx_writer) = unsafe { BLE_TX_PIPE.split() };
-    let (ble_rx_reader, ble_rx_writer) = unsafe { BLE_RX_PIPE.split() };
+    let timg0 = TimerGroup::new(peripherals.TIMG0);
 
-    let mut ble_serial = BleSerial::new(ble_tx_writer, ble_rx_reader);
-
-    spawner
-        .spawn(ble_task(
-            peripherals.TIMG0,
-            peripherals.RNG,
+    let init = BLE_CONT_AUX.init(
+        esp_wifi::init(
+            timg0.timer0,
+            esp_hal::rng::Rng::new(peripherals.RNG),
             peripherals.RADIO_CLK,
-            peripherals.BT,
-            ble_tx_reader,
-            ble_rx_writer,
-        ))
-        .unwrap();
+        )
+        .unwrap(),
+    );
+
+    let connector = BleConnector::new(init, peripherals.BT);
+    let controller: ExternalController<BleConnector<'static>, 20> =
+        ExternalController::new(connector);
+
+    let (ble_server, ble_serial) = create_ble_pipe();
+
+    spawner.spawn(ble_task(ble_server, controller)).unwrap();
 
     info!("Wired serial init");
     // Wired serial initialization

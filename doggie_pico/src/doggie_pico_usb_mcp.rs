@@ -40,10 +40,7 @@ use defmt::*;
 use embassy_executor::Spawner;
 use embassy_rp::peripherals::{DMA_CH0, PIO0};
 
-use doggie_ble::{types as ble_types, BleSerial, BleServer, SerialMux};
-
-static mut BLE_TX_PIPE: ble_types::BlePipe = ble_types::BlePipe::new();
-static mut BLE_RX_PIPE: ble_types::BlePipe = ble_types::BlePipe::new();
+use doggie_ble::{create_ble_pipe, BleSerial, BleServer, SerialMux};
 
 bind_interrupts!(struct Irqs {
     USBCTRL_IRQ => usb::InterruptHandler<USB>;
@@ -85,11 +82,10 @@ async fn main(spawner: Spawner) {
     info!("Device initialization");
     let p = embassy_rp::init(Default::default());
 
-    // let led = Output::new(p.PIN_25, Level::Low);
-    // spawner.spawn(blink_task(led)).unwrap();
-
     let device_id: &str = serial_number(p.FLASH, p.DMA_CH0);
+    info!("Serial number: {}", device_id);
 
+    // BLE
     let (fw, clm, btfw) = {
         let fw = include_bytes!("../cyw43/43439A0.bin");
         let clm = include_bytes!("../cyw43/43439A0_clm.bin");
@@ -120,16 +116,9 @@ async fn main(spawner: Spawner) {
 
     let controller: ExternalController<_, 10> = ExternalController::new(bt_device);
 
-    let (ble_tx_reader, ble_tx_writer) = unsafe { BLE_TX_PIPE.split() };
-    let (ble_rx_reader, ble_rx_writer) = unsafe { BLE_RX_PIPE.split() };
-
-    let ble_server = BleServer::new(ble_tx_reader, ble_rx_writer);
+    let (ble_server, ble_serial) = create_ble_pipe();
 
     spawner.spawn(ble_task(ble_server, controller)).unwrap();
-
-    let ble_serial = BleSerial::new(ble_tx_writer, ble_rx_reader);
-
-    info!("Serial number: {}", device_id);
 
     let serial = {
         info!("USB init");
