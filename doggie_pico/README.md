@@ -161,14 +161,21 @@ curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/relea
 
 ### **Compile and Flash the Firmware:**
 
+To enable BLE and select UART or USB we use features:
+    * `ble`: Enable Bluetooth Low Energy.
+    * `uart`: Use UART as serial interface.
+    * `usb`: Use USB as serial interface.
+
+*Note: one, and only one, serial interface feature (uart or usb) must be selected*
+
 1. Connect the target Pico to the PC in bootloader mode or to the probe as shown before.  
 
 2. Build and flash with selected features
-    * USB and MCP2515:
+    * USB and MCP2515 with BLE enable:
         ```
-        cargo run --bin doggie_pico_usb_mcp --release
+        cargo run --release
         ```
-    * UART and MCP2515 (Use this feature if you are using the probe):
+    * UART and MCP2515 with ble (Use this feature if you are using the probe):
         ```
-        cargo run --bin doggie_pico_uart_mcp --release
+        cargo run --release --no-default-features --features uart,ble
         ```
