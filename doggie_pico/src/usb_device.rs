@@ -1,4 +1,4 @@
-use defmt::{error, println};
+use defmt::error;
 use embassy_rp::{peripherals::USB, usb::Driver};
 use embassy_usb::class::cdc_acm::CdcAcmClass;
 use embedded_io::{ErrorKind, ErrorType};
