@@ -94,7 +94,9 @@ For more advanced commands, refer to the [SocketCAN documentation](https://www.k
 
 ## BLE ##
 
-As some boards supports BLE to send and receive serial information we need a way to bridge the BLE data to a serial interface.
+As some boards supports BLE to send and receive serial information we need a way to bridge the BLE data to a serial interface implementing the NUS service.
+Visit the [BLE notes](/docs/bluetooth_notes.md) for mor information.
+
 In linux we could use the `ble-serial` package as we show:
 
 First we install the package
