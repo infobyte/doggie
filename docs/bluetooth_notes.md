@@ -1,3 +1,5 @@
+# (Evil)Doggie over Bluetooth #
+
 In this note we will cover how and why we implemented BLE for (Evil)Doggie instead of using other Bluetooth solutions like `Rfcomm` or `L2CAP CoC`.  This doesn't mean that future implementations of Bluetooth can't be done by the community, and we encourage the reader to try it. For time restrictions we had to focus only on one implementation.
 
 First of all, I would like to remark something: Doggie was made with one idea in mind, to be as  flexible as we could, speaking in terms of use and compatibility. With that in mind, we chose `slcan` (serial CAN Bus) protocol, as it is the most compatible driver for CAN.
@@ -23,7 +25,7 @@ We use `slcan` that, as the name suggests, is a serial implementation of CAN. So
 
 After selecting BLE we had another decision to make, as there are two available options. The first one is using the lower layer of the BLE Host, L2CAP. This protocol can be used as a Channel-Oriented connection, as it provides a channel with two ends for communication between devices. Using L2CAP allows to avoid all the upper layers of the stack reducing the overhead in communication. But, the problem with L2CAP is the lack of compatibility with existent tools, specially on Windows. Hence, we chose the other option: NUS.
 
-![[/docs/ble_stack.png]]
+![alt text](ble_stack.png)
 
 [NUS](https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/libraries/bluetooth/services/nus.html) (Nordic-Uart Service) is a GATT Service used to receive and write data serving as bridge for UART interfaces. And as we need a serial interface, it fits. Using NUS sacrifices performance and connection stability but allows the use of existing tools even on Windows, increasing the compatibility. The service presents the following characteristics:
 ### Service UUID
