@@ -162,9 +162,9 @@ curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/relea
 ### **Compile and Flash the Firmware:**
 
 To enable BLE and select UART or USB we use features:
-    * `ble`: Enable Bluetooth Low Energy.
-    * `uart`: Use UART as serial interface.
-    * `usb`: Use USB as serial interface.
+* `ble`: Enable Bluetooth Low Energy.
+* `uart`: Use UART as serial interface.
+* `usb`: Use USB as serial interface.
 
 *Note: one, and only one, serial interface feature (uart or usb) must be selected*
 
