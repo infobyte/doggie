@@ -134,18 +134,26 @@ Ensure your firmware binary is compiled and ready to flash. You could download t
 
 ### **Compile and Flash the Firmware Using ST-Link V2:**
 
+In order to manage the compilation with different hardware variants we use the following features.
+* `int`: Enable the internal CAN controller
+* `mcp`: Enable the MCP2515 SPI interface as CAN controller
+* `usb`: Use the USB as a serial interface
+* `uart`: Use the UART as a serial interface
+
+*NOTE: One, and only one, CAN interface feature must be enabled, and the same for the serial interfaces. Also, 'int' and 'usb' can't be enabled at the same time due to a hardware compatibility issue. By default, 'uart' and 'int' are enabled.*
+
 1. Connect Bluepill to the programmer  
 
 2. Build and flash with selected features
     * USB and MCP2515:
         ```
-        cargo run --release --bin doggie_bluepill_usb_mcp
+        cargo run --release --no-default-features --features usb,mcp
         ```
     * UART and MCP2515:
         ```
-        cargo run --release --bin doggie_bluepill_uart_mcp
+        cargo run --release --no-default-features --features uart,mcp
         ```
     * UART and internal CAN:
         ```
-        cargo run --release --bin doggie_bluepill_uart_int
+        cargo run --release --no-default-features --features uart,int
         ```
