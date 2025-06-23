@@ -1,7 +1,11 @@
 use doggie_core::{CanBitrates, CanDevice};
 use embedded_can::{blocking::Can, Id};
 use esp_hal::{
-    gpio::GpioPin,
+    gpio::{
+        interconnect::{PeripheralInput, PeripheralOutput},
+        GpioPin,
+    },
+    peripheral::Peripheral,
     peripherals,
     twai::{self, filter::SingleStandardFilter, Twai, TwaiMode},
     Blocking,
@@ -15,7 +19,11 @@ pub struct CanWrapper<'d> {
 }
 
 impl<'d> CanWrapper<'d> {
-    pub fn new(can: peripherals::TWAI0, rx_pin: GpioPin<0>, tx_pin: GpioPin<1>) -> Self {
+    pub fn new<RX: PeripheralInput, TX: PeripheralOutput>(
+        can: peripherals::TWAI0,
+        rx_pin: impl Peripheral<P = RX> + 'd,
+        tx_pin: impl Peripheral<P = TX> + 'd,
+    ) -> Self {
         const TWAI_BAUDRATE: twai::BaudRate = twai::BaudRate::B250K;
 
         let mut twai_config =

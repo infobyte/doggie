@@ -50,13 +50,13 @@ As the ESP32 doesn't have 5v tolerant GPIOs, we should modify the MCP2515 or use
 
     ![alt text](../docs/esp32_twai.png)
 
-    __Connections__ (MCP2515 mod):  
+    __Connections__:  
     | Function |   Tranceiver   |
     | -------- |--------------- |
     |   Vcc    |       VCC      |
     |   GND    |       GND      |
-    |    TX    |       TX       |
-    |    RX    |       RX       |
+    |   CAN TX |       TX       |
+    |   CAN RX |       RX       |
 
 
     For each esp32 varian we will use different pins that are defined but they could be easily changed in the code. Some variants are not implemented but are compatible and will be implemented on demand.
@@ -71,8 +71,8 @@ As the ESP32 doesn't have 5v tolerant GPIOs, we should modify the MCP2515 or use
     |    MISO     |   D12    |     5    |
     |    Clock    |   D14    |     9    |
     |    CS       |   D15    |     7    |
-    |    CAN TX   |   D4     |     1    |
-    |    CAN RX   |   D3     |     0    |
+    |    CAN TX   |   D4     |     10    |
+    |    CAN RX   |   D3     |     9    |
     | LOGS (UART) |   D10    |     3    |
 ---
 
@@ -114,22 +114,25 @@ The UART-USB or SerialJtagUsb bridge of the esp32 is usually used to flash, writ
 
 ### **Compile and Flash the Firmware**
 
-First we have to choose witch firmware variant we want to use. All the variants starts a BLE server and the USB port, so they will wait for data to select witch one to use. There are three variants:
+In order to manage the compilation with different hardware variants we use features. The most important feature is the one that select the board (**esp32**, **esp32c3**, etc). And we have the other features:
+* `twai`: Enable the internal CAN controller (TWAI)
+* `mcp`: Enable the MCP2515 SPI interface as CAN controller
+* `ble`: Enable BLE interface
 
-* **doggie_esp32_twai**: This variant will use only the TWAI controller.
-* **doggie_esp32_mcp**: This variant will use the MCP2515 with the SPI interface.
-* **doggie_esp32**: This variant will check if the MCP2515 is connected, if it is not connected it will use the TWAI controller. This version has a little overhead and is not the most robust.
-
-We need to select the used board (**esp32**, **esp32c3**, etc).
+By default `twai` and `ble` are enabled.
 
 1. Connect ESP32 to the PC via USB
 
 3. Build and flash:
-    ```
-    DEFMT_LOG=off cargo {BOARD} --bin {VARIANT}
+    ```bash
+    DEFMT_LOG=off cargo {BOARD} --disable-default-features --features {FEATURES}
     ```
 
     For example:
-    ```
+    ```bash
+    # ESP32c3 with TWAI and BLE
     DEFMT_LOG=off cargo esp32c3 --bin doggie_esp32
+    
+    # ESP32 with MCP2515 and BLE
+    DEFMT_LOG=off cargo esp32 --disable-default-features --features mcp,ble
     ```
