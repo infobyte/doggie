@@ -126,8 +126,8 @@ async fn main(spawner: Spawner) {
     }
 
     // Blink initialization
-    let led = Output::new(peripherals.GPIO8, Level::Low);
-    spawner.spawn(blink_task(led)).unwrap();
+    // let led = Output::new(peripherals.GPIO8, Level::Low);
+    // spawner.spawn(blink_task(led)).unwrap();
 
     // Serial logging initialization
     info!("Debug serial init");
@@ -135,12 +135,12 @@ async fn main(spawner: Spawner) {
     #[cfg(feature = "esp32c3")]
     let (dbg_tx_pin, dbg_rx_pin) = (peripherals.GPIO3, peripherals.GPIO2);
     #[cfg(feature = "esp32")]
-    let (dbg_tx_pin, dbg_rx_pin) = (peripherals.GPIO10, peripherals.GPIO9);
+    let (dbg_tx_pin, dbg_rx_pin) = (peripherals.GPIO17, peripherals.GPIO16);
 
     let dbg_serial = {
         let config = esp_hal::uart::Config::default().with_baudrate(115200);
 
-        Uart::new(peripherals.UART1, config)
+        Uart::new(peripherals.UART2, config)
             .unwrap()
             .with_rx(dbg_rx_pin)
             .with_tx(dbg_tx_pin)
@@ -158,7 +158,7 @@ async fn main(spawner: Spawner) {
     #[cfg(not(feature = "esp32c3"))]
     let wired_serial = {
         let (tx_pin, rx_pin) = (peripherals.GPIO1, peripherals.GPIO3);
-        let config = esp_hal::uart::Config::default().with_rx_fifo_full_threshold(256);
+        let config = esp_hal::uart::Config::default().with_baudrate(115200);
 
         Uart::new(peripherals.UART0, config)
             .unwrap()
