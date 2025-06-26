@@ -129,6 +129,9 @@ async fn main(spawner: Spawner) {
     // let led = Output::new(peripherals.GPIO8, Level::Low);
     // spawner.spawn(blink_task(led)).unwrap();
 
+    // EvilDoggie unshort bus
+    let evil_pin = Output::new(peripherals.GPIO27, Level::High);
+
     // Serial logging initialization
     info!("Debug serial init");
 
@@ -158,7 +161,7 @@ async fn main(spawner: Spawner) {
     #[cfg(not(feature = "esp32c3"))]
     let wired_serial = {
         let (tx_pin, rx_pin) = (peripherals.GPIO1, peripherals.GPIO3);
-        let config = esp_hal::uart::Config::default().with_baudrate(115200);
+        let config = esp_hal::uart::Config::default().with_baudrate(921600);
 
         Uart::new(peripherals.UART0, config)
             .unwrap()
@@ -200,13 +203,7 @@ async fn main(spawner: Spawner) {
     #[cfg(feature = "twai")]
     let bsp = {
         info!("CAN Bus init");
-        #[cfg(feature = "esp32c3")]
-        let (rx_pin, tx_pin) = (peripherals.GPIO0, peripherals.GPIO1);
-
-        #[cfg(not(feature = "esp32c3"))]
-        let (rx_pin, tx_pin) = (peripherals.GPIO25, peripherals.GPIO26);
-
-        let can_device = CanWrapper::new(peripherals.TWAI0, rx_pin, tx_pin);
+        let can_device = CanWrapper::new();
 
         #[cfg(feature = "ble")]
         let bsp = Bsp::new(can_device, ble_serial);
@@ -285,7 +282,10 @@ type SerialType = SerialMux<BleSerial, UartType>;
 #[cfg(not(feature = "ble"))]
 type SerialType = UartType;
 
-#[cfg(feature = "twai")]
+#[cfg(all(feature = "twai", feature = "esp32c3"))]
+type CanType = CanWrapper<'static>;
+
+#[cfg(all(feature = "twai", not(feature = "esp32c3")))]
 type CanType = CanWrapper<'static>;
 
 #[cfg(all(feature = "mcp", not(feature = "twai")))]

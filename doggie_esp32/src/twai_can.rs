@@ -19,15 +19,10 @@ pub struct CanWrapper<'d> {
 }
 
 impl<'d> CanWrapper<'d> {
-    pub fn new<RX: PeripheralInput, TX: PeripheralOutput>(
-        can: peripherals::TWAI0,
-        rx_pin: impl Peripheral<P = RX> + 'd,
-        tx_pin: impl Peripheral<P = TX> + 'd,
-    ) -> Self {
+    pub fn new() -> Self {
         const TWAI_BAUDRATE: twai::BaudRate = twai::BaudRate::B250K;
 
-        let mut twai_config =
-            twai::TwaiConfiguration::new(can, rx_pin, tx_pin, TWAI_BAUDRATE, TwaiMode::Normal);
+        let mut twai_config = CanWrapper::create_twai_config(TWAI_BAUDRATE);
 
         twai_config.set_filter(
             const { SingleStandardFilter::new(b"xxxxxxxxxxx", b"x", [b"xxxxxxxx", b"xxxxxxxx"]) },
@@ -41,6 +36,35 @@ impl<'d> CanWrapper<'d> {
         CanWrapper {
             can_opt: Some(twai),
         }
+    }
+
+    fn create_twai_config(new_bitrate: twai::BaudRate) -> twai::TwaiConfiguration<'d, Blocking> {
+        let mut twai_config = unsafe {
+            #[cfg(feature = "esp32c3")]
+            {
+                twai::TwaiConfiguration::new(
+                    peripherals::TWAI0::steal(),
+                    GpioPin::<0>::steal(),
+                    GpioPin::<1>::steal(),
+                    new_bitrate,
+                    TwaiMode::Normal,
+                )
+            }
+            #[cfg(not(feature = "esp32c3"))]
+            {
+                twai::TwaiConfiguration::new(
+                    peripherals::TWAI0::steal(),
+                    GpioPin::<25>::steal(),
+                    GpioPin::<26>::steal(),
+                    new_bitrate,
+                    TwaiMode::Normal,
+                )
+            }
+        };
+        twai_config.set_filter(
+            const { SingleStandardFilter::new(b"xxxxxxxxxxx", b"x", [b"xxxxxxxx", b"xxxxxxxx"]) },
+        );
+        twai_config
     }
 }
 
@@ -106,24 +130,11 @@ impl<'d> CanDevice for CanWrapper<'d> {
         let old_can = self.can_opt.take().unwrap();
         old_can.stop();
 
-        unsafe {
-            let mut twai_config = twai::TwaiConfiguration::new(
-                peripherals::TWAI0::steal(),
-                GpioPin::<0>::steal(),
-                GpioPin::<1>::steal(),
-                new_bitrate,
-                TwaiMode::Normal,
-            );
-
-            twai_config.set_filter(
-                const { SingleStandardFilter::new(b"xxxxxxxxxxx", b"x", [b"xxxxxxxx", b"xxxxxxxx"]) },
-            );
-
-            // Start the peripheral. This locks the configuration settings of the peripheral
-            // and puts it into operation mode, allowing packets to be sent and
-            // received.
-            self.can_opt.replace(twai_config.start());
-        }
+        let twai_config = Self::create_twai_config(new_bitrate);
+        // Start the peripheral. This locks the configuration settings of the peripheral
+        // and puts it into operation mode, allowing packets to be sent and
+        // received.
+        self.can_opt.replace(twai_config.start());
     }
 
     fn set_filter(&mut self, _id: Id) {
