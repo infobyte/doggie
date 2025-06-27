@@ -102,7 +102,16 @@ where
                         continue;
                     }
 
-                    next_instant = Clock::add_ticks(next_instant, quantas * self.ticks_per_quantum);
+                    let interval = quantas * self.ticks_per_quantum;
+
+                    // Wait for to the next interval
+                    loop {
+                        if Clock::sub_ticks(self.clock.ticks(), next_instant) >= interval {
+                            break;
+                        }
+                    }
+
+                    next_instant = Clock::add_ticks(next_instant, interval);
                 }
                 HandleResult::Stop => {
                     // debug!("[core] Attack finished");
@@ -111,12 +120,9 @@ where
                 HandleResult::WaitForSoF => {
                     // Wait for SoF and restart the counter
                     self.machine.tranceiver.wait_for_sof();
-                    next_instant = self.clock.ticks() - self.sof_offset_ticks;
+                    next_instant = Clock::sub_ticks(self.clock.ticks(), self.sof_offset_ticks);
                 }
             };
-
-            // Wait for to the next target
-            while next_instant > self.clock.ticks() {}
         }
     }
 }

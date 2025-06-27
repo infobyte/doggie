@@ -1,10 +1,12 @@
 #![no_std]
 #![no_main]
+#![feature(asm_experimental_arch)]
 
 mod logging;
 mod soft_timer;
 mod spi_device;
 
+use core::arch::asm;
 use defmt::{debug, info, println};
 use embassy_executor::Spawner;
 use esp_backtrace as _;
@@ -17,11 +19,8 @@ use esp_hal::{
     uart::Uart,
 };
 use evil_core::{
-    bsp::{
-        TicksClock, Tranceiver, CanBitrates, EvilBsp
-    },
-    EvilCore,
-    EvilMenu,
+    bsp::{CanBitrates, EvilBsp, TicksClock, Tranceiver},
+    EvilCore, EvilMenu,
 };
 use logging::init_logs;
 
@@ -77,31 +76,48 @@ impl TimerBasedClock {
 }
 
 impl TicksClock for TimerBasedClock {
+    #[cfg(feature = "esp32c3")]
     const TICKS_PER_SEC: u32 = 40_000_000; // Adjust this to match your timer frequency
+
+    #[cfg(feature = "esp32")]
+    const TICKS_PER_SEC: u32 = 240_000_000; // Adjust this to match your timer frequency
 
     #[inline(always)]
     fn ticks(&self) -> u32 {
+        #[cfg(feature = "esp32c3")]
         let res = unsafe {
             core::ptr::write_volatile(Self::TIMG1_UPDATE, 1);
 
             // We need to give some time to the timer register to be updated
             // The amount of nops are calculated for the board used in development
             // and may vary
-            #[cfg(feature = "esp32c3")]
             for _ in 0..11 {
                 riscv::asm::nop();
             }
-
             core::ptr::read_volatile(Self::TIMG1_LO)
+        };
+
+        #[cfg(feature = "esp32")]
+        let res = unsafe {
+            let x: u32;
+            asm!("rsr.ccount {0}", out(reg) x, options(nostack));
+            x
         };
 
         res
     }
 
+    // These only works on 32-bit timers
     #[inline(always)]
     fn add_ticks(t1: u32, t2: u32) -> u32 {
         // Handle potential overflow with wrapping_add
         t1.wrapping_add(t2)
+    }
+
+    #[inline(always)]
+    fn sub_ticks(t1: u32, t2: u32) -> u32 {
+        // Handle potential overflow with wrapping_add
+        t1.wrapping_sub(t2)
     }
 }
 
@@ -119,9 +135,9 @@ impl<'a> EspTranceiver<'a> {
     #[cfg(feature = "esp32")]
     const GPIO_IN_REG: *mut u32 = 0x3FF4_403C as *mut u32; // GPIO input register
     #[cfg(feature = "esp32")]
-    const TX_OFFSET: u32 = 25;
+    const TX_OFFSET: u32 = 26;
     #[cfg(feature = "esp32")]
-    const RX_OFFSET: u32 = 26;
+    const RX_OFFSET: u32 = 25;
     #[cfg(feature = "esp32")]
     const FORCE_OFFSET: u32 = 27;
 
@@ -168,9 +184,9 @@ impl<'a> Tranceiver for EspTranceiver<'a> {
     fn set_force(&mut self, state: bool) {
         unsafe {
             if state {
-                core::ptr::write_volatile(Self::GPIO_OUT_W1TS_REG, 1 << Self::FORCE_OFFSET);
-            } else {
                 core::ptr::write_volatile(Self::GPIO_OUT_W1TC_REG, 1 << Self::FORCE_OFFSET);
+            } else {
+                core::ptr::write_volatile(Self::GPIO_OUT_W1TS_REG, 1 << Self::FORCE_OFFSET);
             }
         }
     }
@@ -206,11 +222,11 @@ async fn main(_spawner: Spawner) {
     #[cfg(feature = "esp32c3")]
     let (dbg_tx_pin, dbg_rx_pin) = (p.GPIO3, p.GPIO2);
     #[cfg(feature = "esp32")]
-    let (dbg_tx_pin, dbg_rx_pin) = (p.GPIO10, p.GPIO9);
+    let (dbg_tx_pin, dbg_rx_pin) = (p.GPIO17, p.GPIO16);
     let dbg_serial = {
         let config = esp_hal::uart::Config::default().baudrate(115200);
 
-        Uart::new_with_config(p.UART1, config, dbg_rx_pin, dbg_tx_pin).unwrap()
+        Uart::new_with_config(p.UART2, config, dbg_rx_pin, dbg_tx_pin).unwrap()
     };
 
     let (_, dbg_tx) = dbg_serial.split();
@@ -239,14 +255,14 @@ async fn main(_spawner: Spawner) {
 
     // Setup tx, rx, and force pins, and tranceiver
     #[cfg(feature = "esp32")]
-    let (tx_pin, rx_pin, force_pin) = (p.GPIO25, p.GPIO26, p.GPIO27);
+    let (tx_pin, rx_pin, force_pin) = (p.GPIO26, p.GPIO25, p.GPIO27);
 
     #[cfg(feature = "esp32c3")]
     let (tx_pin, rx_pin, force_pin) = (p.GPIO1, p.GPIO0, p.GPIO10);
 
     let tx = Output::new(tx_pin, Level::High);
     let rx = Input::new(rx_pin, Pull::None);
-    let force = Output::new(force_pin, Level::Low);
+    let force = Output::new(force_pin, Level::High);
 
     let tranceiver = EspTranceiver::new(tx, rx, force);
     info!("Tranceiver init ok");
@@ -267,7 +283,7 @@ async fn main(_spawner: Spawner) {
     let sof_delay_ns = 450;
 
     #[cfg(feature = "esp32")]
-    let sof_delay_ns = 600;
+    let sof_delay_ns = 400;
 
     let core = EvilCore::new(bsp, CanBitrates::Kbps250, sof_delay_ns, esp32_attack);
     info!("Evil core created, running evil menu");

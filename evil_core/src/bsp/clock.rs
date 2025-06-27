@@ -4,4 +4,6 @@ pub trait TicksClock {
     fn ticks(&self) -> u32;
 
     fn add_ticks(t1: u32, t2: u32) -> u32;
+
+    fn sub_ticks(t1: u32, t2: u32) -> u32;
 }

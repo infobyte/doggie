@@ -1,6 +1,7 @@
 use super::super::bsp::{Tranceiver, TranceiverState};
 use super::commands::{AttackCmd, FastBitStack};
 use super::errors::AttackError;
+use defmt::{info, Debug2Format};
 
 pub enum HandleResult {
     Wait { quantas: u32 },
@@ -54,9 +55,13 @@ where
     pub fn arm(&mut self, attack: &[AttackCmd]) -> Result<(), AttackError> {
         self.index = 0;
         self.on_start = true;
-        self.bit_stuffing_polarity = true;
         self.bit_stuffing_cnt = 0;
+        self.bit_stuffing_polarity = true;
+        self.bit_stuffing_active = false;
         self.buffer.clean();
+        self.buffer_value = 0;
+        self.next_state.set_force(false);
+        self.next_state.set_tx(true);
 
         if attack.len() > self.attack.len() {
             return Err(AttackError::AttackToLong);
@@ -86,7 +91,9 @@ where
                 }
             }
             AttackCmd::Force { ref mut stream } => {
-                self.next_state.set_force(stream.pop());
+                let next_force = stream.pop();
+                self.next_state.set_force(next_force);
+                self.next_state.set_tx(next_force);
             }
             AttackCmd::Send { ref mut stream } => {
                 self.next_state.set_tx(stream.pop());
@@ -139,6 +146,7 @@ where
             AttackCmd::Force { ref mut stream } => {
                 if stream.len() <= 0 {
                     self.next_state.set_force(false);
+                    self.next_state.set_tx(true);
                     Ok(true)
                 } else {
                     Ok(false)
@@ -205,6 +213,7 @@ where
             }
             AttackCmd::Force { stream: _ } => {
                 self.next_state.set_force(!self.bit_stuffing_polarity);
+                self.next_state.set_tx(!self.bit_stuffing_polarity);
             }
             AttackCmd::WaitForEof => {
                 if self.bit_stuffing_cnt >= 7 + 3 && self.bit_stuffing_polarity {

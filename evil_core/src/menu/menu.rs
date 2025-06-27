@@ -489,6 +489,8 @@ fn attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
         info!("\t{:?}", Debug2Format(attack_cmd));
     }
 
+    context.attack_builder.reset();
+
     hl_attack_vec
         .iter()
         .for_each(|attack_cmd| context.attack_builder.push(*attack_cmd).unwrap());

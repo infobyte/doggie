@@ -110,13 +110,13 @@ impl PredefAttacks {
         hl_attack: &mut Vec<HighLevelAttackCmd, SIZE>,
     ) -> Result<usize, BuildError> {
         hl_attack.push(HighLevelAttackCmd::WaitSof).unwrap();
-        hl_attack
-            .push(HighLevelAttackCmd::Wait { bits: 1 })
-            .unwrap();
+        // hl_attack
+        //     .push(HighLevelAttackCmd::Wait { bits: 20 })
+        //     .unwrap();
         hl_attack
             .push(HighLevelAttackCmd::SendRaw {
-                bits: 0b101_0101,
-                bits_count: 7,
+                bits: 0b0101_0101_0101_0101,
+                bits_count: 16,
                 force: true,
             })
             .unwrap();
