@@ -100,11 +100,14 @@ impl MsgBitQueue {
     }
 
     fn append_crc(&mut self) {
-        let crc = self.crc_calculate();
+        let mut crc = self.crc_calculate();
 
         info!("CRC: {:X}", crc);
 
-        self.append(crc as u32, 15);
+        // CRC delimiter
+        crc = (crc << 1) | 1;
+
+        self.append(crc as u32, 16);
     }
 }
 
@@ -374,7 +377,9 @@ impl HighLevelAttackCmd {
     fn build_wait_eof<const OUT_SIZE: usize>(
         attack: &mut Vec<AttackCmd, OUT_SIZE>,
     ) -> Result<usize, BuildError> {
-        attack.push(AttackCmd::WaitForEof).unwrap();
+        attack
+            .push(AttackCmd::WaitForEof { remaining: 10 })
+            .unwrap();
         Ok(1)
     }
 
@@ -435,11 +440,15 @@ impl HighLevelAttackCmd {
         // msg_queue.append(crc.get_crc() as u32, 15);
         msg_queue.append_crc();
 
-        // ACK
-        // msg_queue.append(0b10, 2);
+        // ACK - ACK delimiter
+        if *force {
+            msg_queue.append(0b01, 2);
+        } else {
+            msg_queue.append(0b11, 2);
+        }
 
         // EoF and IFS
-        // msg_queue.append(0b1111111111, 7 + 3);
+        msg_queue.append(0b1111111111, 7 + 3);
 
         defmt::info!("MSG: {}", msg_queue.as_ref());
 

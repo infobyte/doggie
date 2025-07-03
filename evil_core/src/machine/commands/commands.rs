@@ -158,6 +158,6 @@ pub enum AttackCmd {
     MulBuffered { mult: u8 },
     SubBuffered { sub: u32 },
     WaitForSof,
-    WaitForEof,
+    WaitForEof { remaining: u8 },
     None,
 }

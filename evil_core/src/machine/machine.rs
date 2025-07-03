@@ -26,7 +26,8 @@ where
     buffer_value: u32,
     bit_stuffing_cnt: u8,
     bit_stuffing_polarity: bool,
-    bit_stuffing_active: bool,
+    bit_stuffing_skip: bool,
+    bit_stuffing_enabled: bool,
     on_start: bool,
     next_state: TranceiverState,
 }
@@ -46,7 +47,8 @@ where
             buffer_value: 0,
             bit_stuffing_cnt: 0,
             bit_stuffing_polarity: true,
-            bit_stuffing_active: false,
+            bit_stuffing_skip: false,
+            bit_stuffing_enabled: true,
             on_start: true,
             next_state: TranceiverState::new(),
         }
@@ -129,6 +131,9 @@ where
                 self.pre_calculate();
                 self.index -= 1;
             }
+            AttackCmd::WaitForEof { remaining } => {
+                self.enable_bit_stuffing(false);
+            }
             _ => {}
         }
     }
@@ -184,16 +189,16 @@ where
                 Ok(finished)
             }
             AttackCmd::None => Err(()),
-            // AttackCmd::WaitForEof => {
-            //     // Wait for EOF (7) + IFS (3) recessives
-            //     if self.bit_stuffing_cnt >= 7 + 3 && self.bit_stuffing_polarity {
-            //         self.bit_stuffing_cnt = 0;
+            AttackCmd::WaitForEof { ref mut remaining } => {
+                *remaining -= 1;
 
-            //         Ok(true)
-            //     } else {
-            //         Ok(false)
-            //     }
-            // }
+                if *remaining <= 0 {
+                    self.enable_bit_stuffing(true);
+                    Ok(true)
+                } else {
+                    Ok(false)
+                }
+            }
             _ => Ok(false),
         }
     }
@@ -215,20 +220,20 @@ where
                 self.next_state.set_force(!self.bit_stuffing_polarity);
                 self.next_state.set_tx(!self.bit_stuffing_polarity);
             }
-            AttackCmd::WaitForEof => {
-                if self.bit_stuffing_cnt >= 7 + 3 && self.bit_stuffing_polarity {
-                    self.bit_stuffing_cnt = 0;
-
-                    self.next_cmd();
-                } else {
-                    return;
-                }
-            }
             _ => {}
         }
 
         self.bit_stuffing_cnt = 0;
-        self.bit_stuffing_active = true;
+        self.bit_stuffing_skip = true;
+    }
+
+    #[inline(always)]
+    fn enable_bit_stuffing(&mut self, state: bool) {
+        if state {
+            self.bit_stuffing_cnt = 0;
+        }
+
+        self.bit_stuffing_enabled = state;
     }
 
     #[inline(always)]
@@ -258,7 +263,7 @@ where
                 self.bit_stuffing_polarity = rx;
             }
 
-            if !self.bit_stuffing_active {
+            if !self.bit_stuffing_skip {
                 // handle_middle return false if we finished the attack
                 match self.handle_middle(rx) {
                     Ok(true) => {
@@ -270,11 +275,11 @@ where
                     Ok(_) => {}
                 }
             } else {
-                self.bit_stuffing_active = false;
+                self.bit_stuffing_skip = false;
             }
 
             // Bit stuffing
-            if self.bit_stuffing_cnt >= 5 {
+            if self.bit_stuffing_cnt >= 5 && self.bit_stuffing_enabled {
                 self.pre_calculate_bs();
             } else {
                 // pre_calculate
