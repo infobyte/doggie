@@ -158,6 +158,7 @@ pub enum AttackCmd {
     MulBuffered { mult: u8 },
     SubBuffered { sub: u32 },
     WaitForSof,
-    WaitForEof { remaining: u8 },
+    SetBitStuffing { state: bool },
+    WaitBusFree { count: u8 },
     None,
 }

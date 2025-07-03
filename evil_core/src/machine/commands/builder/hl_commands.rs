@@ -133,7 +133,7 @@ pub enum HighLevelAttackCmd {
         bits_count: usize,
         force: bool,
     },
-    WaitEof,
+    WaitBusFree,
     WaitSof,
     SendMsg {
         id: Id,
@@ -161,7 +161,7 @@ impl<const OUT_SIZE: usize> Buildable<OUT_SIZE> for HighLevelAttackCmd {
                 bits_count,
                 force,
             } => Self::build_send_raw(attack, bits, bits_count, force),
-            Self::WaitEof => Self::build_wait_eof(attack),
+            Self::WaitBusFree => Self::build_wait_bus_free(attack),
             Self::WaitSof => Self::build_wait_sof(attack),
             Self::SendMsg {
                 id,
@@ -374,12 +374,10 @@ impl HighLevelAttackCmd {
         Ok(1)
     }
 
-    fn build_wait_eof<const OUT_SIZE: usize>(
+    fn build_wait_bus_free<const OUT_SIZE: usize>(
         attack: &mut Vec<AttackCmd, OUT_SIZE>,
     ) -> Result<usize, BuildError> {
-        attack
-            .push(AttackCmd::WaitForEof { remaining: 10 })
-            .unwrap();
+        attack.push(AttackCmd::WaitBusFree { count: 0 }).unwrap();
         Ok(1)
     }
 
@@ -440,16 +438,6 @@ impl HighLevelAttackCmd {
         // msg_queue.append(crc.get_crc() as u32, 15);
         msg_queue.append_crc();
 
-        // ACK - ACK delimiter
-        if *force {
-            msg_queue.append(0b01, 2);
-        } else {
-            msg_queue.append(0b11, 2);
-        }
-
-        // EoF and IFS
-        msg_queue.append(0b1111111111, 7 + 3);
-
         defmt::info!("MSG: {}", msg_queue.as_ref());
 
         let mut attack_index = 0;
@@ -470,6 +458,38 @@ impl HighLevelAttackCmd {
             attack_index += 1;
         }
 
-        Ok(attack_index)
+        attack.push(AttackCmd::SetBitStuffing { state: false });
+
+        let mut eof_queue = MsgBitQueue::new();
+
+        // ACK
+        if *force {
+            eof_queue.append(0b0, 1);
+        } else {
+            eof_queue.append(0b1, 1);
+        }
+
+        //  ACK delimiter + EoF + IFS = 11
+        eof_queue.append(0b11111111111, 1 + 7 + 3);
+
+        while let Some((value, size)) = eof_queue.pop_chunk() {
+            attack
+                .push(if *force {
+                    AttackCmd::Force {
+                        stream: FastBitQueue::new(value, size),
+                    }
+                } else {
+                    AttackCmd::Send {
+                        stream: FastBitQueue::new(value, size),
+                    }
+                })
+                .unwrap();
+
+            attack_index += 1;
+        }
+
+        attack.push(AttackCmd::SetBitStuffing { state: true });
+
+        Ok(attack_index + 2)
     }
 }

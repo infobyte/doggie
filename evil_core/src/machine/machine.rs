@@ -1,7 +1,6 @@
 use super::super::bsp::{Tranceiver, TranceiverState};
 use super::commands::{AttackCmd, FastBitStack};
 use super::errors::AttackError;
-use defmt::{info, Debug2Format};
 
 pub enum HandleResult {
     Wait { quantas: u32 },
@@ -59,7 +58,7 @@ where
         self.on_start = true;
         self.bit_stuffing_cnt = 0;
         self.bit_stuffing_polarity = true;
-        self.bit_stuffing_active = false;
+        self.bit_stuffing_skip = false;
         self.buffer.clean();
         self.buffer_value = 0;
         self.next_state.set_force(false);
@@ -131,7 +130,13 @@ where
                 self.pre_calculate();
                 self.index -= 1;
             }
-            AttackCmd::WaitForEof { remaining } => {
+            AttackCmd::SetBitStuffing { state } => {
+                self.enable_bit_stuffing(state);
+
+                self.next_cmd();
+                self.pre_calculate();
+            }
+            AttackCmd::WaitBusFree { count } => {
                 self.enable_bit_stuffing(false);
             }
             _ => {}
@@ -188,17 +193,21 @@ where
 
                 Ok(finished)
             }
-            AttackCmd::None => Err(()),
-            AttackCmd::WaitForEof { ref mut remaining } => {
-                *remaining -= 1;
+            AttackCmd::WaitBusFree { ref mut count } => {
+                if self.tranceiver.get_rx() != true {
+                    *count = 0;
+                } else {
+                    *count += 1;
+                }
 
-                if *remaining <= 0 {
+                if *count >= 10 {
                     self.enable_bit_stuffing(true);
                     Ok(true)
                 } else {
                     Ok(false)
                 }
             }
+            AttackCmd::None => Err(()),
             _ => Ok(false),
         }
     }

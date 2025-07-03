@@ -86,7 +86,7 @@ impl PredefAttacks {
             .unwrap();
 
         // Wait for the end of the frame
-        hl_attack.push(HighLevelAttackCmd::WaitEof).unwrap();
+        hl_attack.push(HighLevelAttackCmd::WaitBusFree).unwrap();
         // Send the actual message
         let mut data = [0; 8];
         for (index, byte) in spoof_data.iter().enumerate() {

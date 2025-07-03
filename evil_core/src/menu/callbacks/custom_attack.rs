@@ -237,7 +237,7 @@ pub fn wait_eof<I: Read + Write, C: TicksClock, T: Tranceiver>(
 ) {
     context
         .custom_attack
-        .push(HighLevelAttackCmd::WaitEof)
+        .push(HighLevelAttackCmd::WaitBusFree)
         .unwrap();
 
     writeln!(interface, "Added Wait EOF command").unwrap();
