@@ -377,7 +377,13 @@ impl HighLevelAttackCmd {
     fn build_wait_bus_free<const OUT_SIZE: usize>(
         attack: &mut Vec<AttackCmd, OUT_SIZE>,
     ) -> Result<usize, BuildError> {
+        attack
+            .push(AttackCmd::SetBitStuffing { state: false })
+            .unwrap();
         attack.push(AttackCmd::WaitBusFree { count: 0 }).unwrap();
+        attack
+            .push(AttackCmd::SetBitStuffing { state: true })
+            .unwrap();
         Ok(1)
     }
 

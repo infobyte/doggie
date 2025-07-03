@@ -1,5 +1,5 @@
 use super::{BuildError, Buildable, HighLevelAttackCmd};
-use embedded_can::Id;
+use embedded_can::{Id, StandardId};
 use heapless::Vec;
 
 pub const MAX_HL_COMMANDS: usize = 32;
@@ -110,16 +110,26 @@ impl PredefAttacks {
         hl_attack: &mut Vec<HighLevelAttackCmd, SIZE>,
     ) -> Result<usize, BuildError> {
         hl_attack.push(HighLevelAttackCmd::WaitSof).unwrap();
+        hl_attack.push(HighLevelAttackCmd::WaitBusFree).unwrap();
+        hl_attack
+            .push(HighLevelAttackCmd::SendMsg {
+                id: Id::Standard(StandardId::new(0x123).unwrap()),
+                data: None,
+                data_len: 0,
+                rtr: false,
+                force: false,
+            })
+            .unwrap();
         // hl_attack
         //     .push(HighLevelAttackCmd::Wait { bits: 20 })
         //     .unwrap();
-        hl_attack
-            .push(HighLevelAttackCmd::SendRaw {
-                bits: 0b0101_0101_0101_0101,
-                bits_count: 16,
-                force: true,
-            })
-            .unwrap();
+        // hl_attack
+        //     .push(HighLevelAttackCmd::SendRaw {
+        //         bits: 0b0101_0101_0101_0101,
+        //         bits_count: 16,
+        //         force: true,
+        //     })
+        //     .unwrap();
 
         Ok(2)
     }

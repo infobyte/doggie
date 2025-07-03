@@ -200,7 +200,7 @@ where
                     *count += 1;
                 }
 
-                if *count >= 10 {
+                if *count >= 11 {
                     self.enable_bit_stuffing(true);
                     Ok(true)
                 } else {
