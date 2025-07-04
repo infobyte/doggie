@@ -261,7 +261,7 @@ where
             self.tranceiver.apply(&self.next_state);
             self.on_start = false;
 
-            HandleResult::Wait { quantas: 1 }
+            HandleResult::Wait { quantas: 2 }
         } else {
             let rx = self.tranceiver.get_rx();
 
@@ -297,7 +297,7 @@ where
 
             self.on_start = true;
 
-            HandleResult::Wait { quantas: 7 }
+            HandleResult::Wait { quantas: 6 }
         }
     }
 }

@@ -267,6 +267,9 @@ async fn main(_spawner: Spawner) {
     let tranceiver = EspTranceiver::new(tx, rx, force);
     info!("Tranceiver init ok");
 
+    info!("Evil Doggie Attack Circuit Enabled");
+    let force_enable = Output::new(p.GPIO23, Level::High);
+
     // Create clock
     let timg1_t0: esp_hal::timer::timg::Timer<
         esp_hal::timer::timg::TimerX<<esp_hal::peripherals::TIMG1 as Peripheral>::P>,
