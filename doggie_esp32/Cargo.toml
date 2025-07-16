@@ -25,14 +25,21 @@ embedded-can = "0.4.1"
 
 log = { version = "0.4.22" }
 static_cell = "2.1.0"
-defmt = { version = "0.3.8" }
 mcp2515 = { version = "0.3.0", optional = true }
+doggie_core = { version = "0.1.0", path = "../doggie_core"}
+evil_core = { version = "0.1.0", path = "../evil_core"}
+defmt = { version = "0.3.8", features = ["encoding-raw"] }
+embedded-hal = "1.0.0"
+embedded-can = "0.4.1"
 nb = "1.1.0"
 cfg-if = "1.0.0"
 bt-hci = { version = "0.2", optional = true }    
 
 doggie_core = { version = "0.1.0", path = "../doggie_core" }
 doggie_ble = { version = "0.1.0", path = "../doggie_ble", optional = true }
+
+xtensa-lx = "0.9.0"
+riscv = "0.10.1"
 
 
 [features]

@@ -19,7 +19,6 @@ if [ ! -e "$SERIAL_PORT" ]; then
     exit 1
 fi
 
-
 # Check if the ELF file exists
 if [ ! -f "$ELF_PATH" ]; then
     echo "Error: ELF file $ELF_PATH not found!"
@@ -27,5 +26,5 @@ if [ ! -f "$ELF_PATH" ]; then
 fi
 
 # Run defmt-print with the specified serial port and ELF file
-echo "Monitoring $SERIAL_PORT with defmt-print..."
-SERIAL_PORT=$SERIAL_PORT defmt-print --verbose -e $ELF_PATH serial
+echo "Monitoring $SERIAL_PORT with $(basename $ELF_PATH) using defmt-print..."
+SERIAL_PORT="$SERIAL_PORT" defmt-print -e "$ELF_PATH" serial

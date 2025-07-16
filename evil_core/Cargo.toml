@@ -1,0 +1,28 @@
+
+[package]
+name = "evil_core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+defmt = "0.3"
+embedded-hal = "1.0.0"
+embedded-can = "0.4.1"
+embedded-io = "0.6.1"
+heapless = "0.8.0"
+menu = { version = "0.6.1", features = ["noline"] }
+noline = " 0.5.1"
+
+[profile.dev]
+opt-level = 3
+lto = true
+debug = 2
+
+[profile.release]
+codegen-units = 1
+opt-level = 3
+lto = "fat"
+overflow-checks = false
+
+# strip = true
+# debug = 2

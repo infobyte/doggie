@@ -1,0 +1,322 @@
+#![no_std]
+#![no_main]
+#![feature(asm_experimental_arch)]
+
+mod logging;
+mod soft_timer;
+mod spi_device;
+
+use core::arch::asm;
+use defmt::{debug, info, println};
+use embassy_executor::Spawner;
+use esp_backtrace as _;
+use esp_hal::{
+    clock::Clocks,
+    gpio::{Input, Level, Output, Pull},
+    peripheral::Peripheral,
+    prelude::*,
+    timer::timg::TimerGroup,
+    uart::Uart,
+};
+use evil_core::{
+    bsp::{CanBitrates, EvilBsp, TicksClock, Tranceiver},
+    EvilCore, EvilMenu,
+};
+use logging::init_logs;
+
+#[cfg(feature = "esp32c3")]
+use esp_hal::usb_serial_jtag::UsbSerialJtag;
+
+const READ_BUF_SIZE: usize = 64;
+
+struct TimerBasedClock {
+    _timer: esp_hal::timer::timg::Timer<
+        esp_hal::timer::timg::TimerX<<esp_hal::peripherals::TIMG1 as Peripheral>::P>,
+        esp_hal::Blocking,
+    >,
+}
+
+impl TimerBasedClock {
+    #[cfg(feature = "esp32")]
+    const TIMG1_BASE: u32 = 0x3FF6_0000;
+
+    #[cfg(feature = "esp32c3")]
+    const TIMG1_BASE: u32 = 0x6002_0000;
+
+    const TIMG1_UPDATE_OFFSET: u32 = 0xC;
+    const TIMG1_LO_OFFSET: u32 = 0x4;
+
+    const TIMG1_UPDATE: *mut u32 = (Self::TIMG1_BASE + Self::TIMG1_UPDATE_OFFSET) as *mut u32;
+    const TIMG1_LO: *mut u32 = (Self::TIMG1_BASE + Self::TIMG1_LO_OFFSET) as *mut u32;
+
+    pub fn new(
+        timer: esp_hal::timer::timg::Timer<
+            esp_hal::timer::timg::TimerX<<esp_hal::peripherals::TIMG1 as Peripheral>::P>,
+            esp_hal::Blocking,
+        >,
+    ) -> Self {
+        // Configure SysTick
+        timer.set_counter_active(false);
+        timer.set_alarm_active(false);
+        timer.set_auto_reload(true);
+        timer.reset_counter();
+        timer.set_counter_decrementing(false);
+        timer.set_counter_active(true);
+
+        let apb_freq = Clocks::get().apb_clock.to_Hz();
+        let divider = timer.divider();
+
+        info!("TIMG1 initialization");
+        println!("\tAPB clock freq: {} Hz", apb_freq);
+        println!("\tDivider: {}", divider);
+        println!("\tTimer freq: {} Hz", apb_freq / divider);
+
+        Self { _timer: timer }
+    }
+}
+
+impl TicksClock for TimerBasedClock {
+    #[cfg(feature = "esp32c3")]
+    const TICKS_PER_SEC: u32 = 40_000_000; // Adjust this to match your timer frequency
+
+    #[cfg(feature = "esp32")]
+    const TICKS_PER_SEC: u32 = 240_000_000; // Adjust this to match your timer frequency
+
+    #[inline(always)]
+    fn ticks(&self) -> u32 {
+        #[cfg(feature = "esp32c3")]
+        let res = unsafe {
+            core::ptr::write_volatile(Self::TIMG1_UPDATE, 1);
+
+            // We need to give some time to the timer register to be updated
+            // The amount of nops are calculated for the board used in development
+            // and may vary
+            for _ in 0..11 {
+                riscv::asm::nop();
+            }
+            core::ptr::read_volatile(Self::TIMG1_LO)
+        };
+
+        #[cfg(feature = "esp32")]
+        let res = unsafe {
+            let x: u32;
+            asm!("rsr.ccount {0}", out(reg) x, options(nostack));
+            x
+        };
+
+        res
+    }
+
+    // These only works on 32-bit timers
+    #[inline(always)]
+    fn add_ticks(t1: u32, t2: u32) -> u32 {
+        // Handle potential overflow with wrapping_add
+        t1.wrapping_add(t2)
+    }
+
+    #[inline(always)]
+    fn sub_ticks(t1: u32, t2: u32) -> u32 {
+        // Handle potential overflow with wrapping_add
+        t1.wrapping_sub(t2)
+    }
+}
+
+struct EspTranceiver<'a> {
+    _tx: Output<'a>,
+    _rx: Input<'a>,
+    _force: Output<'a>,
+}
+
+impl<'a> EspTranceiver<'a> {
+    #[cfg(feature = "esp32")]
+    const GPIO_OUT_W1TS_REG: *mut u32 = 0x3FF4_4008 as *mut u32; // GPIO bit set register
+    #[cfg(feature = "esp32")]
+    const GPIO_OUT_W1TC_REG: *mut u32 = 0x3FF4_400C as *mut u32; // GPIO bit clear register
+    #[cfg(feature = "esp32")]
+    const GPIO_IN_REG: *mut u32 = 0x3FF4_403C as *mut u32; // GPIO input register
+    #[cfg(feature = "esp32")]
+    const TX_OFFSET: u32 = 26;
+    #[cfg(feature = "esp32")]
+    const RX_OFFSET: u32 = 25;
+    #[cfg(feature = "esp32")]
+    const FORCE_OFFSET: u32 = 27;
+
+    #[cfg(feature = "esp32c3")]
+    const GPIO_OUT_W1TS_REG: *mut u32 = 0x6000_4008 as *mut u32; // GPIO bit set register
+    #[cfg(feature = "esp32c3")]
+    const GPIO_OUT_W1TC_REG: *mut u32 = 0x6000_400C as *mut u32; // GPIO bit clear register
+    #[cfg(feature = "esp32c3")]
+    const GPIO_IN_REG: *mut u32 = 0x6000_403C as *mut u32; // GPIO input register
+    #[cfg(feature = "esp32c3")]
+    const TX_OFFSET: u32 = 1;
+    #[cfg(feature = "esp32c3")]
+    const RX_OFFSET: u32 = 0;
+    #[cfg(feature = "esp32c3")]
+    const FORCE_OFFSET: u32 = 10;
+
+    pub fn new(tx: Output<'a>, rx: Input<'a>, force: Output<'a>) -> Self {
+        EspTranceiver {
+            _tx: tx,
+            _rx: rx,
+            _force: force,
+        }
+    }
+}
+
+impl<'a> Tranceiver for EspTranceiver<'a> {
+    #[inline(always)]
+    fn set_tx(&mut self, state: bool) {
+        unsafe {
+            if state {
+                core::ptr::write_volatile(Self::GPIO_OUT_W1TS_REG, 1 << Self::TX_OFFSET);
+            } else {
+                core::ptr::write_volatile(Self::GPIO_OUT_W1TC_REG, 1 << Self::TX_OFFSET);
+            }
+        }
+    }
+
+    #[inline(always)]
+    fn get_rx(&self) -> bool {
+        unsafe { (core::ptr::read_volatile(Self::GPIO_IN_REG) & (1 << Self::RX_OFFSET)) != 0 }
+    }
+
+    #[inline(always)]
+    fn set_force(&mut self, state: bool) {
+        unsafe {
+            if state {
+                core::ptr::write_volatile(Self::GPIO_OUT_W1TC_REG, 1 << Self::FORCE_OFFSET);
+            } else {
+                core::ptr::write_volatile(Self::GPIO_OUT_W1TS_REG, 1 << Self::FORCE_OFFSET);
+            }
+        }
+    }
+}
+
+#[no_mangle]
+#[ram]
+fn esp32_attack(core: &mut EvilCore<TimerBasedClock, EspTranceiver<'_>>) {
+    #[cfg(target_arch = "xtensa")]
+    xtensa_lx::interrupt::free(|_| {
+        // Interrupts disabled
+        core.attack();
+    });
+
+    #[cfg(target_arch = "riscv32")]
+    riscv::interrupt::free(|| {
+        core.attack();
+    });
+}
+
+#[esp_hal_embassy::main]
+async fn main(_spawner: Spawner) {
+    let mut config = esp_hal::Config::default();
+    // esp32   => 240MHz
+    // esp32c3 => 160MHz
+    config.cpu_clock = CpuClock::max();
+
+    let p = esp_hal::init(config);
+
+    let timg0 = TimerGroup::new(p.TIMG0);
+    esp_hal_embassy::init(timg0.timer0);
+
+    #[cfg(feature = "esp32c3")]
+    let (dbg_tx_pin, dbg_rx_pin) = (p.GPIO3, p.GPIO2);
+    #[cfg(feature = "esp32")]
+    let (dbg_tx_pin, dbg_rx_pin) = (p.GPIO17, p.GPIO16);
+    let dbg_serial = {
+        let config = esp_hal::uart::Config::default().baudrate(115200);
+
+        Uart::new_with_config(p.UART2, config, dbg_rx_pin, dbg_tx_pin).unwrap()
+    };
+
+    let (_, dbg_tx) = dbg_serial.split();
+    init_logs(dbg_tx);
+
+    info!("Evil Doggie initialization!");
+    // info!("CPU clock: {}", config.cpu_clock.hz());
+
+    info!("Wired serial init");
+    // Wired serial initialization
+    #[cfg(feature = "esp32c3")]
+    let wired_serial = UsbSerialJtag::new(p.USB_DEVICE).into_async();
+
+    // Setup UART (using these pins, also passes through USB)
+    #[cfg(not(feature = "esp32c3"))]
+    let wired_serial = {
+        let (tx_pin, rx_pin) = (p.GPIO1, p.GPIO3);
+        let config = esp_hal::uart::Config::default().rx_fifo_full_threshold(READ_BUF_SIZE as u16);
+
+        Uart::new_with_config(p.UART0, config, rx_pin, tx_pin)
+            .unwrap()
+            .into_async()
+    };
+
+    info!("Serial init ok");
+
+    // Setup tx, rx, and force pins, and tranceiver
+    #[cfg(feature = "esp32")]
+    let (tx_pin, rx_pin, force_pin) = (p.GPIO26, p.GPIO25, p.GPIO27);
+
+    #[cfg(feature = "esp32c3")]
+    let (tx_pin, rx_pin, force_pin) = (p.GPIO1, p.GPIO0, p.GPIO10);
+
+    let tx = Output::new(tx_pin, Level::High);
+    let rx = Input::new(rx_pin, Pull::None);
+    let force = Output::new(force_pin, Level::High);
+
+    let tranceiver = EspTranceiver::new(tx, rx, force);
+    info!("Tranceiver init ok");
+
+    // Create clock
+    let timg1_t0: esp_hal::timer::timg::Timer<
+        esp_hal::timer::timg::TimerX<<esp_hal::peripherals::TIMG1 as Peripheral>::P>,
+        esp_hal::Blocking,
+    > = TimerGroup::new(p.TIMG1).timer0;
+    let clock = TimerBasedClock::new(timg1_t0);
+
+    // Create the EvilBsp
+    let bsp = EvilBsp::new(clock, tranceiver);
+    info!("BSP created");
+
+    // Create and run the EvilDoggie core
+    #[cfg(feature = "esp32c3")]
+    let sof_delay_ns = 450;
+
+    #[cfg(feature = "esp32")]
+    let sof_delay_ns = 400;
+
+    let core = EvilCore::new(bsp, CanBitrates::Kbps250, sof_delay_ns, esp32_attack);
+    info!("Evil core created, running evil menu");
+
+    let mut menu = EvilMenu::new(wired_serial, core);
+    menu.run();
+
+    // Delay::new().delay_millis(100);
+
+    // loop {
+    //     core.arm(&[
+    //         // AttackCmd::Wait { bits: 1 },
+    //         AttackCmd::Force {
+    //             stream: FastBitQueue::new(0b1010_101, 7),
+    //         },
+    //         AttackCmd::Wait { bits: 1 },
+    //         AttackCmd::Force {
+    //             stream: FastBitQueue::new(0b1010_101, 7),
+    //         },
+    //         // AttackCmd::Wait { bits: 1 },
+    //         // AttackCmd::Match { stream: FastBitQueue::new(0x123, 11) },
+    //         // AttackCmd::Wait { bits: 3 },
+    //         // AttackCmd::Read { len: 4 },
+    //         // AttackCmd::WaitBuffered,
+    //         // AttackCmd::Wait { bits: 16 },
+    //         // AttackCmd::Force { stream: FastBitQueue::new(0b101, 3) },
+    //     ])
+    //     .unwrap();
+
+    //     info!("Attack armed");
+
+    //     esp32_attack(&mut core);
+
+    //     info!("Attack has finished");
+    // }
+}
