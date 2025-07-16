@@ -1,6 +1,5 @@
 use super::BuildError;
 use core::slice::Iter;
-use defmt::debug;
 use heapless::Vec;
 
 pub trait Buildable<const OUT_SIZE: usize>: core::fmt::Debug {
