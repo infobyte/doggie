@@ -2,10 +2,8 @@ use doggie_core::{CanBitrates, CanDevice};
 use embedded_can::{blocking::Can, Id};
 use esp_hal::{
     gpio::{
-        interconnect::{PeripheralInput, PeripheralOutput},
         GpioPin,
     },
-    peripheral::Peripheral,
     peripherals,
     twai::{self, filter::SingleStandardFilter, Twai, TwaiMode},
     Blocking,
