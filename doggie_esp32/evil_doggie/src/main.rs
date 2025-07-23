@@ -15,7 +15,6 @@ use esp_hal::{
     clock::CpuClock,
     gpio::{Input, Level, Output, Pull},
     ram,
-    timer::timg::TimerGroup,
     uart::Uart,
     Async,
 };
@@ -37,7 +36,7 @@ fn esp32_attack(
     let mut res = false;
 
     #[cfg(target_arch = "xtensa")]
-    xtensa_lx::interrupt::free(|_| {
+    xtensa_lx::interrupt::free(|| {
         // Interrupts disabled
         res = core.attack(successes, retries);
     });
@@ -70,6 +69,20 @@ async fn main(_spawner: Spawner) {
 
     info!("Serial init ok");
 
+    // Eye LEDs
+    let (l_r_p, l_g_p, l_b_p) = (p.GPIO5, p.GPIO33, p.GPIO4);
+    let (r_r_p, r_g_p, r_b_p) = (p.GPIO19, p.GPIO32, p.GPIO18);
+
+    let mut l_r = Output::new(l_r_p, Level::High);
+    let mut l_g = Output::new(l_g_p, Level::High);
+    let mut l_b = Output::new(l_b_p, Level::High);
+    let mut r_r = Output::new(r_r_p, Level::High);
+    let mut r_g = Output::new(r_g_p, Level::High);
+    let mut r_b = Output::new(r_b_p, Level::High);
+
+    l_r.set_low();
+    r_r.set_low();
+
     // Setup tx, rx, and force pins, and tranceiver
     #[cfg(feature = "esp32")]
     let (tx_pin, rx_pin, force_pin) = (p.GPIO26, p.GPIO25, p.GPIO27);
@@ -85,8 +98,8 @@ async fn main(_spawner: Spawner) {
     info!("Tranceiver init ok");
 
     // TODO: Add this into a new binary
-    // info!("Evil Doggie Attack Circuit Enabled");
-    // let force_enable = Output::new(p.GPIO23, Level::High);
+    info!("Evil Doggie Attack Circuit Enabled");
+    let force_enable = Output::new(p.GPIO23, Level::High);
 
     // Create clock
     let timg1_t0: esp_hal::timer::timg::Timer = TimerGroup::new(p.TIMG1).timer0;

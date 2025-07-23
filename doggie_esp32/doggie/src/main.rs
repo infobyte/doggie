@@ -22,12 +22,7 @@ mod spi_device;
 use embassy_executor::Spawner;
 use embassy_time::Timer;
 use esp_backtrace as _;
-use esp_hal::{
-    clock::CpuClock,
-    gpio::{Output},
-    uart::Uart,
-    Async,
-};
+use esp_hal::{clock::CpuClock, gpio::Level, gpio::Output, uart::Uart, Async};
 use esp_serial;
 
 use defmt::info;
@@ -97,12 +92,28 @@ async fn main(spawner: Spawner) {
     }
 
     // EvilDoggie unshort bus
-    // let evil_pin = Output::new(peripherals.GPIO27, Level::High);
+    let evil_pin = Output::new(peripherals.GPIO27, Level::High);
 
     // Serial logging initialization
     esp_serial::init_dbg!(peripherals);
 
     let serial = esp_serial::create_serial!(peripherals, spawner);
+
+    info!("Serial init ok");
+
+    // Eye LEDs
+    let (l_r_p, l_g_p, l_b_p) = (peripherals.GPIO5, peripherals.GPIO33, peripherals.GPIO4);
+    let (r_r_p, r_g_p, r_b_p) = (peripherals.GPIO19, peripherals.GPIO32, peripherals.GPIO18);
+
+    let mut l_r = Output::new(l_r_p, Level::High);
+    let mut l_g = Output::new(l_g_p, Level::High);
+    let mut l_b = Output::new(l_b_p, Level::High);
+    let mut r_r = Output::new(r_r_p, Level::High);
+    let mut r_g = Output::new(r_g_p, Level::High);
+    let mut r_b = Output::new(r_b_p, Level::High);
+
+    l_b.set_low();
+    r_b.set_low();
 
     // Create the Bsp
     info!("BSP creation");
