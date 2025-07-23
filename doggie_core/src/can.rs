@@ -47,4 +47,10 @@ pub trait CanDevice: Can {
     fn set_filter(&mut self, id: Id);
 
     fn set_mask(&mut self, id: Id);
+
+    fn open(&mut self);
+
+    fn close(&mut self);
+
+    fn listen_only(&mut self);
 }

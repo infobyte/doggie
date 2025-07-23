@@ -78,7 +78,6 @@ where
         // need it now, but i hope in the future
         let mut slcan_serializer = slcan::SlcanSerializer::new();
 
-        let mut listen_only = false;
         let mut timestamp_enabled = false;
         let mut timestamp = Timestamp::new();
 
@@ -107,13 +106,7 @@ where
                                 // warn!("IncompleteMessage");
                                 None
                             }
-                            Ok(SlcanCommand::OpenChannel) => Some(b"\r"),
-                            Ok(SlcanCommand::CloseChannel) => Some(b"\r"),
                             Ok(SlcanCommand::ReadStatusFlags) => Some(b"F00\r"),
-                            Ok(SlcanCommand::Listen) => {
-                                listen_only = true;
-                                Some(b"\r")
-                            }
                             Ok(SlcanCommand::Version) => Some(b"V1337\r"),
                             Ok(SlcanCommand::SerialNo) => Some(b"N1337\r"),
                             Ok(SlcanCommand::Timestamp(enabled)) => {
@@ -127,11 +120,7 @@ where
                                 Some(b"\r")
                             }
                             Ok(cmd) => {
-                                if !listen_only {
-                                    out_channel.send(cmd).await;
-                                } else {
-                                    error!("Cannot send frame in listen only mode")
-                                }
+                                out_channel.send(cmd).await;
 
                                 None
                             }
@@ -245,6 +234,9 @@ where
                     SlcanCommand::SetBitrate(bitrate) => {
                         can.set_bitrate(can::CanBitrates::from(bitrate as u16))
                     }
+                    SlcanCommand::OpenChannel => can.open(),
+                    SlcanCommand::CloseChannel => can.close(),
+                    SlcanCommand::Listen => can.listen_only(),
                     SlcanCommand::SetBitTimeRegister(_) => {
                         // TODO: Implement
                     }
