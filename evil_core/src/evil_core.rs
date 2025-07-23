@@ -102,6 +102,7 @@ where
             } else {
                 retries_cnt += 1;
             }
+            self.machine.reset();
         }
 
         successes <= 0
