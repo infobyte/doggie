@@ -53,6 +53,10 @@ where
         }
     }
 
+    pub fn has_finished(&self) -> bool {
+        self.index >= MAX_ATTACK_SIZE || self.attack[self.index] == AttackCmd::None
+    }
+
     pub fn arm(&mut self, attack: &[AttackCmd]) -> Result<(), AttackError> {
         self.index = 0;
         self.on_start = true;

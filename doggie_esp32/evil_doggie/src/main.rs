@@ -12,35 +12,40 @@ use defmt::info;
 use embassy_executor::Spawner;
 use esp_backtrace as _;
 use esp_hal::{
+    clock::CpuClock,
     gpio::{Input, Level, Output, Pull},
+    ram,
     timer::timg::TimerGroup,
     uart::Uart,
-    ram,
-    clock::CpuClock,
     Async,
 };
+use esp_serial;
 use evil_core::{
     bsp::{CanBitrates, EvilBsp},
     EvilCore, EvilMenu,
 };
-use esp_serial;
 
 esp_serial::init_globals!();
 
-
 #[no_mangle]
 #[ram]
-fn esp32_attack(core: &mut EvilCore<TimerBasedClock, EspTranceiver<'_>>) {
+fn esp32_attack(
+    core: &mut EvilCore<TimerBasedClock, EspTranceiver<'_>>,
+    successes: usize,
+    retries: Option<usize>,
+) -> bool {
+    let mut res = false;
+
     #[cfg(target_arch = "xtensa")]
     xtensa_lx::interrupt::free(|_| {
         // Interrupts disabled
-        core.attack();
+        res = core.attack(successes, retries);
     });
 
     #[cfg(target_arch = "riscv32")]
-    riscv::interrupt::free(|| {
-        core.attack();
-    });
+    riscv::interrupt::free(|| res = core.attack(successes, retries));
+
+    res
 }
 
 #[esp_hal_embassy::main]
@@ -62,7 +67,7 @@ async fn main(_spawner: Spawner) {
 
     info!("Wired serial init");
     let serial = esp_serial::create_wired_serial!(p);
-    
+
     info!("Serial init ok");
 
     // Setup tx, rx, and force pins, and tranceiver

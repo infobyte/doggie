@@ -88,7 +88,7 @@ impl<const SIZE: usize> BitStream<SIZE> {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct FastBitQueue {
     value: u64,
     len: u8,
@@ -147,7 +147,7 @@ impl FastBitStack {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AttackCmd {
     Wait { bits: usize },
     Force { stream: FastBitQueue },

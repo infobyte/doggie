@@ -5,7 +5,8 @@ use defmt::{info, println};
 use super::bsp::{CanBitrates, EvilBsp, TicksClock, Tranceiver};
 use super::machine::{commands::AttackCmd, AttackError, AttackMachine, HandleResult};
 
-pub type BoardSpecificAttackFn<C, T> = fn(core: &mut EvilCore<C, T>);
+pub type BoardSpecificAttackFn<C, T> =
+    fn(core: &mut EvilCore<C, T>, successes: usize, retries: Option<usize>) -> bool;
 
 pub struct EvilCore<Clock, Tr>
 where
@@ -82,12 +83,32 @@ where
         self.machine.arm(attack)
     }
 
-    pub fn board_specific_attack(&mut self) {
-        (self.board_specific_attack_fn)(self);
+    pub fn board_specific_attack(&mut self, successes: usize, retries: Option<usize>) -> bool {
+        (self.board_specific_attack_fn)(self, successes, retries)
     }
 
     #[inline(always)]
-    pub fn attack(&mut self) {
+    pub fn attack(&mut self, mut successes: usize, retries: Option<usize>) -> bool {
+        if successes <= 0 {
+            return false;
+        }
+
+        let mut retries_cnt: usize = 0;
+
+        while retries.is_none_or(|retries_value| retries_cnt < retries_value) && successes > 0 {
+            if self.inner_attack() {
+                successes -= 1;
+                retries_cnt = 0;
+            } else {
+                retries_cnt += 1;
+            }
+        }
+
+        successes <= 0
+    }
+
+    #[inline(always)]
+    pub fn inner_attack(&mut self) -> bool {
         // Set inital time
         let mut next_instant = self.clock.ticks();
 
@@ -115,7 +136,7 @@ where
                 }
                 HandleResult::Stop => {
                     // debug!("[core] Attack finished");
-                    return;
+                    return self.machine.has_finished();
                 }
                 HandleResult::WaitForSoF => {
                     // Wait for SoF and restart the counter

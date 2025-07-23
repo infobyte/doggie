@@ -285,7 +285,15 @@ where
                 &Item {
                     item_type: ItemType::Callback {
                         function: attack,
-                        parameters: &[],
+                        parameters: &[
+                            Parameter::Optional {
+                                parameter_name: "successes",
+                                help: Some("Number of successfull attacks to do (default: 1)"),
+                            },
+                            Parameter::Optional {
+                                parameter_name: "retries",
+                                help: Some("Number of retries until aborting the attack (default: infinite)"),
+                            },                        ],
                     },
                     command: "attack",
                     help: Some("Start the attack"),
@@ -304,7 +312,7 @@ where
         };
         warmup_buf[2] = AttackCmd::SetBitStuffing { state: true };
         core.arm(&warmup_buf).unwrap();
-        core.board_specific_attack();
+        core.board_specific_attack(1, Some(1));
 
         EvilMenu {
             serial: Some(serial),
@@ -480,11 +488,52 @@ fn test_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
 
 fn attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
     _menu: &Menu<I, Context<C, T>>,
-    _item: &Item<I, Context<C, T>>,
-    _args: &[&str],
+    item: &Item<I, Context<C, T>>,
+    args: &[&str],
     interface: &mut I,
     context: &mut Context<C, T>,
 ) {
+    let successes = match argument_finder(item, args, "successes").unwrap() {
+        Some(successes_str) => match successes_str.parse::<usize>() {
+            Ok(res) => {
+                if res > 0 {
+                    res
+                } else {
+                    writeln!(
+                        interface,
+                        "Invalid number of successes, must be grater than 0"
+                    )
+                    .unwrap();
+                    return;
+                }
+            }
+            Err(_) => {
+                writeln!(
+                    interface,
+                    "Invalid number of successes, must be a positive number."
+                )
+                .unwrap();
+                return;
+            }
+        },
+        None => 1,
+    };
+
+    let retries = match argument_finder(item, args, "retries").unwrap() {
+        Some(retries_str) => match retries_str.parse::<usize>() {
+            Ok(res) => Some(res),
+            Err(_) => {
+                writeln!(
+                    interface,
+                    "Invalid number of retries, must be a positive number."
+                )
+                .unwrap();
+                return;
+            }
+        },
+        None => None,
+    };
+
     writeln!(interface, "Arming the attack").unwrap();
     let mut hl_attack_vec = Vec::new();
     let mut attack_vec = Vec::new();
@@ -513,5 +562,10 @@ fn attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
     }
 
     writeln!(interface, "Launching attack").unwrap();
-    context.core.board_specific_attack();
+
+    if context.core.board_specific_attack(successes, retries) {
+        writeln!(interface, "Attack successfull!!").unwrap();
+    } else {
+        writeln!(interface, "Attack failed!!").unwrap();
+    }
 }
