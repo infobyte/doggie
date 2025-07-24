@@ -91,14 +91,18 @@ impl<const SIZE: usize> BitStream<SIZE> {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct FastBitQueue {
     value: u64,
+    original_value: u64,
     len: u8,
+    original_len: u8,
 }
 
 impl FastBitQueue {
     pub fn new(value: u64, len: usize) -> Self {
         Self {
             value: value << (64 - len),
+            original_value: value << (64 - len),
             len: len as u8,
+            original_len: len as u8,
         }
     }
 
@@ -113,6 +117,11 @@ impl FastBitQueue {
     #[inline(always)]
     pub fn len(&self) -> u8 {
         self.len
+    }
+
+    pub fn restore(&mut self) {
+        self.len = self.original_len;
+        self.value = self.original_value;
     }
 }
 

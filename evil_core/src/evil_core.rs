@@ -1,12 +1,11 @@
 use core::u32;
 
-use defmt::{info, println};
+use defmt::{debug, info, println};
 
 use super::bsp::{CanBitrates, EvilBsp, TicksClock, Tranceiver};
 use super::machine::{commands::AttackCmd, AttackError, AttackMachine, HandleResult};
 
-pub type BoardSpecificAttackFn<C, T> =
-    fn(core: &mut EvilCore<C, T>, successes: usize, retries: Option<usize>) -> bool;
+pub type BoardSpecificAttackFn<C, T> = fn(core: &mut EvilCore<C, T>) -> bool;
 
 pub struct EvilCore<Clock, Tr>
 where
@@ -83,12 +82,7 @@ where
         self.machine.arm(attack)
     }
 
-    pub fn board_specific_attack(&mut self, successes: usize, retries: Option<usize>) -> bool {
-        (self.board_specific_attack_fn)(self, successes, retries)
-    }
-
-    #[inline(always)]
-    pub fn attack(&mut self, mut successes: usize, retries: Option<usize>) -> bool {
+    pub fn board_specific_attack(&mut self, mut successes: usize, retries: Option<usize>) -> bool {
         if successes <= 0 {
             return false;
         }
@@ -96,7 +90,11 @@ where
         let mut retries_cnt: usize = 0;
 
         while retries.is_none_or(|retries_value| retries_cnt < retries_value) && successes > 0 {
-            if self.inner_attack() {
+            debug!(
+                "Attempting attack with {} retries left and {} successes left",
+                retries_cnt, successes
+            );
+            if (self.board_specific_attack_fn)(self) {
                 successes -= 1;
                 retries_cnt = 0;
             } else {
@@ -104,12 +102,33 @@ where
             }
             self.machine.reset();
         }
-
+        debug!("Attack finished. Success {}", successes <= 0);
         successes <= 0
     }
 
+    // #[inline(always)]
+    // pub fn attack(&mut self, mut successes: usize, retries: Option<usize>) -> bool {
+    //     if successes <= 0 {
+    //         return false;
+    //     }
+
+    //     let mut retries_cnt: usize = 0;
+
+    //     while retries.is_none_or(|retries_value| retries_cnt < retries_value) && successes > 0 {
+    //         if self.inner_attack() {
+    //             successes -= 1;
+    //             retries_cnt = 0;
+    //         } else {
+    //             retries_cnt += 1;
+    //         }
+    //         self.machine.reset();
+    //     }
+
+    //     successes <= 0
+    // }
+
     #[inline(always)]
-    pub fn inner_attack(&mut self) -> bool {
+    pub fn attack(&mut self) -> bool {
         // Set inital time
         let mut next_instant = self.clock.ticks();
 

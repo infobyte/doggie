@@ -196,6 +196,7 @@ where
                 let result = rx == stream.pop();
 
                 if !result {
+                    stream.restore();
                     Err(())
                 } else {
                     Ok(stream.len() <= 0)

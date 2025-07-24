@@ -253,13 +253,15 @@ impl HighLevelAttackCmd {
             }
         };
 
+        attack.push(AttackCmd::WaitForSof).unwrap();
+
         attack
             .push(AttackCmd::Match {
                 stream: FastBitQueue::new(id_bits.value() as u64, len),
             })
             .unwrap();
 
-        Ok(1)
+        Ok(2)
     }
 
     fn build_skip_data<const OUT_SIZE: usize>(

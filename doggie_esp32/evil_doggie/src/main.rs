@@ -28,21 +28,17 @@ esp_serial::init_globals!();
 
 #[no_mangle]
 #[ram]
-fn esp32_attack(
-    core: &mut EvilCore<TimerBasedClock, EspTranceiver<'_>>,
-    successes: usize,
-    retries: Option<usize>,
-) -> bool {
+fn esp32_attack(core: &mut EvilCore<TimerBasedClock, EspTranceiver<'_>>) -> bool {
     let mut res = false;
 
     #[cfg(target_arch = "xtensa")]
     xtensa_lx::interrupt::free(|| {
         // Interrupts disabled
-        res = core.attack(successes, retries);
+        res = core.attack();
     });
 
     #[cfg(target_arch = "riscv32")]
-    riscv::interrupt::free(|| res = core.attack(successes, retries));
+    riscv::interrupt::free(|| res = core.attack());
 
     res
 }
@@ -116,7 +112,7 @@ async fn main(_spawner: Spawner) {
     #[cfg(feature = "esp32")]
     let sof_delay_ns = 400;
 
-    let core = EvilCore::new(bsp, CanBitrates::Kbps250, sof_delay_ns, esp32_attack);
+    let core = EvilCore::new(bsp, CanBitrates::Kbps500, sof_delay_ns, esp32_attack);
     info!("Evil core created, running evil menu");
 
     let mut menu = EvilMenu::new(serial, core);
