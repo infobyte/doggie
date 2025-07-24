@@ -27,6 +27,8 @@ pub trait Tranceiver {
 
     fn set_force(&mut self, state: bool);
 
+    fn set_debug(&mut self, state: bool);
+
     #[inline(always)]
     fn wait_for_sof(&self) {
         while self.get_rx() {}

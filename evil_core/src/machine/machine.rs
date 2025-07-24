@@ -279,11 +279,15 @@ where
         }
 
         if self.on_start {
+            self.tranceiver.set_debug(true);
+
             self.tranceiver.apply(&self.next_state);
             self.on_start = false;
 
             HandleResult::Wait { quantas: 2 }
         } else {
+            self.tranceiver.set_debug(false);
+
             let rx = self.tranceiver.get_rx();
 
             if rx == self.bit_stuffing_polarity {

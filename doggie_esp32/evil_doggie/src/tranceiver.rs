@@ -1,8 +1,5 @@
-use esp_hal::{
-    gpio::{Input, Output},
-};
+use esp_hal::gpio::{Input, Output};
 use evil_core::bsp::Tranceiver;
-
 
 pub struct EspTranceiver<'a> {
     _tx: Output<'a>,
@@ -23,6 +20,8 @@ impl<'a> EspTranceiver<'a> {
     const RX_OFFSET: u32 = 25;
     #[cfg(feature = "esp32")]
     const FORCE_OFFSET: u32 = 27;
+    #[cfg(feature = "esp32")]
+    const DEBUG_OFFSET: u32 = 2;
 
     #[cfg(feature = "esp32c3")]
     const GPIO_OUT_W1TS_REG: *mut u32 = 0x6000_4008 as *mut u32; // GPIO bit set register
@@ -36,6 +35,8 @@ impl<'a> EspTranceiver<'a> {
     const RX_OFFSET: u32 = 0;
     #[cfg(feature = "esp32c3")]
     const FORCE_OFFSET: u32 = 10;
+    #[cfg(feature = "esp32c3")]
+    const DEBUG_OFFSET: u32 = 2;
 
     pub fn new(tx: Output<'a>, rx: Input<'a>, force: Output<'a>) -> Self {
         EspTranceiver {
@@ -70,6 +71,17 @@ impl<'a> Tranceiver for EspTranceiver<'a> {
                 core::ptr::write_volatile(Self::GPIO_OUT_W1TC_REG, 1 << Self::FORCE_OFFSET);
             } else {
                 core::ptr::write_volatile(Self::GPIO_OUT_W1TS_REG, 1 << Self::FORCE_OFFSET);
+            }
+        }
+    }
+
+    #[inline(always)]
+    fn set_debug(&mut self, state: bool) {
+        unsafe {
+            if state {
+                core::ptr::write_volatile(Self::GPIO_OUT_W1TC_REG, 1 << Self::DEBUG_OFFSET);
+            } else {
+                core::ptr::write_volatile(Self::GPIO_OUT_W1TS_REG, 1 << Self::DEBUG_OFFSET);
             }
         }
     }
