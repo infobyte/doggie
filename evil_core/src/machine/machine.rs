@@ -94,6 +94,7 @@ where
     }
 
     #[inline(always)]
+    #[link_section = ".rwtext"]
     fn pre_calculate(&mut self) {
         /* Pre calculate the next state of the tranceiver */
         match self.attack[self.index] {
