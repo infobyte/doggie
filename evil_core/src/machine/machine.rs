@@ -53,10 +53,12 @@ where
         }
     }
 
+    #[inline(always)]
     pub fn has_finished(&self) -> bool {
         self.index >= MAX_ATTACK_SIZE || self.attack[self.index] == AttackCmd::None
     }
 
+    #[inline(always)]
     pub fn reset(&mut self) {
         self.index = 0;
         self.on_start = true;
@@ -72,18 +74,8 @@ where
         self.pre_calculate();
     }
 
+    #[inline(always)]
     pub fn arm(&mut self, attack: &[AttackCmd]) -> Result<(), AttackError> {
-        self.index = 0;
-        self.on_start = true;
-        self.bit_stuffing_enabled = true;
-        self.bit_stuffing_cnt = 0;
-        self.bit_stuffing_polarity = true;
-        self.bit_stuffing_skip = false;
-        self.buffer.clean();
-        self.buffer_value = 0;
-        self.next_state.set_force(false);
-        self.next_state.set_tx(true);
-
         if attack.len() > self.attack.len() {
             return Err(AttackError::AttackToLong);
         }
@@ -96,7 +88,7 @@ where
             }
         }
 
-        self.pre_calculate();
+        self.reset();
 
         Ok(())
     }

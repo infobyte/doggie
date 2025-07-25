@@ -100,32 +100,10 @@ where
             } else {
                 retries_cnt += 1;
             }
-            self.machine.reset();
         }
         debug!("Attack finished. Success {}", successes <= 0);
         successes <= 0
     }
-
-    // #[inline(always)]
-    // pub fn attack(&mut self, mut successes: usize, retries: Option<usize>) -> bool {
-    //     if successes <= 0 {
-    //         return false;
-    //     }
-
-    //     let mut retries_cnt: usize = 0;
-
-    //     while retries.is_none_or(|retries_value| retries_cnt < retries_value) && successes > 0 {
-    //         if self.inner_attack() {
-    //             successes -= 1;
-    //             retries_cnt = 0;
-    //         } else {
-    //             retries_cnt += 1;
-    //         }
-    //         self.machine.reset();
-    //     }
-
-    //     successes <= 0
-    // }
 
     #[inline(always)]
     pub fn attack(&mut self) -> bool {
@@ -156,7 +134,9 @@ where
                 }
                 HandleResult::Stop => {
                     // debug!("[core] Attack finished");
-                    return self.machine.has_finished();
+                    let res = self.machine.has_finished();
+                    self.machine.reset();
+                    return res;
                 }
                 HandleResult::WaitForSoF => {
                     // Wait for SoF and restart the counter
