@@ -78,11 +78,12 @@ where
         CanBitrates::from_period_ns(baudrate)
     }
 
-    pub fn arm(&mut self, attack: &[AttackCmd]) -> Result<(), AttackError> {
-        self.machine.arm(attack)
-    }
-
-    pub fn board_specific_attack(&mut self, mut successes: usize, retries: Option<usize>) -> bool {
+    pub fn board_specific_attack(
+        &mut self,
+        attack: &[AttackCmd],
+        mut successes: usize,
+        retries: Option<usize>,
+    ) -> bool {
         if successes <= 0 {
             return false;
         }
@@ -94,6 +95,7 @@ where
                 "Attempting attack with {} retries left and {} successes left",
                 retries_cnt, successes
             );
+            self.machine.arm(attack);
             if (self.board_specific_attack_fn)(self) {
                 successes -= 1;
                 retries_cnt = 0;

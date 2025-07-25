@@ -253,7 +253,9 @@ impl HighLevelAttackCmd {
             }
         };
 
+        attack.push(AttackCmd::WaitBusFree { count: 0 }).unwrap();
         attack.push(AttackCmd::WaitForSof).unwrap();
+        attack.push(AttackCmd::Wait { bits: 1 }).unwrap();
 
         attack
             .push(AttackCmd::Match {

@@ -55,12 +55,6 @@ impl PredefAttacks {
         spoof_data: &Vec<u8, 8>,
         match_data: &Vec<u8, 8>,
     ) -> Result<usize, BuildError> {
-        // Wait until start of frame
-        hl_attack.push(HighLevelAttackCmd::WaitSof).unwrap();
-        // Skip start of frame
-        hl_attack
-            .push(HighLevelAttackCmd::Wait { bits: 1 })
-            .unwrap();
         // Match the target ID
         hl_attack
             .push(HighLevelAttackCmd::MatchId {

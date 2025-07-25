@@ -311,8 +311,7 @@ where
             stream: FastBitQueue::new(0xFF, 8),
         };
         warmup_buf[2] = AttackCmd::SetBitStuffing { state: true };
-        core.arm(&warmup_buf).unwrap();
-        core.board_specific_attack(1, Some(1));
+        core.board_specific_attack(&warmup_buf, 1, Some(1));
 
         EvilMenu {
             serial: Some(serial),
@@ -554,8 +553,6 @@ fn attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
 
     context.attack_builder.build(&mut attack_vec).unwrap();
 
-    context.core.arm(attack_vec.as_slice()).unwrap();
-
     info!("About to run attack with:");
     for cmd in &attack_vec {
         info!("\t{:?}", Debug2Format(cmd));
@@ -563,7 +560,10 @@ fn attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
 
     writeln!(interface, "Launching attack").unwrap();
 
-    if context.core.board_specific_attack(successes, retries) {
+    if context
+        .core
+        .board_specific_attack(attack_vec.as_slice(), successes, retries)
+    {
         writeln!(interface, "Attack successfull!!").unwrap();
     } else {
         writeln!(interface, "Attack failed!!").unwrap();
