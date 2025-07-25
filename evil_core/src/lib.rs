@@ -2,7 +2,7 @@
 
 pub mod bsp;
 mod evil_core;
-mod machine;
+pub mod machine;
 mod menu;
 
 pub use evil_core::{BoardSpecificAttackFn, EvilCore};

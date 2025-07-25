@@ -1,13 +1,10 @@
 use esp_hal::gpio::{Input, Output};
 use evil_core::bsp::Tranceiver;
 
-pub struct EspTranceiver<'a> {
-    _tx: Output<'a>,
-    _rx: Input<'a>,
-    _force: Output<'a>,
-}
+#[derive(Copy, Clone)]
+pub struct EspTranceiver {}
 
-impl<'a> EspTranceiver<'a> {
+impl EspTranceiver {
     #[cfg(feature = "esp32")]
     const GPIO_OUT_W1TS_REG: *mut u32 = 0x3FF4_4008 as *mut u32; // GPIO bit set register
     #[cfg(feature = "esp32")]
@@ -38,16 +35,12 @@ impl<'a> EspTranceiver<'a> {
     #[cfg(feature = "esp32c3")]
     const DEBUG_OFFSET: u32 = 2;
 
-    pub fn new(tx: Output<'a>, rx: Input<'a>, force: Output<'a>) -> Self {
-        EspTranceiver {
-            _tx: tx,
-            _rx: rx,
-            _force: force,
-        }
+    pub fn new() -> Self {
+        EspTranceiver {}
     }
 }
 
-impl<'a> Tranceiver for EspTranceiver<'a> {
+impl Tranceiver for EspTranceiver {
     #[inline(always)]
     fn set_tx(&mut self, state: bool) {
         unsafe {

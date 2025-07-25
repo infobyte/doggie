@@ -16,7 +16,7 @@ use noline::builder::EditorBuilder;
 pub const MAX_PLAN_SIZE: usize = 32;
 pub const MAX_ATTACK_SIZE: usize = 128;
 
-pub struct Context<CLK, TR>
+pub struct Context<'a, CLK, TR>
 where
     CLK: TicksClock,
     TR: Tranceiver,
@@ -25,15 +25,15 @@ where
     pub custom_attack: Vec<HighLevelAttackCmd, MAX_HL_COMMANDS>,
     pub plan_builder: AttackBuilder<MAX_PLAN_SIZE, MAX_ATTACK_SIZE, PredefAttacks>,
     attack_builder: AttackBuilder<MAX_ATTACK_SIZE, MAX_ATTACK_SIZE, HighLevelAttackCmd>,
-    core: EvilCore<CLK, TR>,
+    core: EvilCore<'a, CLK, TR>,
 }
 
-impl<CLK, TR> Context<CLK, TR>
+impl<'a, CLK, TR> Context<'a, CLK, TR>
 where
     CLK: TicksClock,
     TR: Tranceiver,
 {
-    fn new_with(core: EvilCore<CLK, TR>) -> Self {
+    fn new_with(core: EvilCore<'a, CLK, TR>) -> Self {
         Self {
             custom_attack: Vec::new(),
             plan_builder: AttackBuilder::new(),
@@ -50,8 +50,8 @@ where
     TR: Tranceiver,
 {
     serial: Option<SERIAL>,
-    menu: Option<Menu<'a, SERIAL, Context<CLK, TR>>>,
-    context: Option<Context<CLK, TR>>,
+    menu: Option<Menu<'a, SERIAL, Context<'a, CLK, TR>>>,
+    context: Option<Context<'a, CLK, TR>>,
 }
 
 impl<'a, SERIAL, CLK, TR> EvilMenu<'a, SERIAL, CLK, TR>
@@ -60,7 +60,7 @@ where
     CLK: TicksClock,
     TR: Tranceiver,
 {
-    pub fn new(serial: SERIAL, mut core: EvilCore<CLK, TR>) -> Self {
+    pub fn new(serial: SERIAL, mut core: EvilCore<'a, CLK, TR>) -> Self {
         let menu = Menu {
             label: "root",
             items: &[

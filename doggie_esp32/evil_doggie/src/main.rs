@@ -21,6 +21,7 @@ use esp_hal::{
 use esp_serial;
 use evil_core::{
     bsp::{CanBitrates, EvilBsp},
+    machine::AttackMachine,
     EvilCore, EvilMenu,
 };
 
@@ -28,17 +29,21 @@ esp_serial::init_globals!();
 
 #[no_mangle]
 #[ram]
-fn esp32_attack(core: &mut EvilCore<TimerBasedClock, EspTranceiver<'_>>) -> bool {
+fn esp32_attack(
+    core: &mut EvilCore<TimerBasedClock, EspTranceiver>,
+    successes: usize,
+    retries: Option<usize>,
+) -> bool {
     let mut res = false;
 
     #[cfg(target_arch = "xtensa")]
     xtensa_lx::interrupt::free(|| {
         // Interrupts disabled
-        res = core.attack();
+        res = core.attack(successes, retries);
     });
 
     #[cfg(target_arch = "riscv32")]
-    riscv::interrupt::free(|| res = core.attack());
+    riscv::interrupt::free(|| res = core.attack(successes, retries));
 
     res
 }
@@ -90,7 +95,8 @@ async fn main(_spawner: Spawner) {
     let rx = Input::new(rx_pin, Pull::None);
     let force = Output::new(force_pin, Level::High);
 
-    let tranceiver = EspTranceiver::new(tx, rx, force);
+    #[ram]
+    static TRANCEIVER: EspTranceiver = EspTranceiver {};
     info!("Tranceiver init ok");
 
     // TODO: Add this into a new binary
@@ -102,8 +108,8 @@ async fn main(_spawner: Spawner) {
     let clock = TimerBasedClock::new(timg1_t0);
 
     // Create the EvilBsp
-    let bsp = EvilBsp::new(clock, tranceiver);
-    info!("BSP created");
+    // let bsp = EvilBsp::new(clock, tranceiver);
+    // info!("BSP created");
 
     // Create and run the EvilDoggie core
     #[cfg(feature = "esp32c3")]
@@ -112,7 +118,20 @@ async fn main(_spawner: Spawner) {
     #[cfg(feature = "esp32")]
     let sof_delay_ns = 400;
 
-    let core = EvilCore::new(bsp, CanBitrates::Kbps500, sof_delay_ns, esp32_attack);
+    #[ram]
+    static mut MACHINE_OPT: Option<AttackMachine<EspTranceiver>> = None;
+
+    unsafe {
+        MACHINE_OPT.replace(AttackMachine::new(TRANCEIVER));
+    }
+
+    let core = EvilCore::new(
+        clock,
+        unsafe { MACHINE_OPT.as_mut().unwrap() },
+        CanBitrates::Kbps500,
+        sof_delay_ns,
+        esp32_attack,
+    );
     info!("Evil core created, running evil menu");
 
     let mut menu = EvilMenu::new(serial, core);

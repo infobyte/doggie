@@ -5,9 +5,10 @@ use defmt::{debug, info, println};
 use super::bsp::{CanBitrates, EvilBsp, TicksClock, Tranceiver};
 use super::machine::{commands::AttackCmd, AttackError, AttackMachine, HandleResult};
 
-pub type BoardSpecificAttackFn<C, T> = fn(core: &mut EvilCore<C, T>) -> bool;
+pub type BoardSpecificAttackFn<C, T> =
+    fn(core: &mut EvilCore<C, T>, successes: usize, retries: Option<usize>) -> bool;
 
-pub struct EvilCore<Clock, Tr>
+pub struct EvilCore<'a, Clock, Tr>
 where
     Clock: TicksClock,
     Tr: Tranceiver,
@@ -15,11 +16,11 @@ where
     pub clock: Clock,
     ticks_per_quantum: u32,
     sof_offset_ticks: u32,
-    machine: AttackMachine<Tr>,
+    machine: &'a mut AttackMachine<Tr>,
     board_specific_attack_fn: BoardSpecificAttackFn<Clock, Tr>,
 }
 
-impl<Clock, Tr> EvilCore<Clock, Tr>
+impl<'a, Clock, Tr> EvilCore<'a, Clock, Tr>
 where
     Clock: TicksClock,
     Tr: Tranceiver,
@@ -31,13 +32,12 @@ where
     /// * `board_specific_attack_fn` - Board-specific attack function.
     /// Should disable interrupts. and call core.attack()
     pub fn new(
-        bsp: EvilBsp<Clock, Tr>,
+        clock: Clock,
+        machine: &'a mut AttackMachine<Tr>,
         baudrate: CanBitrates,
         sof_offset_ns: u32,
         board_specific_attack_fn: BoardSpecificAttackFn<Clock, Tr>,
     ) -> Self {
-        let (clock, tr) = bsp.split();
-        let machine = AttackMachine::new(tr);
         let ticks_per_quantum = ((baudrate.to_period_ns() / 1_000)
             * (Clock::TICKS_PER_SEC / 1_000_000))
             / AttackMachine::<Tr>::QUANTA_PER_BIT;
@@ -82,7 +82,12 @@ where
         self.machine.arm(attack)
     }
 
-    pub fn board_specific_attack(&mut self, mut successes: usize, retries: Option<usize>) -> bool {
+    pub fn board_specific_attack(&mut self, successes: usize, retries: Option<usize>) -> bool {
+        (self.board_specific_attack_fn)(self, successes, retries)
+    }
+
+    #[inline(always)]
+    pub fn attack(&mut self, mut successes: usize, retries: Option<usize>) -> bool {
         if successes <= 0 {
             return false;
         }
@@ -90,23 +95,18 @@ where
         let mut retries_cnt: usize = 0;
 
         while retries.is_none_or(|retries_value| retries_cnt < retries_value) && successes > 0 {
-            debug!(
-                "Attempting attack with {} retries left and {} successes left",
-                retries_cnt, successes
-            );
-            if (self.board_specific_attack_fn)(self) {
+            if self.inner_attack() {
                 successes -= 1;
                 retries_cnt = 0;
             } else {
                 retries_cnt += 1;
             }
         }
-        debug!("Attack finished. Success {}", successes <= 0);
         successes <= 0
     }
 
     #[inline(always)]
-    pub fn attack(&mut self) -> bool {
+    pub fn inner_attack(&mut self) -> bool {
         // Set inital time
         let mut next_instant = self.clock.ticks();
 
