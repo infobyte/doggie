@@ -305,8 +305,11 @@ where
 
         // Warmup attack
         let mut warmup_buf = new_attack_buf();
-        warmup_buf[0] = AttackCmd::SetBitStuffing { state: false };
         warmup_buf[1] = AttackCmd::WaitBusFree { count: 0 };
+        warmup_buf[1] = AttackCmd::Send {
+            stream: FastBitQueue::new(0xFF, 8),
+        };
+        warmup_buf[0] = AttackCmd::SetBitStuffing { state: false };
         warmup_buf[1] = AttackCmd::Send {
             stream: FastBitQueue::new(0xFF, 8),
         };

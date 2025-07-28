@@ -75,6 +75,7 @@ where
     }
 
     #[inline(always)]
+    #[link_section = ".rwtext"]
     pub fn arm(&mut self, attack: &[AttackCmd]) -> Result<(), AttackError> {
         if attack.len() > self.attack.len() {
             return Err(AttackError::AttackToLong);

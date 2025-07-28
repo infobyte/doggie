@@ -6,7 +6,6 @@ pub mod logging;
 #[macro_export]
 macro_rules! init_globals {
     () => {
-
         #[cfg(any(feature = "esp32", feature = "ble"))]
         use esp_hal::timer::timg::TimerGroup;
 
@@ -18,10 +17,10 @@ macro_rules! init_globals {
             bt_hci::controller::ExternalController,
             defmt::error,
             doggie_ble::{create_ble_pipe, BleSerial, BleServer, SerialMux},
+            esp_alloc as _,
             esp_wifi::ble::controller::BleConnector,
             esp_wifi::EspWifiController,
             static_cell::StaticCell,
-            esp_alloc as _,
         };
 
         #[cfg(feature = "esp32c3")]
@@ -51,19 +50,17 @@ macro_rules! init_globals {
 
         #[cfg(feature = "ble")]
         static BLE_CONT_AUX: StaticCell<EspWifiController<'static>> = StaticCell::new();
-    }
+    };
 }
 
 #[macro_export]
 macro_rules! init_dbg {
     ($p:expr) => {{
-
         #[cfg(feature = "esp32c3")]
         let (dbg_tx_pin, dbg_rx_pin, dbg_uart) = ($p.GPIO3, $p.GPIO2, $p.UART0);
         #[cfg(feature = "esp32")]
         let (dbg_tx_pin, dbg_rx_pin, dbg_uart) = ($p.GPIO17, $p.GPIO16, $p.UART2);
 
-    
         let dbg_serial = {
             let config = esp_hal::uart::Config::default().with_baudrate(115200);
 
@@ -75,14 +72,13 @@ macro_rules! init_dbg {
 
         let (_, dbg_tx) = dbg_serial.split();
         esp_serial::logging::init_logs(dbg_tx);
-    }}
+    }};
 }
 
 #[macro_export]
 macro_rules! create_wired_serial {
     ($p:expr) => {{
-        
-info!("Wired serial init");
+        info!("Wired serial init");
         // Wired serial initialization
         #[cfg(feature = "esp32c3")]
         let wired_serial = UsbSerialJtag::new($p.USB_DEVICE).into_async();
@@ -107,7 +103,6 @@ info!("Wired serial init");
 #[macro_export]
 macro_rules! create_serial {
     ($p:expr, $s:expr) => {{
-        
         let wired_serial = esp_serial::create_wired_serial!($p);
 
         #[cfg(feature = "ble")]
@@ -121,12 +116,7 @@ macro_rules! create_serial {
             let timg0 = TimerGroup::new($p.TIMG0);
 
             let init = BLE_CONT_AUX.init(
-                esp_wifi::init(
-                    timg0.timer0,
-                    esp_hal::rng::Rng::new($p.RNG),
-                    $p.RADIO_CLK,
-                )
-                .unwrap(),
+                esp_wifi::init(timg0.timer0, esp_hal::rng::Rng::new($p.RNG), $p.RADIO_CLK).unwrap(),
             );
 
             let connector = BleConnector::new(init, $p.BT);

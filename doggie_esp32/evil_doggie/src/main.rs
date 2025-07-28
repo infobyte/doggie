@@ -56,6 +56,7 @@ async fn main(_spawner: Spawner) {
     esp_hal_embassy::init(timg0.timer0);
 
     esp_serial::init_dbg!(p);
+    // let dbg_pin = Output::new(p.GPIO2, Level::High);
 
     info!("Evil Doggie initialization!");
     // info!("CPU clock: {}", config.cpu_clock.hz());

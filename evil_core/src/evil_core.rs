@@ -78,6 +78,7 @@ where
         CanBitrates::from_period_ns(baudrate)
     }
 
+    #[link_section = ".rwtext"]
     pub fn board_specific_attack(
         &mut self,
         attack: &[AttackCmd],
@@ -91,10 +92,10 @@ where
         let mut retries_cnt: usize = 0;
 
         while retries.is_none_or(|retries_value| retries_cnt < retries_value) && successes > 0 {
-            debug!(
-                "Attempting attack with {} retries left and {} successes left",
-                retries_cnt, successes
-            );
+            // debug!(
+            //     "Attempting attack with {} retries left and {} successes left",
+            //     retries_cnt, successes
+            // );
             self.machine.arm(attack);
             if (self.board_specific_attack_fn)(self) {
                 successes -= 1;
@@ -103,7 +104,7 @@ where
                 retries_cnt += 1;
             }
         }
-        debug!("Attack finished. Success {}", successes <= 0);
+        // debug!("Attack finished. Success {}", successes <= 0);
         successes <= 0
     }
 
