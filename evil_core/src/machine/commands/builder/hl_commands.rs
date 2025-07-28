@@ -104,10 +104,7 @@ impl MsgBitQueue {
 
         info!("CRC: {:X}", crc);
 
-        // CRC delimiter
-        crc = (crc << 1) | 1;
-
-        self.append(crc as u32, 16);
+        self.append(crc as u32, 15);
     }
 }
 
@@ -471,6 +468,9 @@ impl HighLevelAttackCmd {
         attack.push(AttackCmd::SetBitStuffing { state: false });
 
         let mut eof_queue = MsgBitQueue::new();
+
+        // CRC Delimiter
+        eof_queue.append(0b1, 1);
 
         // ACK
         if *force {
