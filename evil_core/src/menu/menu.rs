@@ -322,6 +322,29 @@ where
 
                 &Item {
                     item_type: ItemType::Callback {
+                        function: double_receive_attack,
+                        parameters: &[
+                            Parameter::Mandatory {
+                                parameter_name: "id",
+                                help: Some("CAN ID to send in hex (e.g, 0x123)"),
+                            },
+                            Parameter::Mandatory { parameter_name: "errors", help: Some("Amount of consecutive error to send") },
+                            Parameter::Optional {
+                                parameter_name: "match_data",
+                                help: Some("First data bytes to match as comma-separated hex values (e.g., 0x10,0x20,0x30)"),
+                            },
+                            Parameter::Named {
+                                parameter_name: "extended",
+                                help: Some("Whether this is an extended ID (defaults to standard ID)"),
+                            },
+                        ],
+                    },
+                    command: "double_receive_attack",
+                    help: Some("Push a double_receive_attack over an ID"),
+                },
+
+                &Item {
+                    item_type: ItemType::Callback {
                         function: attack,
                         parameters: &[
                             Parameter::Optional {
@@ -519,7 +542,7 @@ fn bus_off_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
     interface: &mut I,
     context: &mut Context<C, T>,
 ) {
-    writeln!(interface, "Spoofing attack").unwrap();
+    writeln!(interface, "Bus off attack").unwrap();
     let mut id_str = argument_finder(item, args, "id").unwrap().unwrap();
     let match_data_str_opt = argument_finder(item, args, "match_data").unwrap();
     let is_extended = match argument_finder(item, args, "extended").unwrap() {
@@ -582,6 +605,78 @@ fn bus_off_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
     )
     .unwrap();
 }
+
+fn double_receive_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
+    _menu: &Menu<I, Context<C, T>>,
+    item: &Item<I, Context<C, T>>,
+    args: &[&str],
+    interface: &mut I,
+    context: &mut Context<C, T>,
+) {
+    writeln!(interface, "Double receive attack").unwrap();
+    let mut id_str = argument_finder(item, args, "id").unwrap().unwrap();
+    let match_data_str_opt = argument_finder(item, args, "match_data").unwrap();
+    let is_extended = match argument_finder(item, args, "extended").unwrap() {
+        Some(_) => true,
+        None => false,
+    };
+
+    id_str = id_str.trim_start_matches("0x");
+    let id = if let Ok(id_val) = u32::from_str_radix(id_str, 16) {
+        if is_extended {
+            Id::Extended(embedded_can::ExtendedId::new(id_val).unwrap())
+        } else {
+            Id::Standard(embedded_can::StandardId::new(id_val as u16).unwrap())
+        }
+    } else {
+        writeln!(interface, "Invalid ID format").unwrap();
+        return;
+    };
+
+    let errors_opt = argument_finder(item, args, "errors").unwrap();
+
+    let errors = if let Some(errors_str) = errors_opt {
+        if let Ok(errors) = str::parse(errors_str) {
+            errors
+        } else {
+            writeln!(interface, "Invalid errors format").unwrap();
+            return;
+        }
+    } else {
+        writeln!(interface, "errors is required").unwrap();
+        return;
+    };
+
+    let mut match_data: Vec<u8, 8> = Vec::new();
+
+    match match_data_str_opt {
+        Some(match_data_str) => match parse_data(match_data_str, &mut match_data) {
+            Err(err_str) => {
+                writeln!(interface, "{}", err_str).unwrap();
+                return;
+            }
+            _ => {}
+        },
+        _ => {}
+    }
+
+    context
+        .plan_builder
+        .push(PredefAttacks::DoubleReceiveAttack {
+            id,
+            match_data: match_data.clone(),
+            errors,
+        })
+        .unwrap();
+
+    writeln!(
+        interface,
+        "Added Double Receive attack with:\n\tid: {:?}\n\tErrors: {:?}\n\tdata to match {:?}",
+        id, errors, match_data
+    )
+    .unwrap();
+}
+
 fn test_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
     _menu: &Menu<I, Context<C, T>>,
     _item: &Item<I, Context<C, T>>,

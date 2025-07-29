@@ -348,7 +348,7 @@ impl HighLevelAttackCmd {
 
         let mut c = *count;
         while c > 0 {
-            let error_cnt = min(4, *count);
+            let error_cnt = min(4, c);
 
             let mut bits: u64 = 0;
             for index in 0..error_cnt {

