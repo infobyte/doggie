@@ -41,6 +41,7 @@ esp_serial = { version = "0.1.0", path = "../esp_serial" }
 
 
 [features]
+faraday = []
 ble = ["dep:doggie_ble", "dep:esp-wifi", "dep:bt-hci", "dep:esp-alloc", "dep:static_cell"]
 esp32   = ["esp-hal/esp32",   "esp-backtrace/esp32",   "esp-hal-embassy/esp32",   "esp-wifi/esp32",   "esp_serial/esp32",   "dep:xtensa-lx"]
 esp32c3 = ["esp-hal/esp32c3", "esp-backtrace/esp32c3", "esp-hal-embassy/esp32c3", "esp-wifi/esp32c3", "esp_serial/esp32c3", "dep:riscv"]

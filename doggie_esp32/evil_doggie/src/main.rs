@@ -24,6 +24,9 @@ use evil_core::{
     EvilCore, EvilMenu,
 };
 
+#[cfg(feature = "esp32c3")]
+use esp_hal::timer::timg::TimerGroup;
+
 esp_serial::init_globals!();
 
 #[no_mangle]
@@ -66,19 +69,22 @@ async fn main(_spawner: Spawner) {
 
     info!("Serial init ok");
 
-    // Eye LEDs
-    let (l_r_p, l_g_p, l_b_p) = (p.GPIO5, p.GPIO33, p.GPIO4);
-    let (r_r_p, r_g_p, r_b_p) = (p.GPIO19, p.GPIO32, p.GPIO18);
+    #[cfg(feature = "faraday")]
+    {
+        // Eye LEDs
+        let (l_r_p, l_g_p, l_b_p) = (p.GPIO5, p.GPIO33, p.GPIO4);
+        let (r_r_p, r_g_p, r_b_p) = (p.GPIO19, p.GPIO32, p.GPIO18);
 
-    let mut l_r = Output::new(l_r_p, Level::High);
-    let mut l_g = Output::new(l_g_p, Level::High);
-    let mut l_b = Output::new(l_b_p, Level::High);
-    let mut r_r = Output::new(r_r_p, Level::High);
-    let mut r_g = Output::new(r_g_p, Level::High);
-    let mut r_b = Output::new(r_b_p, Level::High);
+        let mut l_r = Output::new(l_r_p, Level::High);
+        let mut l_g = Output::new(l_g_p, Level::High);
+        let mut l_b = Output::new(l_b_p, Level::High);
+        let mut r_r = Output::new(r_r_p, Level::High);
+        let mut r_g = Output::new(r_g_p, Level::High);
+        let mut r_b = Output::new(r_b_p, Level::High);
 
-    l_r.set_low();
-    r_r.set_low();
+        l_r.set_low();
+        r_r.set_low();
+    }
 
     // Setup tx, rx, and force pins, and tranceiver
     #[cfg(feature = "esp32")]
@@ -94,9 +100,11 @@ async fn main(_spawner: Spawner) {
     let tranceiver = EspTranceiver::new(tx, rx, force);
     info!("Tranceiver init ok");
 
-    // TODO: Add this into a new binary
-    info!("Evil Doggie Attack Circuit Enabled");
-    let force_enable = Output::new(p.GPIO23, Level::High);
+    #[cfg(feature = "faraday")]
+    {
+        info!("Evil Doggie Attack Circuit Enabled");
+        let force_enable = Output::new(p.GPIO23, Level::High);
+    }
 
     // Create clock
     let timg1_t0: esp_hal::timer::timg::Timer = TimerGroup::new(p.TIMG1).timer0;
