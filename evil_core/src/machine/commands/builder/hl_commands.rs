@@ -334,7 +334,13 @@ impl HighLevelAttackCmd {
             return Err(BuildError::BadArguments);
         }
 
-        let mut attack_index = 0;
+        // First disable bitstuffing
+        attack
+            .push(AttackCmd::SetBitStuffing { state: false })
+            .unwrap();
+
+        // +2 for the Two bitstuffing commands
+        let mut attack_index = 2;
 
         let mut c = *count;
         while c > 0 {
@@ -354,6 +360,11 @@ impl HighLevelAttackCmd {
             attack_index += 1;
             c -= error_cnt;
         }
+
+        // And now enable bitstuffing bitstuffing
+        attack
+            .push(AttackCmd::SetBitStuffing { state: true })
+            .unwrap();
 
         Ok(attack_index + 1)
     }
