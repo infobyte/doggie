@@ -79,11 +79,6 @@ impl MsgBitQueue {
         &self.data
     }
 
-    fn len(&self) -> usize {
-        let bits = self.end - self.start;
-        bits / 8 + if bits % 8 != 0 { 1 } else { 0 }
-    }
-
     fn pop_chunk(&mut self) -> Option<(u64, usize)> {
         if self.end == self.start {
             None
@@ -100,7 +95,7 @@ impl MsgBitQueue {
     }
 
     fn append_crc(&mut self) {
-        let mut crc = self.crc_calculate();
+        let crc = self.crc_calculate();
 
         info!("CRC: {:X}", crc);
 
@@ -488,7 +483,9 @@ impl HighLevelAttackCmd {
             attack_index += 1;
         }
 
-        attack.push(AttackCmd::SetBitStuffing { state: false });
+        attack
+            .push(AttackCmd::SetBitStuffing { state: false })
+            .unwrap();
 
         let mut eof_queue = MsgBitQueue::new();
 
@@ -521,7 +518,9 @@ impl HighLevelAttackCmd {
             attack_index += 1;
         }
 
-        attack.push(AttackCmd::SetBitStuffing { state: true });
+        attack
+            .push(AttackCmd::SetBitStuffing { state: true })
+            .unwrap();
 
         Ok(attack_index + 2)
     }

@@ -901,8 +901,10 @@ pub fn delete_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
 
     if let Some(idx_str) = idx_opt {
         if let Ok(idx) = str::parse(idx_str) {
-            context.plan_builder.remove(idx);
-            writeln!(interface, "Deleted attack at idx {}", idx).unwrap();
+            match context.plan_builder.remove(idx) {
+                Ok(_) => writeln!(interface, "Deleted attack at idx {}", idx).unwrap(),
+                Err(_) => writeln!(interface, "Error deleting attack at idx {}", idx).unwrap(),
+            }
         } else {
             writeln!(interface, "Invalid idx format").unwrap();
         }

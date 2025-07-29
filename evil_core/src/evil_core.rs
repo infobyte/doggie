@@ -1,9 +1,9 @@
 use core::u32;
 
-use defmt::{debug, info, println};
+use defmt::{info, println};
 
 use super::bsp::{CanBitrates, EvilBsp, TicksClock, Tranceiver};
-use super::machine::{commands::AttackCmd, AttackError, AttackMachine, HandleResult};
+use super::machine::{commands::AttackCmd, AttackMachine, HandleResult};
 
 pub type BoardSpecificAttackFn<C, T> = fn(core: &mut EvilCore<C, T>) -> bool;
 
