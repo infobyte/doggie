@@ -345,6 +345,45 @@ where
 
                 &Item {
                     item_type: ItemType::Callback {
+                        function: delete_attack,
+                        parameters: &[
+                            Parameter::Mandatory {
+                                parameter_name: "idx",
+                                help: Some("Index of the attack to delete"),
+                            },
+                        ],
+                    },
+                    command: "delete",
+                    help: Some("Delete an attack from the plan"),
+                },
+                &Item {
+                    item_type: ItemType::Callback {
+                        function: relocate_attack,
+                        parameters: &[
+                            Parameter::Mandatory {
+                                parameter_name: "from",
+                                help: Some("Source index of the attack"),
+                            },
+                            Parameter::Mandatory {
+                                parameter_name: "to",
+                                help: Some("Destination index for the attack"),
+                            },
+                        ],
+                    },
+                    command: "move",
+                    help: Some("Move an attack in the plan"),
+                },
+                &Item {
+                    item_type: ItemType::Callback {
+                        function: list_attacks,
+                        parameters: &[],
+                    },
+                    command: "list",
+                    help: Some("List all attacks in the current plan"),
+                },
+
+                &Item {
+                    item_type: ItemType::Callback {
                         function: attack,
                         parameters: &[
                             Parameter::Optional {
@@ -773,5 +812,75 @@ fn attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
         writeln!(interface, "Attack successfull!!").unwrap();
     } else {
         writeln!(interface, "Attack failed!!").unwrap();
+    }
+}
+
+pub fn delete_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
+    _menu: &Menu<I, Context<C, T>>,
+    item: &Item<I, Context<C, T>>,
+    args: &[&str],
+    interface: &mut I,
+    context: &mut Context<C, T>,
+) {
+    let idx_opt = argument_finder(item, args, "idx").unwrap();
+
+    if let Some(idx_str) = idx_opt {
+        if let Ok(idx) = str::parse(idx_str) {
+            context.plan_builder.remove(idx);
+            writeln!(interface, "Deleted attack at idx {}", idx).unwrap();
+        } else {
+            writeln!(interface, "Invalid idx format").unwrap();
+        }
+    } else {
+        writeln!(interface, "idx is required").unwrap();
+    }
+}
+
+pub fn relocate_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
+    _menu: &Menu<I, Context<C, T>>,
+    item: &Item<I, Context<C, T>>,
+    args: &[&str],
+    interface: &mut I,
+    context: &mut Context<C, T>,
+) {
+    let from_opt = argument_finder(item, args, "from").unwrap();
+    let to_opt = argument_finder(item, args, "to").unwrap();
+
+    if let Some(from_str) = from_opt {
+        if let Ok(from) = str::parse(from_str) {
+            if let Some(to_str) = to_opt {
+                if let Ok(to) = str::parse(to_str) {
+                    match context.plan_builder.relocate(from, to) {
+                        Ok(_) => {
+                            writeln!(interface, "Moved attack at from {} to {}", from, to).unwrap();
+                        }
+                        Err(_) => {
+                            writeln!(interface, "Error moving attack at from {} to {}", from, to)
+                                .unwrap();
+                        }
+                    }
+                } else {
+                    writeln!(interface, "Invalid to format").unwrap();
+                }
+            } else {
+                writeln!(interface, "to is required").unwrap();
+            }
+        } else {
+            writeln!(interface, "Invalid from format").unwrap();
+        }
+    } else {
+        writeln!(interface, "from is required").unwrap();
+    }
+}
+
+pub fn list_attacks<I: Read + Write, C: TicksClock, T: Tranceiver>(
+    _menu: &Menu<I, Context<C, T>>,
+    _item: &Item<I, Context<C, T>>,
+    _args: &[&str],
+    interface: &mut I,
+    context: &mut Context<C, T>,
+) {
+    for (idx, cmd) in context.plan_builder.iter().enumerate() {
+        writeln!(interface, "\t{}: {:?}", idx, cmd).unwrap();
     }
 }
