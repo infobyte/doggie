@@ -203,6 +203,20 @@ where
                                             command: "send_msg",
                                             help: Some("Add a send message command to the attack"),
                                         },
+
+                                        &Item {
+                                            item_type: ItemType::Callback {
+                                                function: set_bitstuffing,
+                                                parameters: &[
+                                                    Parameter::Mandatory {
+                                                        parameter_name: "state",
+                                                        help: Some("'enable' or 'disable'"),
+                                                    },
+                                                ],
+                                            },
+                                            command: "set_bitstuffing",
+                                            help: Some("Set bitstuffing state"),
+                                        },
                                         &Item {
                                             item_type: ItemType::Callback {
                                                 function: delete,

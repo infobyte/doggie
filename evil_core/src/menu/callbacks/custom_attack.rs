@@ -165,6 +165,55 @@ pub fn wait<I: Read + Write, C: TicksClock, T: Tranceiver>(
     }
 }
 
+fn parse_bool_str(string: &str) -> Result<bool, ()> {
+    if ["true", "enable", "1"]
+        .iter()
+        .any(|to_match| string.eq_ignore_ascii_case(to_match))
+    {
+        Ok(true)
+    } else if ["false", "disable", "0"]
+        .iter()
+        .any(|to_match| string.eq_ignore_ascii_case(to_match))
+    {
+        Ok(false)
+    } else {
+        Err(())
+    }
+}
+
+pub fn set_bitstuffing<I: Read + Write, C: TicksClock, T: Tranceiver>(
+    _menu: &Menu<I, Context<C, T>>,
+    item: &Item<I, Context<C, T>>,
+    args: &[&str],
+    interface: &mut I,
+    context: &mut Context<C, T>,
+) {
+    let state_opt = argument_finder(item, args, "state").unwrap();
+
+    if let Some(state_str) = state_opt {
+        match parse_bool_str(state_str) {
+            Err(_) => {
+                writeln!(interface, "Invalid 'state' argument").unwrap();
+                return;
+            }
+            Ok(state) => {
+                context
+                    .custom_attack
+                    .push(HighLevelAttackCmd::SetBitstuffing { state })
+                    .unwrap();
+
+                writeln!(
+                    interface,
+                    "Added SetBitstuffing command with {} state",
+                    state
+                )
+                .unwrap();
+            }
+        }
+    } else {
+        writeln!(interface, "Argument state is required").unwrap();
+    }
+}
 pub fn send_error<I: Read + Write, C: TicksClock, T: Tranceiver>(
     _menu: &Menu<I, Context<C, T>>,
     item: &Item<I, Context<C, T>>,
