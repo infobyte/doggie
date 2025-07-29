@@ -228,7 +228,7 @@ pub fn send_raw<I: Read + Write, C: TicksClock, T: Tranceiver>(
     }
 }
 
-pub fn wait_eof<I: Read + Write, C: TicksClock, T: Tranceiver>(
+pub fn wait_bus_free<I: Read + Write, C: TicksClock, T: Tranceiver>(
     _menu: &Menu<I, Context<C, T>>,
     _item: &Item<I, Context<C, T>>,
     _args: &[&str],
@@ -240,7 +240,7 @@ pub fn wait_eof<I: Read + Write, C: TicksClock, T: Tranceiver>(
         .push(HighLevelAttackCmd::WaitBusFree)
         .unwrap();
 
-    writeln!(interface, "Added Wait EOF command").unwrap();
+    writeln!(interface, "Added WaitBusFree command").unwrap();
 }
 
 pub fn send_msg<I: Read + Write, C: TicksClock, T: Tranceiver>(

@@ -168,11 +168,11 @@ where
                                         },
                                         &Item {
                                             item_type: ItemType::Callback {
-                                                function: wait_eof,
+                                                function: wait_bus_free,
                                                 parameters: &[],
                                             },
-                                            command: "wait_eof",
-                                            help: Some("Add a wait EOF command to the attack"),
+                                            command: "wait_bus_free",
+                                            help: Some("Add a wait for bus free command to the attack"),
                                         },
                                         &Item {
                                             item_type: ItemType::Callback {
