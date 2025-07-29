@@ -139,6 +139,9 @@ pub enum HighLevelAttackCmd {
         rtr: bool,
         force: bool,
     },
+    SetBitstuffing {
+        state: bool,
+    },
 }
 
 impl<const OUT_SIZE: usize> Buildable<OUT_SIZE> for HighLevelAttackCmd {
@@ -167,6 +170,7 @@ impl<const OUT_SIZE: usize> Buildable<OUT_SIZE> for HighLevelAttackCmd {
                 rtr,
                 force,
             } => Self::build_send_msg(attack, id, data, data_len, rtr, force),
+            Self::SetBitstuffing { state } => Self::build_set_bitstuffing(attack, *state),
         }
     }
 }
@@ -403,6 +407,14 @@ impl HighLevelAttackCmd {
         attack: &mut Vec<AttackCmd, OUT_SIZE>,
     ) -> Result<usize, BuildError> {
         attack.push(AttackCmd::WaitForSof).unwrap();
+        Ok(1)
+    }
+
+    fn build_set_bitstuffing<const OUT_SIZE: usize>(
+        attack: &mut Vec<AttackCmd, OUT_SIZE>,
+        state: bool,
+    ) -> Result<usize, BuildError> {
+        attack.push(AttackCmd::SetBitStuffing { state }).unwrap();
         Ok(1)
     }
 
