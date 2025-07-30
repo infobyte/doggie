@@ -863,6 +863,9 @@ fn attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
         info!("\t{:?}", Debug2Format(attack));
     }
 
+    info!("WarmUp added at the beginning");
+    hl_attack_vec.insert(0, HighLevelAttackCmd::WarmUp).unwrap();
+
     info!("HL Result:");
     for attack_cmd in &hl_attack_vec {
         info!("\t{:?}", Debug2Format(attack_cmd));
