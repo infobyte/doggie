@@ -5,7 +5,7 @@ use crate::machine::commands::builder::{
 };
 use crate::machine::commands::{AttackCmd, FastBitQueue};
 use crate::machine::new_attack_buf;
-use crate::menu::callbacks::*;
+use crate::menu::{callbacks::*, optimizations};
 use defmt::{info, Debug2Format};
 use embedded_can::Id;
 use embedded_io::{Read, Write};
@@ -859,8 +859,11 @@ fn attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
 
     info!("Building the attack plan");
     context.plan_builder.build(&mut hl_attack_vec).unwrap();
+    for attack in context.plan_builder.iter() {
+        info!("\t{:?}", Debug2Format(attack));
+    }
 
-    info!("Result:");
+    info!("HL Result:");
     for attack_cmd in &hl_attack_vec {
         info!("\t{:?}", Debug2Format(attack_cmd));
     }
@@ -872,6 +875,15 @@ fn attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
         .for_each(|attack_cmd| context.attack_builder.push(*attack_cmd).unwrap());
 
     context.attack_builder.build(&mut attack_vec).unwrap();
+
+    writeln!(interface, "Optimizing the attack").unwrap();
+
+    info!("Before optimizations:");
+    for cmd in &attack_vec {
+        info!("\t{:?}", Debug2Format(cmd));
+    }
+
+    optimizations::optimize_attack(&mut attack_vec);
 
     info!("About to run attack with:");
     for cmd in &attack_vec {
