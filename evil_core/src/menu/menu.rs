@@ -3,8 +3,6 @@ use crate::evil_core::EvilCore;
 use crate::machine::commands::builder::{
     AttackBuilder, HighLevelAttackCmd, PredefAttacks, MAX_HL_COMMANDS,
 };
-use crate::machine::commands::{AttackCmd, FastBitQueue};
-use crate::machine::new_attack_buf;
 use crate::menu::{callbacks::*, optimizations};
 use crate::strings;
 use defmt::{info, Debug2Format};
@@ -478,7 +476,8 @@ ________  _______    ________  ________.______________
  |    |  \\/  /_\\  \\/   \\  ___/   \\  ___|   ||    __)_
  |    `   \\  \\_/   \\    \\_\\  \\    \\_\\  \\   ||        \\
 /_______  /\\_____  /\\______  /\\______  /___/_______  /
-        \\/       \\/        \\/        \\/            \\/",
+        \\/       \\/        \\/        \\/            \\/
+",
             )
             .unwrap();
     }
