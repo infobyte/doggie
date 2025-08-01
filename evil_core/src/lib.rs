@@ -4,6 +4,7 @@ pub mod bsp;
 mod evil_core;
 mod machine;
 mod menu;
+mod strings;
 
 pub use evil_core::{BoardSpecificAttackFn, EvilCore};
 pub use menu::EvilMenu;

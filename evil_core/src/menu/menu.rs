@@ -6,6 +6,7 @@ use crate::machine::commands::builder::{
 use crate::machine::commands::{AttackCmd, FastBitQueue};
 use crate::machine::new_attack_buf;
 use crate::menu::{callbacks::*, optimizations};
+use crate::strings;
 use defmt::{info, Debug2Format};
 use embedded_can::Id;
 use embedded_io::{Read, Write};
@@ -69,292 +70,281 @@ where
                         function: cmd_set_baudrate,
                         parameters: &[Parameter::Mandatory {
                             parameter_name: "baudrate",
-                            help: Some(
-                                "In kbps. Valid baudrates are 5, 10, 20, 50, 100, 125, 250, 500, 1000",
-                            ),
+                            help: Some(strings::SET_BAUDRATE_PARAM_TXT),
                         }],
                     },
                     command: "set_baudrate",
-                    help: Some("Set the baudrate of the adapter"),
+                    help: Some(strings::SET_BAUDRATE_TXT),
                 },
                 &Item {
                     item_type: ItemType::Menu(&Menu {
-                                    label: "custom_attack",
-                                    items: &[
-                                        &Item {
-                                            item_type: ItemType::Callback {
-                                                function: match_id,
-                                                parameters: &[
-                                                    Parameter::Mandatory {
-                                                        parameter_name: "id",
-                                                        help: Some("CAN ID to match in hex (e.g, 0x123))"),
-                                                    },
-                                                    Parameter::Named {
-                                                        parameter_name: "extended",
-                                                        help: Some("Whether this is an extended ID (defaults to standard ID)"),
-                                                    },
-                                                ],
-                                            },
-                                            command: "match_id",
-                                            help: Some("Add a CAN frame Id match condition to the attack"),
+                        label: "custom_attack",
+                        items: &[
+                            &Item {
+                                item_type: ItemType::Callback {
+                                    function: match_id,
+                                    parameters: &[
+                                        Parameter::Mandatory {
+                                            parameter_name: "id",
+                                            help: Some(strings::PARAM_MATCH_ID_TXT),
                                         },
-                                        &Item {
-                                            item_type: ItemType::Callback {
-                                                function: match_data,
-                                                parameters: &[
-                                                    Parameter::Mandatory {
-                                                        parameter_name: "dlc",
-                                                        help: Some("Data length code (0 to 8)"),
-                                                    },
-                                                    Parameter::Optional {
-                                                        parameter_name: "data",
-                                                        help: Some("Optional data bytes as comma-separated hex values (e.g., 0x10,0x20,0x30)"),
-                                                    },
-                                                ],
-                                            },
-                                            command: "match_data",
-                                            help: Some("Add a CAN frame data match condition to the attack. If dlc > len(data) will match data partially (e.g., dlc = 3 and data 0x10,0x20 will match frames whith data starting 0x10,0x20 and any value for the 3rd byte."),
-                                        },
-                                        &Item {
-                                            item_type: ItemType::Callback {
-                                                function: skip_data,
-                                                parameters: &[],
-                                            },
-                                            command: "skip_data",
-                                            help: Some("Add a skip data command to the attack"),
-                                        },
-                                        &Item {
-                                            item_type: ItemType::Callback {
-                                                function: wait,
-                                                parameters: &[
-                                                    Parameter::Mandatory {
-                                                        parameter_name: "bits",
-                                                        help: Some("Number of bits to wait"),
-                                                    },
-                                                ],
-                                            },
-                                            command: "wait",
-                                            help: Some("Add a wait command to the attack"),
-                                        },
-                                        &Item {
-                                            item_type: ItemType::Callback {
-                                                function: send_error,
-                                                parameters: &[
-                                                    Parameter::Mandatory {
-                                                        parameter_name: "count",
-                                                        help: Some("Number of error frames to send"),
-                                                    },
-                                                ],
-                                            },
-                                            command: "send_error",
-                                            help: Some("Add a send error command to the attack"),
-                                        },
-                                        &Item {
-                                            item_type: ItemType::Callback {
-                                                function: send_raw,
-                                                parameters: &[
-                                                    Parameter::Mandatory {
-                                                        parameter_name: "bits",
-                                                        help: Some("Bits to send (e.g, 11010101))"),
-                                                    },
-                                                    Parameter::Named {
-                                                        parameter_name: "force",
-                                                        help: Some("Whether to force this bits"),
-                                                    },
-                                                ],
-                                            },
-                                            command: "send_raw",
-                                            help: Some("Add a send raw data command to the attack"),
-                                        },
-                                        &Item {
-                                            item_type: ItemType::Callback {
-                                                function: wait_bus_free,
-                                                parameters: &[],
-                                            },
-                                            command: "wait_bus_free",
-                                            help: Some("Add a wait for bus free command to the attack"),
-                                        },
-                                        &Item {
-                                            item_type: ItemType::Callback {
-                                                function: send_msg,
-                                                parameters: &[
-                                                    Parameter::Mandatory {
-                                                        parameter_name: "id",
-                                                        help: Some("CAN ID to send in hex (e.g, 0x123)"),
-                                                    },
-                                                    Parameter::Named {
-                                                        parameter_name: "extended",
-                                                        help: Some("Whether this is an extended ID (defaults to standard ID)"),
-                                                    },
-                                                    Parameter::Named {
-                                                        parameter_name: "rtr",
-                                                        help: Some("Set frame RTR bit"),
-                                                    },
-                                                    Parameter::Named {
-                                                        parameter_name: "force",
-                                                        help: Some("Whether to force this bits"),
-                                                    },
-                                                    Parameter::Optional {
-                                                        parameter_name: "data",
-                                                        help: Some("Data bytes as comma-separated hex values (e.g., 0x10,0x20,0x30)"),
-                                                    },
-                                                ],
-                                            },
-                                            command: "send_msg",
-                                            help: Some("Add a send message command to the attack"),
-                                        },
-
-                                        &Item {
-                                            item_type: ItemType::Callback {
-                                                function: set_bitstuffing,
-                                                parameters: &[
-                                                    Parameter::Mandatory {
-                                                        parameter_name: "state",
-                                                        help: Some("'enable' or 'disable'"),
-                                                    },
-                                                ],
-                                            },
-                                            command: "set_bitstuffing",
-                                            help: Some("Set bitstuffing state"),
-                                        },
-                                        &Item {
-                                            item_type: ItemType::Callback {
-                                                function: delete,
-                                                parameters: &[
-                                                    Parameter::Mandatory {
-                                                        parameter_name: "idx",
-                                                        help: Some("Index of the command to delete"),
-                                                    },
-                                                ],
-                                            },
-                                            command: "delete",
-                                            help: Some("Delete a command from the attack"),
-                                        },
-                                        &Item {
-                                            item_type: ItemType::Callback {
-                                                function: relocate,
-                                                parameters: &[
-                                                    Parameter::Mandatory {
-                                                        parameter_name: "from",
-                                                        help: Some("Source index of the command"),
-                                                    },
-                                                    Parameter::Mandatory {
-                                                        parameter_name: "to",
-                                                        help: Some("Destination index for the command"),
-                                                    },
-                                                ],
-                                            },
-                                            command: "move",
-                                            help: Some("Move a command in the attack"),
-                                        },
-                                        &Item {
-                                            item_type: ItemType::Callback {
-                                                function: list,
-                                                parameters: &[],
-                                            },
-                                            command: "list",
-                                            help: Some("List all commands in the current attack"),
+                                        Parameter::Named {
+                                            parameter_name: "extended",
+                                            help: Some(strings::PARAM_EXTENDED_TXT),
                                         },
                                     ],
-                                    entry: Some(enter_custom_attack),
-                                    exit: Some(exit_custom_attack)}),
-                                command: "custom_attack",
-                                help: Some("Build a custom attack"),
+                                },
+                                command: "match_id",
+                                help: Some(strings::AC_MATCH_ID_TXT),
+                            },
+                            &Item {
+                                item_type: ItemType::Callback {
+                                    function: match_data,
+                                    parameters: &[
+                                        Parameter::Mandatory {
+                                            parameter_name: "dlc",
+                                            help: Some(strings::AC_MATCH_DATA_DLC_TXT),
+                                        },
+                                        Parameter::Optional {
+                                            parameter_name: "data",
+                                            help: Some(strings::AC_MATCH_DATA_DATA_TXT),
+                                        },
+                                    ],
+                                },
+                                command: "match_data",
+                                help: Some(strings::AC_MATCH_DATA_TXT),
+                            },
+                            &Item {
+                                item_type: ItemType::Callback {
+                                    function: skip_data,
+                                    parameters: &[],
+                                },
+                                command: "skip_data",
+                                help: Some(strings::AC_SKIP_DATA_TXT),
+                            },
+                            &Item {
+                                item_type: ItemType::Callback {
+                                    function: wait,
+                                    parameters: &[Parameter::Mandatory {
+                                        parameter_name: "bits",
+                                        help: Some(strings::AC_WAIT_BITS_TXT),
+                                    }],
+                                },
+                                command: "wait",
+                                help: Some(strings::AC_WAIT_TXT),
+                            },
+                            &Item {
+                                item_type: ItemType::Callback {
+                                    function: send_error,
+                                    parameters: &[Parameter::Mandatory {
+                                        parameter_name: "count",
+                                        help: Some(strings::AC_SEND_ERROR_COUNT_TXT),
+                                    }],
+                                },
+                                command: "send_error",
+                                help: Some(strings::AC_SEND_ERROR_TXT),
+                            },
+                            &Item {
+                                item_type: ItemType::Callback {
+                                    function: send_raw,
+                                    parameters: &[
+                                        Parameter::Mandatory {
+                                            parameter_name: "bits",
+                                            help: Some(strings::AC_SEND_RAW_BITS_TXT),
+                                        },
+                                        Parameter::Named {
+                                            parameter_name: "force",
+                                            help: Some(strings::PARAM_FORCE_TXT),
+                                        },
+                                    ],
+                                },
+                                command: "send_raw",
+                                help: Some(strings::AC_SEND_RAW_TXT),
+                            },
+                            &Item {
+                                item_type: ItemType::Callback {
+                                    function: wait_bus_free,
+                                    parameters: &[],
+                                },
+                                command: "wait_bus_free",
+                                help: Some(strings::AC_WAIT_BUS_FREE_TXT),
+                            },
+                            &Item {
+                                item_type: ItemType::Callback {
+                                    function: send_msg,
+                                    parameters: &[
+                                        Parameter::Mandatory {
+                                            parameter_name: "id",
+                                            help: Some(strings::PARAM_SEND_ID_TXT),
+                                        },
+                                        Parameter::Named {
+                                            parameter_name: "extended",
+                                            help: Some(strings::PARAM_EXTENDED_TXT),
+                                        },
+                                        Parameter::Named {
+                                            parameter_name: "rtr",
+                                            help: Some(strings::AC_SEND_MSG_RTR_TXT),
+                                        },
+                                        Parameter::Named {
+                                            parameter_name: "force",
+                                            help: Some(strings::PARAM_FORCE_TXT),
+                                        },
+                                        Parameter::Optional {
+                                            parameter_name: "data",
+                                            help: Some(strings::AC_SEND_MSG_DATA_TXT),
+                                        },
+                                    ],
+                                },
+                                command: "send_msg",
+                                help: Some(strings::AC_SEND_MSG_TXT),
+                            },
+                            &Item {
+                                item_type: ItemType::Callback {
+                                    function: set_bitstuffing,
+                                    parameters: &[Parameter::Mandatory {
+                                        parameter_name: "state",
+                                        help: Some(strings::AC_SET_BITSTUFFING_STATE_TXT),
+                                    }],
+                                },
+                                command: "set_bitstuffing",
+                                help: Some(strings::AC_SET_BITSTUFFING_TXT),
+                            },
+                            &Item {
+                                item_type: ItemType::Callback {
+                                    function: delete,
+                                    parameters: &[Parameter::Mandatory {
+                                        parameter_name: "index",
+                                        help: Some(strings::AC_DELETE_IDX_TXT),
+                                    }],
+                                },
+                                command: "delete",
+                                help: Some(strings::AC_DELETE_TXT),
+                            },
+                            &Item {
+                                item_type: ItemType::Callback {
+                                    function: relocate,
+                                    parameters: &[
+                                        Parameter::Mandatory {
+                                            parameter_name: "from",
+                                            help: Some(strings::AC_MOVE_FROM_TXT),
+                                        },
+                                        Parameter::Mandatory {
+                                            parameter_name: "to",
+                                            help: Some(strings::AC_MOVE_TO_TXT),
+                                        },
+                                    ],
+                                },
+                                command: "move",
+                                help: Some(strings::AC_MOVE_TXT),
+                            },
+                            &Item {
+                                item_type: ItemType::Callback {
+                                    function: list,
+                                    parameters: &[],
+                                },
+                                command: "list",
+                                help: Some(strings::AC_LIST_TXT),
+                            },
+                            &Item {
+                                item_type: ItemType::Callback {
+                                    function: save,
+                                    parameters: &[],
+                                },
+                                command: "save",
+                                help: Some(strings::AC_SAVE_AND_EXIT_TXT),
+                            },
+                        ],
+                        entry: Some(enter_custom_attack),
+                        exit: Some(exit_custom_attack),
+                    }),
+                    command: "custom_attack",
+                    help: Some(strings::CUSTOM_ATTACK_TXT),
                 },
-                &Item {
-                    item_type: ItemType::Callback {
-                        function: test_attack,
-                        parameters: &[],
-                    },
-                    command: "test_attack",
-                    help: Some("Choose the test attack"),
-                },
-
                 &Item {
                     item_type: ItemType::Callback {
                         function: spoofing_attack,
                         parameters: &[
                             Parameter::Mandatory {
                                 parameter_name: "id",
-                                help: Some("CAN ID to send in hex (e.g, 0x123)"),
+                                help: Some(strings::PARAM_MATCH_ID_TXT),
                             },
                             Parameter::Mandatory {
                                 parameter_name: "spoofed_data",
-                                help: Some("Data bytes to spoof as comma-separated hex values (e.g., 0x10,0x20,0x30)"),
+                                help: Some(strings::SPOOFING_ATTACK_DATA_TXT),
                             },
                             Parameter::Optional {
                                 parameter_name: "match_data",
-                                help: Some("First data bytes to match as comma-separated hex values (e.g., 0x10,0x20,0x30)"),
+                                help: Some(strings::PARAM_MATCH_DATA_TXT),
                             },
                             Parameter::Named {
                                 parameter_name: "extended",
-                                help: Some("Whether this is an extended ID (defaults to standard ID)"),
+                                help: Some(strings::PARAM_EXTENDED_TXT),
                             },
                         ],
                     },
                     command: "spoofing_attack",
-                    help: Some("Push a spoofing attack over an ID"),
+                    help: Some(strings::SPOOFING_ATTACK_TXT),
                 },
-
-
                 &Item {
                     item_type: ItemType::Callback {
                         function: bus_off_attack,
                         parameters: &[
                             Parameter::Mandatory {
                                 parameter_name: "id",
-                                help: Some("CAN ID to send in hex (e.g, 0x123)"),
+                                help: Some(strings::PARAM_MATCH_ID_TXT),
                             },
-                            Parameter::Mandatory { parameter_name: "errors", help: Some("Amount of consecutive error to send") },
+                            Parameter::Mandatory {
+                                parameter_name: "errors",
+                                help: Some(strings::PARAM_ERRORS_TXT),
+                            },
                             Parameter::Optional {
                                 parameter_name: "match_data",
-                                help: Some("First data bytes to match as comma-separated hex values (e.g., 0x10,0x20,0x30)"),
+                                help: Some(strings::PARAM_MATCH_DATA_TXT),
                             },
                             Parameter::Named {
                                 parameter_name: "extended",
-                                help: Some("Whether this is an extended ID (defaults to standard ID)"),
+                                help: Some(strings::PARAM_EXTENDED_TXT),
                             },
                         ],
                     },
                     command: "bus_off_attack",
-                    help: Some("Push a bus_off_attack over an ID"),
+                    help: Some(strings::BUS_OFF_ATTACK_TXT),
                 },
-
                 &Item {
                     item_type: ItemType::Callback {
                         function: double_receive_attack,
                         parameters: &[
                             Parameter::Mandatory {
                                 parameter_name: "id",
-                                help: Some("CAN ID to send in hex (e.g, 0x123)"),
+                                help: Some(strings::PARAM_MATCH_ID_TXT),
                             },
-                            Parameter::Mandatory { parameter_name: "errors", help: Some("Amount of consecutive error to send") },
+                            Parameter::Mandatory {
+                                parameter_name: "errors",
+                                help: Some(strings::PARAM_ERRORS_TXT),
+                            },
                             Parameter::Optional {
                                 parameter_name: "match_data",
-                                help: Some("First data bytes to match as comma-separated hex values (e.g., 0x10,0x20,0x30)"),
+                                help: Some(strings::PARAM_MATCH_DATA_TXT),
                             },
                             Parameter::Named {
                                 parameter_name: "extended",
-                                help: Some("Whether this is an extended ID (defaults to standard ID)"),
+                                help: Some(strings::PARAM_EXTENDED_TXT),
                             },
                         ],
                     },
                     command: "double_receive_attack",
-                    help: Some("Push a double_receive_attack over an ID"),
+                    help: Some(strings::DOUBLE_RECEIVE_ATTACK_TXT),
                 },
-
                 &Item {
                     item_type: ItemType::Callback {
                         function: delete_attack,
-                        parameters: &[
-                            Parameter::Mandatory {
-                                parameter_name: "idx",
-                                help: Some("Index of the attack to delete"),
-                            },
-                        ],
+                        parameters: &[Parameter::Mandatory {
+                            parameter_name: "index",
+                            help: Some(strings::DELETE_ATTACK_INDEX_TXT),
+                        }],
                     },
                     command: "delete",
-                    help: Some("Delete an attack from the plan"),
+                    help: Some(strings::DELETE_ATTACK_TXT),
                 },
                 &Item {
                     item_type: ItemType::Callback {
@@ -362,7 +352,9 @@ where
                         parameters: &[
                             Parameter::Mandatory {
                                 parameter_name: "from",
-                                help: Some("Source index of the attack"),
+                                help: Some(
+                                    "Source index of the attack in the plan (starts from 0)",
+                                ),
                             },
                             Parameter::Mandatory {
                                 parameter_name: "to",
@@ -371,7 +363,7 @@ where
                         ],
                     },
                     command: "move",
-                    help: Some("Move an attack in the plan"),
+                    help: Some(strings::MOVE_ATTACK_TXT),
                 },
                 &Item {
                     item_type: ItemType::Callback {
@@ -379,27 +371,27 @@ where
                         parameters: &[],
                     },
                     command: "list",
-                    help: Some("List all attacks in the current plan"),
+                    help: Some(strings::LIST_PLAN_TXT),
                 },
-
                 &Item {
                     item_type: ItemType::Callback {
                         function: attack,
                         parameters: &[
                             Parameter::Optional {
                                 parameter_name: "successes",
-                                help: Some("Number of successfull attacks to do (default: 1)"),
+                                help: Some(strings::ATTACK_SUCCESSES_TXT),
                             },
                             Parameter::Optional {
                                 parameter_name: "retries",
-                                help: Some("Number of retries until aborting the attack (default: infinite)"),
-                            },                        ],
+                                help: Some(strings::ATTACK_RETIRES_TXT),
+                            },
+                        ],
                     },
                     command: "attack",
-                    help: Some("Start the attack"),
+                    help: Some(strings::ATTACK_TXT),
                 },
             ],
-            entry: None,
+            entry: Some(Self::enter_root),
             exit: None,
         };
 
@@ -408,6 +400,14 @@ where
             menu: Some(menu),
             context: Some(Context::new_with(core)),
         }
+    }
+
+    pub fn enter_root<I: Read + Write, C: TicksClock, T: Tranceiver>(
+        _menu: &Menu<I, Context<C, T>>,
+        interface: &mut I,
+        _context: &mut Context<C, T>,
+    ) {
+        interface.write(strings::ENTER_ROOT_TXT.as_bytes()).unwrap();
     }
 
     fn wait_and_print_banner(serial: &mut SERIAL) {
@@ -778,20 +778,6 @@ fn double_receive_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
         id, errors, match_data
     )
     .unwrap();
-}
-
-fn test_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
-    _menu: &Menu<I, Context<C, T>>,
-    _item: &Item<I, Context<C, T>>,
-    _args: &[&str],
-    interface: &mut I,
-    context: &mut Context<C, T>,
-) {
-    writeln!(interface, "Test attack").unwrap();
-    context
-        .plan_builder
-        .push(PredefAttacks::TestAttack)
-        .unwrap();
 }
 
 fn attack<I: Read + Write, C: TicksClock, T: Tranceiver>(

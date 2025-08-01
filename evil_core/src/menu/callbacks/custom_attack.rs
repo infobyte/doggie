@@ -1,6 +1,7 @@
 use crate::bsp::{TicksClock, Tranceiver};
 use crate::machine::commands::builder::{HighLevelAttackCmd, PredefAttacks};
 use crate::menu::Context;
+use crate::strings;
 use embedded_can::Id;
 use embedded_io::{Read, Write};
 use menu::{argument_finder, Item, Menu};
@@ -10,22 +11,18 @@ pub fn enter_custom_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
     interface: &mut I,
     context: &mut Context<C, T>,
 ) {
-    writeln!(interface, "In enter_custom_attack").unwrap();
+    interface
+        .write(strings::ENTER_CUSTOM_ATTACK_TXT.as_bytes())
+        .unwrap();
     context.custom_attack.clear();
 }
 
 pub fn exit_custom_attack<I: Read + Write, C: TicksClock, T: Tranceiver>(
     _menu: &Menu<I, Context<C, T>>,
-    interface: &mut I,
+    _interface: &mut I,
     context: &mut Context<C, T>,
 ) {
-    writeln!(interface, "In exit_custom_attack").unwrap();
-    context
-        .plan_builder
-        .push(PredefAttacks::CustomAttack {
-            commands: context.custom_attack.clone(),
-        })
-        .unwrap();
+    context.custom_attack.clear();
 }
 
 pub fn match_id<I: Read + Write, C: TicksClock, T: Tranceiver>(
@@ -445,4 +442,21 @@ pub fn list<I: Read + Write, C: TicksClock, T: Tranceiver>(
     for (idx, cmd) in context.custom_attack.iter().enumerate() {
         writeln!(interface, "\t{}: {:?}", idx, cmd).unwrap();
     }
+}
+
+pub fn save<I: Read + Write, C: TicksClock, T: Tranceiver>(
+    _menu: &Menu<I, Context<C, T>>,
+    _item: &Item<I, Context<C, T>>,
+    _args: &[&str],
+    interface: &mut I,
+    context: &mut Context<C, T>,
+) {
+    context
+        .plan_builder
+        .push(PredefAttacks::CustomAttack {
+            commands: context.custom_attack.clone(),
+        })
+        .unwrap();
+
+    writeln!(interface, "Custom attack added to the plan").unwrap();
 }
