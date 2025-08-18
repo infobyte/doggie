@@ -49,9 +49,6 @@ impl<'d> CanDevice for CanWrapper<'d> {
     fn set_bitrate(&mut self, bitrate: CanBitrates) {
         info!("Setting bitrate to: {:X}", bitrate as u32);
         self.can.set_bitrate((bitrate as u32) * 1_000);
-
-        // Re enable can
-        block_on(self.can.enable());
     }
 
     fn set_filter(&mut self, id: Id) {
@@ -74,5 +71,21 @@ impl<'d> CanDevice for CanWrapper<'d> {
         self.can
             .modify_filters()
             .enable_bank(0, Fifo::Fifo0, new_filter);
+    }
+
+    fn open(&mut self) {
+        block_on(self.can.enable());
+
+        if self.can.is_sleeping() {
+            self.can.wakeup();
+        }
+    }
+
+    fn close(&mut self) {
+        block_on(self.can.sleep());
+    }
+
+    fn listen_only(&mut self) {
+        self.can.modify_config().set_silent(true);
     }
 }

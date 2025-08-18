@@ -201,9 +201,9 @@ async fn main(spawner: Spawner) {
         can.modify_config()
             .set_loopback(false)
             .set_silent(false)
-            .set_bitrate(250_000);
+            .set_bitrate(500_000);
 
-        can.enable().await;
+        // can.enable().await;
 
         let can_wrapper = CanWrapper::new(can);
 
