@@ -1,7 +1,9 @@
+use embassy_futures::block_on;
 use embassy_stm32::{
     mode::Async,
     usart::{Error as UartError, Uart},
 };
+use embedded_io;
 use embedded_io::ErrorType;
 use embedded_io_async::{Read, Write};
 
@@ -28,5 +30,21 @@ impl<'d> Read for UartWrapper<'d> {
 impl<'d> Write for UartWrapper<'d> {
     async fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
         embedded_io_async::Write::write(&mut self.uart, buf).await
+    }
+}
+
+impl<'d> embedded_io::Read for UartWrapper<'d> {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize, Self::Error> {
+        block_on(self.uart.read_until_idle(buf))
+    }
+}
+
+impl<'d> embedded_io::Write for UartWrapper<'d> {
+    fn flush(&mut self) -> Result<(), Self::Error> {
+        Ok(())
+    }
+
+    fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
+        block_on(embedded_io_async::Write::write(&mut self.uart, buf))
     }
 }

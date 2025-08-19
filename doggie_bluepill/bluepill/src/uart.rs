@@ -21,10 +21,3 @@ pub fn create_uart<'d>(
     // Initialize UART
     UartWrapper::new(Uart::new(uart, rx, tx, UartIrqs, dma1, dma2, uart_config).unwrap())
 }
-
-#[macro_export]
-macro_rules! create_default_uart {
-    ($p:expr) => {{
-        uart::create_uart($p.USART2, $p.PA2, $p.PA3, $p.DMA1_CH7, $p.DMA1_CH6)
-    }};
-}

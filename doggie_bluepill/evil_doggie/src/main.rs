@@ -1,20 +1,37 @@
 #![no_std]
 #![no_main]
 
-mod bluepill;
-mod soft_timer;
-mod spi;
-mod spi_device;
 use evil_core::{
-    clock::TicksClock, tranceiver::Tranceiver, AttackCmd, BitStream, CanBitrates, EvilBsp, EvilCore, FastBitQueue
+    bsp::{CanBitrates, EvilBsp, TicksClock, Tranceiver},
+    EvilCore, EvilMenu,
 };
 
-use {defmt_rtt as _, panic_probe as _};
+use bluepill::{board, create_serial, init_globals};
+
 use defmt::info;
 use embassy_executor::Spawner;
-use embassy_stm32::{gpio::{Input, Level, Output, Pull, Speed}, pac::{flash::vals::Latency, rcc::vals::Pllsrc}, rcc::{AHBPrescaler, APBPrescaler, PllMul, Sysclk}};
-use embassy_time::Timer;
+use embassy_stm32::bind_interrupts;
 use embassy_stm32::pac;
+use embassy_stm32::{
+    gpio::{Input, Level, Output, Pull, Speed},
+    pac::{flash::vals::Latency, rcc::vals::Pllsrc},
+    rcc::{AHBPrescaler, APBPrescaler, PllMul, Sysclk},
+};
+use embassy_time::Timer;
+use {defmt_rtt as _, panic_probe as _};
+
+#[cfg(all(feature = "usb", feature = "uart"))]
+core::compile_error!(
+    "Fature compatibility error: 'usb' and 'int' features can't be enable at the same time"
+);
+
+#[cfg(any(
+    all(not(feature = "uart"), not(feature = "usb")),
+    all(feature = "uart", feature = "usb")
+))]
+core::compile_error!("Fature error: One serial interface must been selected ('uart' or 'usb')");
+
+init_globals!();
 
 // Function to set PLL multiplier to 16 for 128 MHz (HSE = 8 MHz)
 pub fn overclock() {
@@ -64,7 +81,6 @@ async fn blink_task(mut led: Output<'static>) {
     }
 }
 
-
 struct SystickClock {
     _systick: cortex_m::peripheral::SYST,
 }
@@ -83,7 +99,6 @@ impl SystickClock {
         // Enable counter
         systick.enable_counter();
 
-
         Self { _systick: systick }
     }
 }
@@ -98,8 +113,11 @@ impl TicksClock for SystickClock {
     fn add_ticks(t1: u32, t2: u32) -> u32 {
         (t1 + t2) % 0x1000000
     }
-}
 
+    fn sub_ticks(t1: u32, t2: u32) -> u32 {
+        t1.wrapping_sub(t2) % 0x1000000
+    }
+}
 
 struct BpTr<'a> {
     _tx: Output<'a>,
@@ -109,7 +127,11 @@ struct BpTr<'a> {
 
 impl<'a> BpTr<'a> {
     pub fn new(tx: Output<'a>, rx: Input<'a>, force: Output<'a>) -> Self {
-        BpTr { _tx: tx, _rx: rx, _force: force }
+        BpTr {
+            _tx: tx,
+            _rx: rx,
+            _force: force,
+        }
     }
 }
 
@@ -126,7 +148,8 @@ impl<'a> Tranceiver for BpTr<'a> {
                 // Set PA10 low
                 core::ptr::write_volatile(GPIOA_ODR, current & !(1 << 10));
             }
-        }    }
+        }
+    }
 
     fn get_rx(&self) -> bool {
         // Direct memory access for GPIOA IDR (PA9, bit 9)
@@ -143,37 +166,40 @@ impl<'a> Tranceiver for BpTr<'a> {
             let current = core::ptr::read_volatile(GPIOA_ODR);
             if state {
                 // Set PA11 high
-                core::ptr::write_volatile(GPIOA_ODR, current | (1 << 11));
+                core::ptr::write_volatile(GPIOA_ODR, current | (1 << 8));
             } else {
                 // Set PA11 low
-                core::ptr::write_volatile(GPIOA_ODR, current & !(1 << 11));
+                core::ptr::write_volatile(GPIOA_ODR, current & !(1 << 8));
             }
         }
     }
+
+    fn set_debug(&mut self, _state: bool) {}
 }
 
+fn bluepill_attack<Clock: TicksClock, Tr: Tranceiver>(core: &mut EvilCore<Clock, Tr>) -> bool {
+    let mut res = false;
+    cortex_m::interrupt::free(|_| res = core.attack());
+
+    res
+}
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
-    let p = bluepill::init();
+    let mut p = board::init();
 
     overclock();
 
     let led = Output::new(p.PC13, Level::High, Speed::Low);
     spawner.spawn(blink_task(led)).unwrap();
 
+    let serial = create_serial!(p, spawner);
+
     let tx = Output::new(p.PA10, Level::High, Speed::VeryHigh);
     let rx = Input::new(p.PA9, Pull::Up);
-    let force = Output::new(p.PA11, Level::Low, Speed::VeryHigh);
+    let force = Output::new(p.PA8, Level::Low, Speed::VeryHigh);
 
     let tranceiver = BpTr::new(tx, rx, force);
-
-
-    // Delay for the MCP2515
-    // let delay = SoftTimer {};
-
-    // Setup SPI
-    // let spi = create_default_spi!(p);
 
     let cp = cortex_m::Peripherals::take().unwrap();
     let systick = SystickClock::new(cp.SYST);
@@ -184,52 +210,10 @@ async fn main(spawner: Spawner) {
     info!("BSP created");
 
     // Create and run the Doggie core
-    let mut core = EvilCore::new(bsp, CanBitrates::Kbps500, 1400);
+    let core = EvilCore::new(bsp, CanBitrates::Kbps500, 1400, bluepill_attack);
 
-    info!("Core created");
+    info!("Evil core created, running evil menu");
 
-
-    Timer::after_millis(100).await;
-
-
-    loop {
-    
-        core.arm(
-            &[
-
-                AttackCmd::Wait { bits: 1 },
-                AttackCmd::Match { stream: FastBitQueue::new(0x123, 11) },
-                AttackCmd::Wait { bits: 3 },
-                AttackCmd::Read { len: 4 },
-                AttackCmd::WaitBuffered,
-                AttackCmd::Wait { bits: 16 },
-                AttackCmd::Force { stream: FastBitQueue::new(0x1, 1) },
-
-
-
-                // AttackCmd::Wait { bits: 1 },
-                // AttackCmd::Match { stream: BitStream::from_u32(0x123, 11) },
-                // AttackCmd::Wait { bits: 39 },
-                // AttackCmd::Send { stream: BitStream::from_u32(0xFFF, 12) },
-
-                // AttackCmd::Wait { bits: 10 },
-                // AttackCmd::Wait { bits: 9 },
-                // AttackCmd::Send { stream: BitStream::from_u32(0xFFF, 12) },
-                // AttackCmd::Force { stream: BitStream::from_u32(0b10101010101, 11) },
-            ]
-        ).unwrap();
-
-        Timer::after_millis(800).await;
-
-        info!("Attack armed");
-
-        cortex_m::interrupt::free(
-            |_| {
-                core.attack();
-            }
-        );
-
-        info!("Attack has finished");
-
-    }
+    let mut menu = EvilMenu::new(serial, core);
+    menu.run();
 }

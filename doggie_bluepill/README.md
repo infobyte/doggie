@@ -147,13 +147,13 @@ In order to manage the compilation with different hardware variants we use the f
 2. Build and flash with selected features
     * USB and MCP2515:
         ```
-        cargo run --release --no-default-features --features usb,mcp
+        cargo run --bin doggie --release --no-default-features --features usb,mcp
         ```
     * UART and MCP2515:
         ```
-        cargo run --release --no-default-features --features uart,mcp
+        cargo run --bin doggie --release --no-default-features --features uart,mcp
         ```
     * UART and internal CAN:
         ```
-        cargo run --release --no-default-features --features uart,int
+        cargo run --bin doggie --release --no-default-features --features uart,int
         ```

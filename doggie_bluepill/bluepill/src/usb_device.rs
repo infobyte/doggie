@@ -1,7 +1,8 @@
-use defmt::{error, println};
+use defmt::error;
+use embassy_futures::block_on;
 use embassy_stm32::{peripherals::USB, usb::Driver};
 use embassy_usb::class::cdc_acm::CdcAcmClass;
-use embedded_io::{ErrorKind, ErrorType};
+use embedded_io::{self, ErrorKind, ErrorType};
 use embedded_io_async::{Error, Read, Write};
 
 pub struct UsbWrapper<'d> {
@@ -45,5 +46,21 @@ impl<'d> Write for UsbWrapper<'d> {
             }
             Ok(_) => Ok(buf.len()),
         }
+    }
+}
+
+impl<'d> embedded_io::Read for UsbWrapper<'d> {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize, Self::Error> {
+        block_on(embedded_io_async::Read::read(self, buf))
+    }
+}
+
+impl<'d> embedded_io::Write for UsbWrapper<'d> {
+    fn flush(&mut self) -> Result<(), Self::Error> {
+        Ok(())
+    }
+
+    fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
+        block_on(embedded_io_async::Write::write(self, buf))
     }
 }
