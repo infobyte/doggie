@@ -1,0 +1,23 @@
+site_name: evilDoggie
+nav:
+  - Introduction: intro.md
+  - Doggie:
+    - Introdutcion: doggie/intro.md
+    - Get Started: doggie/get_started.md
+  - evilDoggie:
+    - Introduction: evil_doggie/intro.md
+    - Get Started: evil_doggie/get_started.md
+  - Hardware:
+    - Faraday: hardware/faraday.md
+    - DIY:
+      - Introduction: hardware/diy/intro.md
+      - Microcontrollers:
+        - ESP32: hardware/diy/esp32.md
+        - RP2040 (Raspberry Pico): hardware/diy/rp.md
+        - STM32F1 (bluepill): hardware/diy/bluepill.md
+      - MCP2515 Notes: hardware/mcp.md
+  - evilDoggie lab:
+    - Introduction: workshop/intro.md
+
+theme:
+  name: readthedocs
