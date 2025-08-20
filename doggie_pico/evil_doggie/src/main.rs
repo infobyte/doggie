@@ -4,21 +4,25 @@
 mod soft_timer;
 mod spi;
 mod spi_device;
-mod unique_id;
-mod usb_device;
 
 use defmt::info;
 use embassy_executor::Spawner;
 use embassy_rp::{
-    gpio::{Level, Output, Input, Pull},
-    clocks::{PllConfig, ClockConfig, XoscConfig}
+    bind_interrupts,
+    clocks::{ClockConfig, PllConfig, XoscConfig},
+    gpio::{Input, Level, Output, Pull},
 };
-use embassy_time::Timer;
+use rp;
 use {defmt_rtt as _, panic_probe as _};
 
 use evil_core::{
-    clock::TicksClock, tranceiver::Tranceiver, AttackCmd, BitStream, CanBitrates, EvilBsp, EvilCore, FastBitQueue
+    bsp::{CanBitrates, EvilBsp, TicksClock, Tranceiver},
+    EvilCore, EvilMenu,
 };
+
+use static_cell::StaticCell;
+
+rp::init_globals!();
 
 struct SystickClock {
     systick: cortex_m::peripheral::SYST,
@@ -54,6 +58,11 @@ impl TicksClock for SystickClock {
     fn add_ticks(t1: u32, t2: u32) -> u32 {
         (t1 + t2) % 0x1000000
     }
+
+    #[inline(always)]
+    fn sub_ticks(t1: u32, t2: u32) -> u32 {
+        t1.wrapping_sub(t2) % 0x1000000
+    }
 }
 
 struct BpTr<'a> {
@@ -64,7 +73,11 @@ struct BpTr<'a> {
 
 impl<'a> BpTr<'a> {
     pub fn new(tx: Output<'a>, rx: Input<'a>, force: Output<'a>) -> Self {
-        BpTr { _tx: tx, _rx: rx, _force: force }
+        BpTr {
+            _tx: tx,
+            _rx: rx,
+            _force: force,
+        }
     }
 }
 
@@ -87,9 +100,7 @@ impl<'a> Tranceiver for BpTr<'a> {
     fn get_rx(&self) -> bool {
         // Direct memory access for pin 21
         const GPIO_IN: *const u32 = 0xD000_0004 as *const u32;
-        unsafe {
-            (core::ptr::read_volatile(GPIO_IN) & (1 << 21)) != 0
-        }
+        unsafe { (core::ptr::read_volatile(GPIO_IN) & (1 << 21)) != 0 }
     }
 
     #[inline(always)]
@@ -107,6 +118,16 @@ impl<'a> Tranceiver for BpTr<'a> {
             }
         }
     }
+
+    #[inline(always)]
+    fn set_debug(&mut self, _state: bool) {}
+}
+
+fn rp_attack<Clock: TicksClock, Tr: Tranceiver>(core: &mut EvilCore<Clock, Tr>) -> bool {
+    let mut res = false;
+    cortex_m::interrupt::free(|_| res = core.attack());
+
+    res
 }
 
 #[embassy_executor::main]
@@ -114,36 +135,36 @@ async fn main(spawner: Spawner) {
     info!("Device initialization");
     let mut clocks = ClockConfig::crystal(12_000_000);
 
-    clocks.xosc.replace(
-        XoscConfig {
-            hz: 12_000_000,
-            sys_pll: Some(PllConfig {
-                refdiv: 1,
-                fbdiv: 120,
-                post_div1: 6,
-                post_div2: 2,
-            }),
-            usb_pll: Some(PllConfig {
-                refdiv: 1,
-                fbdiv: 120,
-                post_div1: 6,
-                post_div2: 5,
-            }),
-            delay_multiplier: 128,
-        }
-    );
+    clocks.xosc.replace(XoscConfig {
+        hz: 12_000_000,
+        sys_pll: Some(PllConfig {
+            refdiv: 1,
+            fbdiv: 120,
+            post_div1: 6,
+            post_div2: 2,
+        }),
+        usb_pll: Some(PllConfig {
+            refdiv: 1,
+            fbdiv: 120,
+            post_div1: 6,
+            post_div2: 5,
+        }),
+        delay_multiplier: 128,
+    });
 
-      // Initialize with custom clocks
+    // Initialize with custom clocks
     let p = embassy_rp::init(embassy_rp::config::Config::new(clocks));
 
     let tx = Output::new(p.PIN_20, Level::High);
     let rx = Input::new(p.PIN_21, Pull::Up);
     let force = Output::new(p.PIN_22, Level::Low);
- 
+
     let tranceiver = BpTr::new(tx, rx, force);
-   
+
     let cp = cortex_m::Peripherals::take().unwrap();
     let systick = SystickClock::new(cp.SYST);
+
+    let serial = rp::create_serial!(p, spawner);
 
     info!("Systick reload value: {:x}", systick.systick.rvr.read());
 
@@ -153,35 +174,12 @@ async fn main(spawner: Spawner) {
     info!("BSP created");
 
     // Create and run the Doggie core
-    let mut core = EvilCore::new(bsp, CanBitrates::Kbps500, 850);
+    let mut core = EvilCore::new(bsp, CanBitrates::Kbps500, 850, rp_attack);
 
     info!("Core created");
 
-    Timer::after_millis(100).await;
+    info!("Evil core created, running evil menu");
 
-    loop {
-        core.arm(
-            &[
-                // AttackCmd::Wait { bits: 1 },
-                // AttackCmd::Force { stream: FastBitQueue::new(0b1010_1010, 8) },
-                AttackCmd::Wait { bits: 1 },
-                AttackCmd::Match { stream: FastBitQueue::new(0x123, 11) },
-                AttackCmd::Wait { bits: 3 },
-                AttackCmd::Read { len: 4 },
-                AttackCmd::WaitBuffered,
-                AttackCmd::Wait { bits: 16 },
-                AttackCmd::Force { stream: FastBitQueue::new(0b101, 3) },
-            ]
-        ).unwrap();
-        
-        info!("Attack armed");
-
-        cortex_m::interrupt::free(
-            |_| {
-                core.attack();
-            }
-        );
-
-        info!("Attack has finished");
-    }
+    let mut menu = EvilMenu::new(serial, core);
+    menu.run();
 }

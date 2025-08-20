@@ -1,4 +1,6 @@
 use crate::types::{BlePipeReader, BlePipeWriter};
+use embassy_futures::block_on;
+use embedded_io;
 use embedded_io_async::{Read, Write};
 
 pub struct BleSerial {
@@ -29,5 +31,21 @@ impl Write for BleSerial {
 
     async fn flush(&mut self) -> Result<(), Self::Error> {
         Ok(())
+    }
+}
+
+impl<'d> embedded_io::Read for BleSerial {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize, Self::Error> {
+        block_on(embedded_io_async::Read::read(self, buf))
+    }
+}
+
+impl<'d> embedded_io::Write for BleSerial {
+    fn flush(&mut self) -> Result<(), Self::Error> {
+        Ok(())
+    }
+
+    fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
+        block_on(embedded_io_async::Write::write(self, buf))
     }
 }

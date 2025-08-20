@@ -1,6 +1,10 @@
-use embedded_io_async::{Read, Write, ErrorType, ErrorKind, Error};
-use embassy_futures::select::{select, Either};
 use defmt::info;
+use embassy_futures::{
+    block_on,
+    select::{select, Either},
+};
+use embedded_io;
+use embedded_io_async::{Error, ErrorKind, ErrorType, Read, Write};
 
 #[derive(Debug)]
 pub struct SerialMuxError {}
@@ -34,39 +38,38 @@ where
     S2: Write + Read,
 {
     pub fn new(s1: S1, s2: S2) -> Self {
-        Self { s1, s2, state: SerialMuxState::Init }
+        Self {
+            s1,
+            s2,
+            state: SerialMuxState::Init,
+        }
     }
 
     async fn auto_select(&mut self, buf: &mut [u8]) {
-        let mut buf1: [u8;1] = [0];
-        let mut buf2: [u8;1] = [0];
+        let mut buf1: [u8; 1] = [0];
+        let mut buf2: [u8; 1] = [0];
 
         loop {
-            match select(
-                self.s1.read(&mut buf1),
-                self.s2.read(&mut buf2),
-            ).await {
+            match select(self.s1.read(&mut buf1), self.s2.read(&mut buf2)).await {
                 Either::First(Ok(_)) => {
                     info!("First serial selected");
                     buf[0] = buf1[0];
                     self.state = SerialMuxState::First;
-                    return
-                },
+                    return;
+                }
                 Either::Second(Ok(_)) => {
                     info!("Second serial selected");
                     buf[0] = buf2[0];
                     self.state = SerialMuxState::Second;
-                    return
-                },
+                    return;
+                }
                 _ => {}
             }
-            
         }
     }
 }
 
-
-impl<S1, S2> ErrorType for SerialMux<S1,S2>
+impl<S1, S2> ErrorType for SerialMux<S1, S2>
 where
     S1: Write + Read,
     S2: Write + Read,
@@ -85,22 +88,17 @@ where
         }
 
         match self.state {
-            SerialMuxState::First => {
-                match self.s1.read(buf).await {
-                    Err(_) => Err(SerialMuxError {}),
-                    Ok(res) => Ok(res),
-                }
+            SerialMuxState::First => match self.s1.read(buf).await {
+                Err(_) => Err(SerialMuxError {}),
+                Ok(res) => Ok(res),
             },
-            SerialMuxState::Second => {
-                match self.s2.read(buf).await {
-                    Err(_) => Err(SerialMuxError {}),
-                    Ok(res) => Ok(res),
-                }
+            SerialMuxState::Second => match self.s2.read(buf).await {
+                Err(_) => Err(SerialMuxError {}),
+                Ok(res) => Ok(res),
             },
-            SerialMuxState::Init => {
-                Err(SerialMuxError {})
-            }
-        }    }
+            SerialMuxState::Init => Err(SerialMuxError {}),
+        }
+    }
 }
 
 impl<S1, S2> Write for SerialMux<S1, S2>
@@ -112,23 +110,17 @@ where
         if self.state == SerialMuxState::Init {
             self.auto_select(&mut [0]).await;
         }
-        
+
         match self.state {
-            SerialMuxState::First => {
-                match self.s1.write(buf).await {
-                    Err(_) => Err(SerialMuxError {}),
-                    Ok(res) => Ok(res),
-                }
+            SerialMuxState::First => match self.s1.write(buf).await {
+                Err(_) => Err(SerialMuxError {}),
+                Ok(res) => Ok(res),
             },
-            SerialMuxState::Second => {
-                match self.s2.write(buf).await {
-                    Err(_) => Err(SerialMuxError {}),
-                    Ok(res) => Ok(res),
-                }
+            SerialMuxState::Second => match self.s2.write(buf).await {
+                Err(_) => Err(SerialMuxError {}),
+                Ok(res) => Ok(res),
             },
-            SerialMuxState::Init => {
-                Err(SerialMuxError {})
-            }
+            SerialMuxState::Init => Err(SerialMuxError {}),
         }
     }
 
@@ -137,3 +129,26 @@ where
     }
 }
 
+impl<S1, S2> embedded_io::Read for SerialMux<S1, S2>
+where
+    S1: Write + Read,
+    S2: Write + Read,
+{
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize, Self::Error> {
+        block_on(embedded_io_async::Read::read(self, buf))
+    }
+}
+
+impl<S1, S2> embedded_io::Write for SerialMux<S1, S2>
+where
+    S1: Write + Read,
+    S2: Write + Read,
+{
+    fn flush(&mut self) -> Result<(), Self::Error> {
+        Ok(())
+    }
+
+    fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
+        block_on(embedded_io_async::Write::write(self, buf))
+    }
+}

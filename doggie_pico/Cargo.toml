@@ -1,55 +1,7 @@
-[package]
-name = "doggie_pico"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-embassy-rp = { version = "0.4.0", features = ["defmt", "unstable-pac", "time-driver", "critical-section-impl", "rp2040"] }
-embassy-sync = { version = "0.7", features = ["defmt"] }
-embassy-executor = { version = "0.7.0", features = ["task-arena-size-98304", "arch-cortex-m", "executor-thread", "executor-interrupt", "defmt"] }
-embassy-time = { version = "0.4.0", features = ["defmt", "defmt-timestamp-uptime"] }
-embassy-futures = { version = "0.1.1" }
-embedded-io-async = { version = "0.6.1", features = ["defmt-03"] }
-embedded-io = "0.6.1"
-embedded-hal = "1.0.0"
-cortex-m-rt = "0.7.3"
-cortex-m = "0.7.7"
-defmt = "0.3.8"
-defmt-rtt = "0.4.1"
-panic-probe = "0.3.2"
-static_cell = "2.1"
-portable-atomic = { version = "1.5", features = ["critical-section"] }
-embedded-io-async = { version = "0.6.1", features = ["defmt-03"] }
-embedded-hal = "1.0.0"
-cortex-m = "0.7.7"
-
-doggie_core = { version = "0.1.0", path = "../doggie_core"}
-evil_core = { version = "0.1.0", path = "../evil_core"}
-
-mcp2515 = "0.3.0"
-doggie_core = { version = "0.1.0", path = "../doggie_core"}
-
-embassy-usb = { version = "0.3.0", features = ["defmt"], optional = true }
-
-doggie_ble = { version = "0.1.0", path = "../doggie_ble", optional = true}
-bt-hci = { version = "0.2.0", optional = true}
-cyw43 = { version = "0.3.0", features = ["defmt", "firmware-logs", "bluetooth"], optional = true }
-cyw43-pio = { version = "0.4.0", features = ["defmt"], optional = true }
-
-[features]
-usb = ["dep:embassy-usb"]
-uart = []
-ble = ["dep:doggie_ble", "dep:bt-hci", "dep:cyw43", "dep:cyw43-pio"]
-default = ["usb", "ble"]
-
-[profile.release]
-codegen-units = 1
-debug = 2
-lto = true
-opt-level = 3
-
-[profile.dev]
-codegen-units = 1
-debug = 2
-lto = true
-opt-level = 3
+[workspace]
+resolver = "3"
+members = [
+    "doggie",
+    "evil_doggie",
+    "rp",
+]
