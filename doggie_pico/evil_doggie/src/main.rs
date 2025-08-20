@@ -1,10 +1,6 @@
 #![no_std]
 #![no_main]
 
-mod soft_timer;
-mod spi;
-mod spi_device;
-
 use defmt::info;
 use embassy_executor::Spawner;
 use embassy_rp::{

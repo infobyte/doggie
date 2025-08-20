@@ -20,11 +20,8 @@ panic-probe = "0.3.2"
 static_cell = "2.1"
 portable-atomic = { version = "1.5", features = ["critical-section"] }
 
-doggie_core = { version = "0.1.0", path = "../../doggie_core"}
 evil_core = { version = "0.1.0", path = "../../evil_core"}
 rp = { version = "0.1.0", path = "../rp"}
-
-mcp2515 = "0.3.0"
 
 embassy-usb = { version = "0.3.0", features = ["defmt"], optional = true }
 
