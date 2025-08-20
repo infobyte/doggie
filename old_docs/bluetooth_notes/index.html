@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>(Evil)Doggie over Bluetooth - evilDoggie</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "(Evil)Doggie over Bluetooth";
+        var mkdocs_page_input_path = "old_docs/bluetooth_notes.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> evilDoggie
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../intro.md">Introduction</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Doggie</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../doggie/intro.md">Introdutcion</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../doggie/get_started.md">Get Started</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">evilDoggie</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../evil_doggie/intro.md">Introduction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../evil_doggie/get_started.md">Get Started</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Hardware</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../hardware/faraday.md">Faraday</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >DIY</a>
+    <ul>
+                <li class="toctree-l2"><a class="" href="../../hardware/diy/intro.md">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Microcontrollers</a>
+    <ul>
+                <li class="toctree-l3"><a class="" href="../../hardware/diy/esp32.md">ESP32</a>
+                </li>
+                <li class="toctree-l3"><a class="" href="../../hardware/diy/rp.md">RP2040 (Raspberry Pico)</a>
+                </li>
+                <li class="toctree-l3"><a class="" href="../../hardware/diy/bluepill.md">STM32F1 (bluepill)</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="" href="../../hardware/mcp.md">MCP2515 Notes</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">evilDoggie lab</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../workshop/intro.md">Introduction</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">evilDoggie</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">(Evil)Doggie over Bluetooth</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="evildoggie-over-bluetooth">(Evil)Doggie over Bluetooth</h1>
+<p>In this note we will cover how and why we implemented BLE for (Evil)Doggie instead of using other Bluetooth solutions like <code>Rfcomm</code> or <code>L2CAP CoC</code>.  This doesn't mean that future implementations of Bluetooth can't be done by the community, and we encourage the reader to try it. For time restrictions we had to focus only on one implementation.</p>
+<p>First of all, I would like to remark something: Doggie was made with one idea in mind, to be as  flexible as we could, speaking in terms of use and compatibility. With that in mind, we chose <code>slcan</code> (serial CAN Bus) protocol, as it is the most compatible driver for CAN.</p>
+<p>Having said this, the decision of using BLE NUS (Nordic-Uart Service) over a GATT server is clear: to be widely compatible with more hardware. Lets explain why.</p>
+<h2 id="classic-bluetooth-vs-ble">Classic Bluetooth vs BLE</h2>
+<p>We use <code>slcan</code> that, as the name suggests, is a serial implementation of CAN. So the most straight forward incorporation of Bluetooth should be <code>Rfcomm</code> as it provides a serial communication over Bluetooth. But <code>Rfcomm</code> only supports Classic Bluetooth and not Bluetooth Low Energy. The problem is the compatibility with the microcontrollers we chose for Doggie. Using as an example the ESP32 and its variants, we can see that the BLE is supported for more microcontrollers than the Classic Bluetooth. This decision sacrifices performance over hardware compatibility.</p>
+<table>
+<thead>
+<tr>
+<th>Device</th>
+<th>Classic Bluetooth</th>
+<th>BLE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ESP32</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>ESP32-S2</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td>ESP32-S3</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>ESP32-C2</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>ESP32-C3</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>ESP32-C6</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>ESP32-H2</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>ESP32-C5</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>ESP32-P4</td>
+<td>No</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<h2 id="l2cap-coc-vs-nus">L2CAP CoC vs NUS</h2>
+<p>After selecting BLE we had another decision to make, as there are two available options. The first one is using the lower layer of the BLE Host, L2CAP. This protocol can be used as a Channel-Oriented connection, as it provides a channel with two ends for communication between devices. Using L2CAP allows to avoid all the upper layers of the stack reducing the overhead in communication. But, the problem with L2CAP is the lack of compatibility with existent tools, specially on Windows. Hence, we chose the other option: NUS.</p>
+<p><img alt="alt text" src="ble_stack.png" /></p>
+<p><a href="https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/libraries/bluetooth/services/nus.html">NUS</a> (Nordic-Uart Service) is a GATT Service used to receive and write data serving as bridge for UART interfaces. And as we need a serial interface, it fits. Using NUS sacrifices performance and connection stability but allows the use of existing tools even on Windows, increasing the compatibility. The service presents the following characteristics:</p>
+<h3 id="service-uuid">Service UUID</h3>
+<p>The 128-bit vendor-specific service UUID is <code>6E400001-B5A3-F393-E0A9-E50E24DCCA9E</code> (16-bit offset: <code>0x0001</code>).</p>
+<h3 id="characteristics">Characteristics</h3>
+<p>This service has two characteristics.</p>
+<h4 id="rx-characteristic-6e400002-b5a3-f393-e0a9-e50e24dcca9e">RX Characteristic (<code>6E400002-B5A3-F393-E0A9-E50E24DCCA9E</code>)</h4>
+<p>Write or Write Without Response</p>
+<pre><code>Write data to the RX Characteristic to send it to the UART interface.
+</code></pre>
+<h4 id="tx-characteristic-6e400003-b5a3-f393-e0a9-e50e24dcca9e">TX Characteristic (<code>6E400003-B5A3-F393-E0A9-E50E24DCCA9E</code>)</h4>
+<p>Notify</p>
+<pre><code>Enable notifications for the TX Characteristic to receive data from the application. The application transmits all data that is received over UART as notifications.
+</code></pre>
+<h2 id="implementation">Implementation</h2>
+<p>The BLE implementation is in <code>/doggie_ble</code> and is used as a separate crate for the hardware variants that support BLE. It depends on the <code>trouble-host</code> crate, witch is based on <code>bt_hci</code>.</p>
+<p>Just as an extra, we can see the GATT Server definition:</p>
+<pre><code class="language-Rust">#[gatt_server]
+struct Server {
+    nus_service: NordicUartService,
+}
+
+/// Nordic UART Service
+#[gatt_service(uuid = &quot;6E400001-B5A3-F393-E0A9-E50E24DCCA9E&quot;)]
+struct NordicUartService {
+    /// TX Characteristic - used to send data to central (notify)
+    #[characteristic(uuid = &quot;6E400003-B5A3-F393-E0A9-E50E24DCCA9E&quot;, notify, read)]
+    tx: Vec&lt;u8, MAX_CMD_LEN&gt;, // Maximum BLE packet size for data
+
+    /// RX Characteristic - used to receive data from central (write)
+    #[characteristic(
+        uuid = &quot;6E400002-B5A3-F393-E0A9-E50E24DCCA9E&quot;,
+        write,
+        write_without_response
+    )]
+    rx: Vec&lt;u8, MAX_CMD_LEN&gt;,
+}
+</code></pre>
+<p>We made two structs and a function called BleSerial, BleServer and create_ble_pipe. This makes it easier to port BLE to other hardware variants. The only requirement is to implement a Controller, run the BLE server on a separate task and then just use the BleSerial as a serial interface.</p>
+<pre><code class="language-rust">let connector = BleConnector::new(init, peripherals.BT);
+let controller = ExternalController::new(connector);
+
+let (ble_server, ble_serial) = create_ble_pipe();
+
+let _ = select(
+    ble_server.run(controller),
+    async {
+        let mut buffer = [0; 255];
+        loop {
+            let size = ble_serial.read(&amp;mut buffer).await.unwrap();
+            ble_serial.write_all(&amp;buffer[0..size]).await;
+        }
+    }
+).await;
+</code></pre>
+<h2 id="usage">Usage</h2>
+<p>The implementation is compatible with a lot of different UART-BLE programs for different platforms.  For PC, we recomend <a href="https://pypi.org/project/ble-serial">ble-serial</a>, a Python module that allows to create a virtual port bridged with BLE.</p>
+<p>To use it, first we install the package</p>
+<pre><code>$ pip install ble-serial
+</code></pre>
+<p>Then you should be able to discover a device with name <code>Doggie BLE</code>:</p>
+<pre><code>$ ble-scan
+Started general BLE scan
+
+28:CD:C1:04:D7:E3 (rssi=-62): Doggie BLE
+</code></pre>
+<p>And finally, create the bridge using the mac address of the Doggie BLE device</p>
+<pre><code>$ ble-serial -d 12:00:3B:01:B2:A5 -t 10000
+10:38:57.733 | INFO | linux_pty.py: Port endpoint created on /tmp/ttyBLE -&gt; /dev/pts/4
+10:38:57.733 | INFO | ble_client.py: Receiver set up
+10:38:57.938 | INFO | ble_client.py: Trying to connect with 12:00:3B:01:B2:A5: esp32c3
+10:38:59.627 | INFO | ble_client.py: Device 12:00:3B:01:B2:A5 connected
+10:38:59.628 | INFO | ble_client.py: Found write characteristic 6e400002-b5a3-f393-e0a9-e50e24dcca9e (H. 2)
+10:38:59.628 | INFO | ble_client.py: Found notify characteristic 6e400003-b5a3-f393-e0a9-e50e24dcca9e (H. 4)
+10:38:59.699 | INFO | main.py: Running main loop!
+</code></pre>
+<p>You should see in the logs that the program creates a virtual interface (in this case <code>/dev/pts/4</code>), you can now use that interface as a serial CAN.</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

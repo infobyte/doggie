@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Mcp mod - evilDoggie</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Mcp mod";
+        var mkdocs_page_input_path = "old_docs/mcp_mod.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> evilDoggie
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../intro.md">Introduction</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Doggie</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../doggie/intro.md">Introdutcion</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../doggie/get_started.md">Get Started</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">evilDoggie</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../evil_doggie/intro.md">Introduction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../evil_doggie/get_started.md">Get Started</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Hardware</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../hardware/faraday.md">Faraday</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >DIY</a>
+    <ul>
+                <li class="toctree-l2"><a class="" href="../../hardware/diy/intro.md">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Microcontrollers</a>
+    <ul>
+                <li class="toctree-l3"><a class="" href="../../hardware/diy/esp32.md">ESP32</a>
+                </li>
+                <li class="toctree-l3"><a class="" href="../../hardware/diy/rp.md">RP2040 (Raspberry Pico)</a>
+                </li>
+                <li class="toctree-l3"><a class="" href="../../hardware/diy/bluepill.md">STM32F1 (bluepill)</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="" href="../../hardware/mcp.md">MCP2515 Notes</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">evilDoggie lab</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../workshop/intro.md">Introduction</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">evilDoggie</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Mcp mod</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h3 id="mcp2515-module-modification-guide">MCP2515 Module Modification Guide</h3>
+<p>The project supports a variety of hardware configurations, but the most straightforward and widely recommended approach is to use the popular MCP2515 module in conjunction with a compatible microcontroller. While the MCP2515 module is a cost-effective and reliable choice for CAN Bus interfacing, it requires a specific modification to ensure seamless compatibility with most modern microcontrollers. This section explains the compatibility issue in detail, its root cause, and provides two practical solutions to address it.</p>
+<p><img alt="alt text" src="mcp2515.jpg" /></p>
+<h4 id="background-understanding-the-mcp2515-module">Background: Understanding the MCP2515 Module</h4>
+<p>The MCP2515 module is a complete solution for CAN Bus communication, integrating two key components:
+1. <strong>MCP2515 CAN Bus Controller</strong>: A standalone controller that communicates with a microcontroller via the Serial Peripheral Interface (SPI) protocol. It is responsible for managing CAN Bus data frames and can operate at either 3.3V or 5V logic levels.
+2. <strong>TJA1050 CAN Transceiver</strong>: A high-speed transceiver that interfaces directly with the CAN Bus physical layer, converting the controller’s signals into the differential voltages required by the CAN protocol. The TJA1050, however, operates exclusively at 5V.</p>
+<p>These components are typically sold pre-assembled on a single module, with both the MCP2515 controller and the TJA1050 transceiver sharing a single power pin (VCC). This design simplifies the module but introduces a compatibility challenge when interfacing with microcontrollers that operate at 3.3V, as explained below.</p>
+<p><img alt="alt text" src="mcp_diagram.png" /></p>
+<p><strong>Datasheet References</strong>:
+- MCP2515: <a href="https://ww1.microchip.com/downloads/en/DeviceDoc/MCP2515-Stand-Alone-CAN-Controller-with-SPI-20001801J.pdf">Link to MCP2515 Datasheet</a>
+- TJA1050: <a href="https://www.nxp.com/docs/en/data-sheet/TJA1050.pdf">Link to TJA1050 Datasheet</a></p>
+<h4 id="the-compatibility-issue">The Compatibility Issue</h4>
+<p>The MCP2515 module’s single VCC pin forces both the controller and transceiver to operate at the same voltage. While the MCP2515 can function at either 3.3V or 5V, the TJA1050 requires 5V to operate correctly. As a result, the module is typically powered at 5V to satisfy the transceiver’s requirements. However, this causes the MCP2515 to output 5V logic levels on its SPI pins (e.g., MOSI, MISO, SCK, and CS), which are used to communicate with the microcontroller.</p>
+<p>Many modern development boards—such as the Raspberry Pi, Arduino models with 3.3V logic, or various ARM-based microcontrollers—operate at 3.3V and do not tolerate 5V logic levels on their GPIO pins. Applying 5V signals to a 3.3V microcontroller can damage the hardware or cause unreliable operation, rendering the unmodified MCP2515 module incompatible with these systems.</p>
+<h4 id="solution-1-using-a-logic-level-shifter">Solution 1: Using a Logic Level Shifter</h4>
+<p>The first and simplest solution is to retain the module’s default 5V power configuration and add a logic level shifter between the MCP2515 module and the microcontroller. This approach works as follows:
+- <strong>Power the MCP2515 Module at 5V</strong>: Connect the module’s VCC pin to a 5V supply, ensuring both the MCP2515 controller and TJA1050 transceiver function correctly.
+- <strong>Add a Logic Level Shifter</strong>: Place a bidirectional logic level shifter (e.g., based on a 74LVC series IC or a MOSFET-based shifter) between the SPI pins of the MCP2515 module (operating at 5V) and the microcontroller’s GPIO pins (operating at 3.3V). This converts the 5V logic signals from the MCP2515 to 3.3V signals compatible with the microcontroller, and vice versa.</p>
+<p><img alt="alt text" src="mcp_ls.png" /></p>
+<p><strong>Advantages</strong>:
+- No physical modification to the module is required, preserving its original state.
+- Straightforward to implement with widely available, inexpensive components.</p>
+<p><strong>Disadvantages</strong>:
+- Adds extra hardware complexity and cost to the project.
+- Requires careful wiring to ensure proper signal integrity.</p>
+<p><strong>Implementation Steps</strong>:
+1. Power the MCP2515 module with a 5V supply.
+2. Connect a logic level shifter to the SPI lines (MOSI, MISO, SCK, CS) between the module and the microcontroller.
+3. Verify the shifter’s low-voltage side is connected to 3.3V and the high-voltage side to 5V, per the shifter’s specifications.
+4. Test the setup to confirm reliable SPI communication.</p>
+<h4 id="solution-2-modifying-the-mcp2515-module">Solution 2: Modifying the MCP2515 Module</h4>
+<p>A second, more hardware-oriented solution involves physically modifying the MCP2515 module to separate the power supplies for the MCP2515 controller and the TJA1050 transceiver. This allows the controller to operate at 3.3V (matching the microcontroller’s logic levels) while the transceiver remains at 5V. Here’s how it works:
+- <strong>Desolder the TJA1050 VCC Pin</strong>: On the MCP2515 module, locate the TJA1050 transceiver’s VCC pin (typically connected to the module’s shared VCC line). Carefully desolder this pin to disconnect it from the module’s power rail.
+- <strong>Add a Separate 5V Supply</strong>: Solder a small wire from the TJA1050’s VCC pin to an external 5V power source, ensuring the transceiver receives the required voltage.
+- <strong>Power the MCP2515 at 3.3V</strong>: Connect the module’s VCC pin (now powering only the MCP2515 controller) to a 3.3V supply. This configures the MCP2515’s SPI pins to output 3.3V logic levels, making it directly compatible with 3.3V microcontrollers.</p>
+<p><img alt="alt text" src="mcp_mod.jpg" /></p>
+<p><strong>Advantages</strong>:
+- Eliminates the need for an external logic level shifter, reducing component count.
+- Provides a clean, direct 3.3V interface with the microcontroller.</p>
+<p><strong>Disadvantages</strong>:
+- Requires soldering skills and careful modification of the module, which may risk damage if done incorrectly.
+- Slightly more complex to document and replicate for end users.</p>
+<p><strong>Implementation Steps</strong>:
+1. Identify the TJA1050 transceiver on the MCP2515 module and locate its VCC pin (refer to the module schematic or TJA1050 datasheet).
+2. Using a soldering iron and desoldering tools (e.g., braid or pump), carefully lift the TJA1050 VCC pin from the shared power trace.
+3. Solder a thin wire (e.g., 30 AWG) from the lifted VCC pin to a 5V power source.
+4. Connect the module’s VCC pin to a 3.3V supply.
+5. Verify the modification with a multimeter to ensure the MCP2515 receives 3.3V and the TJA1050 receives 5V.
+6. Test the module with a 3.3V microcontroller to confirm SPI communication and CAN Bus functionality.</p>
+<h4 id="recommendation">Recommendation</h4>
+<p>We recommend <strong>Solution 2 (module modification)</strong> as the preferred approach, as it aligns with the goal of creating a seamless, plug-and-play CAN Bus adapter compatible with a wide range of microcontrollers. While it requires more effort upfront, it simplifies the end-user experience by eliminating the need for additional components. However, for users uncomfortable with soldering, <strong>Solution 1 (logic level shifter)</strong> remains a viable alternative and should be documented as an option.</p>
+<h4 id="conclusion">Conclusion</h4>
+<p>The MCP2515 module is an excellent choice for CAN Bus interfacing, but its default configuration poses a voltage compatibility challenge with 3.3V microcontrollers. By implementing one of the above solutions—either a logic level shifter or a physical modification—users can ensure reliable operation with the "Doggie" USB adapter. Both methods have been tested and validated for this project, and detailed schematics, photos, or diagrams of the modification process can be provided upon request.</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
