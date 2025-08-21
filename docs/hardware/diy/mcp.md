@@ -2,7 +2,7 @@
 
 The project supports a variety of hardware configurations, but the most straightforward and widely recommended approach is to use the popular MCP2515 module in conjunction with a compatible microcontroller. While the MCP2515 module is a cost-effective and reliable choice for CAN Bus interfacing, it requires a specific modification to ensure seamless compatibility with most modern microcontrollers. This section explains the compatibility issue in detail, its root cause, and provides two practical solutions to address it.
 
-![alt text](/res/mcp2515.jpg)
+![alt text](res/mcp2515.jpg)
 
 #### Background: Understanding the MCP2515 Module
 The MCP2515 module is a complete solution for CAN Bus communication, integrating two key components:
@@ -11,7 +11,7 @@ The MCP2515 module is a complete solution for CAN Bus communication, integrating
 
 These components are typically sold pre-assembled on a single module, with both the MCP2515 controller and the TJA1050 transceiver sharing a single power pin (VCC). This design simplifies the module but introduces a compatibility challenge when interfacing with microcontrollers that operate at 3.3V, as explained below.
 
-![alt text](/res/mcp_diagram.png)
+![alt text](res/mcp_diagram.png)
 
 **Datasheet References**:
 - MCP2515: [Link to MCP2515 Datasheet](https://ww1.microchip.com/downloads/en/DeviceDoc/MCP2515-Stand-Alone-CAN-Controller-with-SPI-20001801J.pdf)
@@ -27,7 +27,7 @@ The first and simplest solution is to retain the module’s default 5V power con
 - **Power the MCP2515 Module at 5V**: Connect the module’s VCC pin to a 5V supply, ensuring both the MCP2515 controller and TJA1050 transceiver function correctly.
 - **Add a Logic Level Shifter**: Place a bidirectional logic level shifter (e.g., based on a 74LVC series IC or a MOSFET-based shifter) between the SPI pins of the MCP2515 module (operating at 5V) and the microcontroller’s GPIO pins (operating at 3.3V). This converts the 5V logic signals from the MCP2515 to 3.3V signals compatible with the microcontroller, and vice versa.
 
-![alt text](/res/mcp_ls.png)
+![alt text](res/mcp_ls.png)
 
 **Advantages**:
 - No physical modification to the module is required, preserving its original state.

@@ -6,7 +6,7 @@ If you are using a custom board you'll have to flash the corresponding firmware 
 On the other hand, Faraday's board has the capability of booting two different firmwares. It should be already flashed, but if you need to re-flash it or update the firmwares, please refer to [this section](/hardware/faraday/). The switch labeled with **"GOOD"** and **"EVIL"** is used to select the mode in which the board will boot. GOOD for Doggie and EVIL for evilDoggie. Note that you will need to reboot the board after switching modes if it is already powered.
 
 <figure align="center">
-    <img src="/res/faraday_board.png" alt="Faraday Board">
+    <img src="res/faraday_board.png" alt="Faraday Board">
 </figure>
 
 Before doing this workshop you should follow the corresponding sections for getting started with [Doggie](/software/doggie/get_started/) and [evilDoggie](/software/evil_doggie/get_started/)
@@ -31,7 +31,7 @@ The simulator emulates 7 ECUs (Electronic Control Units), each with its role, al
 As an attacker, you will connect Doggie or EvilDoggie to the bus to complete the challenges:
 
 <figure align="center">
-    <img src="/res/workshop_bus.png" alt="Workshop CAN bus">
+    <img src="res/workshop_bus.png" alt="Workshop CAN bus">
 </figure>
 
 As the attacks covered by evilDoggie target physical bus characteristics, there needs to be a real CAN bus where an attacker can connect. The original setup uses two Doggies to expose the CAN messages sent by all the simulated ECUs:
@@ -43,7 +43,7 @@ As the attacks covered by evilDoggie target physical bus characteristics, there 
 But you can also use any pair of can-utils compatible CAN adapters. This setup ensures that every ECU-to-ECU message travels on the physical CAN Bus without using a Doggie for each ECU! And then, as an attacker, you can connect your own evilDoggie and make an online attack, just like on a real car.
 
 <figure align="center">
-    <img src="/res/workshop_bus_physical.png" alt="Workshop CAN bus physical implementation">
+    <img src="res/workshop_bus_physical.png" alt="Workshop CAN bus physical implementation">
 </figure>
 
 For more instruction on how to setup and launch the workshop, please refer to [this repo](https://github.com/infobyte/doggie_workshop)

@@ -1,11 +1,11 @@
 # Doggie and evilDoggie Project Overview
 
 <figure align="center">
-    <img src="/res/logo_inv.png" alt="Doggie logo">
+    <img src="res/logo_inv.png" alt="Doggie logo">
 </figure>
 
 <figure align="center">
-    <img src="/res/banner.svg" alt="Doggie banner">
+    <img src="res/banner.svg" alt="Doggie banner">
 </figure>
 
 

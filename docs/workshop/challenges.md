@@ -46,7 +46,7 @@ The UDS protocol has a series of services and parameter IDs. To get the VIN, you
 So, the request payload becomes: 09 02 (hex). In a real scan tool, this would be built automatically—but here you’ll craft and send it manually to understand what happens behind the scenes.
 
 <figure align="center">
-    <img src="/res/workshop_vin_msgs.png" alt="VIN Messages">
+    <img src="res/workshop_vin_msgs.png" alt="VIN Messages">
 </figure>
 
 ### Solution
@@ -79,5 +79,5 @@ The isotprecv terminal should print something like:
 
 Example:
 <figure align="center">
-    <img src="/res/workshop_vin_example.png" alt="VIN Example">
+    <img src="res/workshop_vin_example.png" alt="VIN Example">
 </figure>
