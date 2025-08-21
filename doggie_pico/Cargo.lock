@@ -428,7 +428,6 @@ dependencies = [
  "embedded-hal 1.0.0",
  "embedded-io",
  "embedded-io-async",
- "evil_core",
  "mcp2515",
  "panic-probe",
  "portable-atomic",
