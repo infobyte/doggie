@@ -5,8 +5,8 @@
 If you want to build the project, you will need Rust and Cargo.
 Follow the installation instructions from the official [Rust website](https://doc.rust-lang.org/book/ch01-01-installation.html).
 
-The instructions of how to build and flash Doggie are in the README.md of each possible configuration, as
-it depends on the microcontroller. For more information check `doggie_{bsp}/README.md`.
+The instructions of how to build and flash Doggie are in the corresponding file of each possible configuration, as
+it depends on the microcontroller. For more information check `/hardware/diy/{microcontroller}`.
 
 ## Using SocketCAN on Linux  
 
@@ -22,17 +22,20 @@ sudo apt-get install can-utils
 Identify the device (e.g., `/dev/ttyUSB0`) and attach it.
 
 First we start the slcan daemon with the configuration:
-* The `-sX` argument determines the speed:
-  - s0: 10 kbit/s
-  - s1: 20 kbit/s
-  - s2: 50 kbit/s
-  - s3: 100 kbit/s
-  - s4: 125 kbit/s
-  - s5: 250 kbit/s
-  - s6: 500 kbit/s
-  - s7: 800 kbit/s
-  - s8: 1 Mbit/s
-* The `-S{baudrate}` determines the serial interface baudrate (Not necessary on most USB implementations)
+
+The `-sX` argument determines the speed:  
+
+* s0: 10 kbit/s
+* s1: 20 kbit/s
+* s2: 50 kbit/s
+* s3: 100 kbit/s
+* s4: 125 kbit/s
+* s5: 250 kbit/s
+* s6: 500 kbit/s
+* s7: 800 kbit/s
+* s8: 1 Mbit/s
+
+The `-S{baudrate}` determines the serial interface baudrate (Not necessary on most USB implementations)
 
 ```bash
 # Start the slcan daemon:
@@ -44,12 +47,12 @@ sudo ifconfig can0 up
 
 ### 3. Send/Receive CAN Messages  
 - **Send a CAN message:**  
-  ```bash
+  ```
   cansend can0 123#11223344
   ```
 
 - **Receive CAN messages:**  
-  ```bash
+  ```
   candump can0
   ```
 
@@ -58,7 +61,7 @@ For more advanced commands, refer to the [SocketCAN documentation](https://www.k
 ## BLE  
 
 As some boards supports BLE to send and receive serial information we need a way to bridge the BLE data to a serial interface implementing the NUS service.
-Visit the [BLE notes](/docs/bluetooth_notes.md) for mor information.
+Visit the [BLE notes](/software/ble) for mor information.
 
 In linux we could use the `ble-serial` package as we show:
 

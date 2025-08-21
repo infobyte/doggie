@@ -6,21 +6,32 @@ The project emphasizes **modularity**, allowing users to select from various har
 
 ## Supported Configurations  
 
-### Microcontrollers:
-- **Raspberry Pi Pico (RP2040)**:  [doggie_pico](./doggie_pico/README.md)
-- **STM32F103C8 (Bluepill)**: [doggie_bluepill](./doggie_bluepill/README.md)
-- **ESP32**: [doggie_esp32](./doggie_esp32/README.md)
+### DIY
 
-### CAN Controllers:  
+**Microcontrollers:**
+
+- **Raspberry Pi Pico (RP2040)**:  [doggie_pico](/hardware/diy/rp)
+- **STM32F103C8 (Bluepill)**: [doggie_bluepill](/hardware/diy/bluepill)
+- **ESP32**: [doggie_esp32](/hardware/diy/esp32)
+
+**CAN Controllers:**
+
 - Built-in CAN controllers (if supported by the microcontroller)  
-- **MCP2515** (SPI to CAN, see [compatibility modification](../docs/mcp_mod.md))  
+- **MCP2515** (SPI to CAN, see [compatibility modification](/hardware/diy/mcp))  
 
-### Serial Connectivity:
+**Serial Connectivity:**
+
 - **Microcontroller USB** (native USB support)
 - **UART with USB Bridge**
 - **Bluetooth**  
 
-Each hardware configuration is detailed in its respective subdirectory under the `doggie_{bsp}` folder.
+Each hardware configuration is detailed in its respective subdirectory under `hardware/diy/{microcontroller}`.
+
+### Faraday Doggie
+
+Faraday Doggie is the official, professionally manufactured hardware version of the Doggie project, released by Faraday Security in 2025. It serves as a modular, flexible, open-source adapter that bridges a computer to a CAN Bus network via USB, with support for BLE and UART extensions.
+
+More information at [Faraday Doggie page](/hardware/faraday)
 
 ## Disclaimer  
 This project is a **work in progress**, and contributions are highly encouraged! While it is functional, some features may still be under development.  
