@@ -1,12 +1,14 @@
 site_name: evilDoggie
 nav:
-  - Introduction: intro.md
-  - Doggie:
-    - Introdutcion: doggie/intro.md
-    - Get Started: doggie/get_started.md
-  - evilDoggie:
-    - Introduction: evil_doggie/intro.md
-    - Get Started: evil_doggie/get_started.md
+  - Introduction: index.md
+  - Software:
+    - Doggie:
+      - Introdutcion: software/doggie/intro.md
+      - Get Started: software/doggie/get_started.md
+    - evilDoggie:
+      - Introduction: software/evil_doggie/intro.md
+      - Get Started: software/evil_doggie/get_started.md
+    - BLE: software/ble.md
   - Hardware:
     - Faraday: hardware/faraday.md
     - DIY:
