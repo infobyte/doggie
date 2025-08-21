@@ -1,7 +1,18 @@
 # Double Receive Attack
-- **Command**: `double_receive_attack <ID> <bit_position>`
-  - `<ID>`: The CAN ID to target (e.g., `0x200` for airbag status).
-  - `<bit_position>`: The bit position to inject an error (e.g., `6` in the EOF field).
-- **Description**: This attack exploits the CAN protocol's error handling by injecting a bit error at a specific position (typically the EOF field) in a frame. This causes the receiving ECU to detect a double receive (reception of the same frame twice due to error recovery), potentially leading to misinterpretation or disabling of the targeted function.
-- **Example**: `double_receive_attack 0x200 6` injects an error in the airbag status frame's EOF, triggering a double receive to disable the airbag.
-- **Use Case**: Effective for disabling safety features like airbags by confusing ECUs with repeated frame reception.
+
+## Description
+
+The `double_receive_attack` exploits CAN error handling by injecting timed error frames, causing the sender to retransmit while the receiver processes the initial frame. This results in duplicate message processing, potentially disrupting state machines or disabling features like airbags by confusing the ECU.
+
+## Console Usage
+
+  1. Connect to the main menu via the serial console.
+  2. Add the attack with `double_receive_attack <id> <errors> [ <match_data> ] [ --extended ]`.
+     - Example: `double_receive_attack 0x200 3 0x10`
+       - Targets ID `0x200`, injecting 3 errors after data starting with `0x10` to trigger a double receive.
+  3. Check the plan with `list`, then execute with `attack` (e.g., `attack 1` for one attempt).
+  4. See `help double_receive_attack` for parameter specifics.
+
+## How it works
+
+`TODO`

@@ -1,29 +1,33 @@
-# Custom Attacks in evilDoggie
+# Custom Attack
 
-The `custom_attack` submenu allows you to craft sophisticated attacks by combining low-level primitives tailored to specific CAN Bus manipulation needs. These attacks leverage the physical layer and protocol weaknesses, offering flexibility beyond predefined options. Here’s how to create and manage custom attacks:
+## Description
 
-- **Entering Custom Attack Mode**: Type `custom_attack` from the main menu to access this submenu. The prompt changes to `>>` to indicate you’re in custom attack mode.
-- **Available Primitives**:
-  - `wait_frame <ID>`: Waits for a CAN frame with the specified ID (e.g., `wait_frame 0x100`) before proceeding with the next step.
-  - `inject_error <bit_position>`: Injects an error at the specified bit position in the next detected frame (e.g., `inject_error 6` targets the EOF field).
-  - `force_dominant <bit_range>`: Forces bits to dominant (logic 0) over a specified range in a frame (e.g., `force_dominant 0-2` overrides the first three bits).
-  - `send_frame <ID> <data>`: Sends a custom CAN frame with the given ID and data (e.g., `send_frame 0x123 0x11223344`).
-  - `delay <ms>`: Introduces a delay in milliseconds (e.g., `delay 100` pauses for 100ms).
-- **Building a Custom Attack**:
-  - Example: To disable an airbag by triggering a double receive attack:
-    1. `wait_frame 0x200` (wait for the airbag status frame).
-    2. `inject_error 6` (inject error in the EOF field to cause a double receive).
-    3. `save "airbag_disable"` (save the sequence as "airbag_disable").
-  - Example: To start an engine without a key:
-    1. `wait_frame 0x300` (wait for the key status frame).
-    2. `force_dominant 0-7` (override the entire byte to dominant, simulating key presence).
-    3. `send_frame 0x400 0x01` (send engine start command).
-    4. `save "engine_start"`
-- **Managing Custom Attacks**:
-  - `list_custom`: Displays all saved custom attacks.
-  - `delete_custom <name>`: Removes a custom attack (e.g., `delete_custom airbag_disable`).
-  - `edit_custom <name>`: Re-enters edit mode for an existing custom attack to modify its sequence.
-  - `exit`: Returns to the main menu, saving the current custom attack if `save` was used.
-- **Executing Custom Attacks**: After saving, return to the main menu and add the custom attack to the plan with `add_custom <name>` (e.g., `add_custom airbag_disable`). Launch it with `attack [count]`.
+The `custom_attack` submenu allows users to construct low-level attacks with bit-level precision by chaining primitives. Predefined attacks are built from these primitives, but custom attacks offer granular control for complex scenarios, such as forcing an engine start. It supports primitives like `send_msg`, `wait_bus_free`, and `send_error` to tailor attacks to specific vulnerabilities.
 
-Custom attacks are powerful for targeting specific vulnerabilities, such as overriding key checks or silencing ECUs, and can be iterated upon based on real-time CAN Bus analysis.
+## Console Usage
+
+1. Access the main menu via the serial console.
+2. Enter the custom attack submenu with `custom_attack` (prompt changes to `custom_attack>`).
+3. Build the attack using the following primitives:
+    - **match_id <id> [ --extended ]**: Waits for a message with the specified CAN ID (e.g., `match_id 0x300 --extended` for a 29-bit ID).
+    - **match_data <dlc> [ <data> ]**: Filters by data length and content (e.g., `match_data 2 0x00,0x00` matches 2 bytes starting with `0x00,0x00`).
+    - **skip_data**: Ignores data fields, matching only ID and DLC (e.g., `skip_data`).
+    - **wait <bits>**: Inserts a delay in CAN bit times (e.g., `wait 10` for 10 bits).
+    - **send_error <count>**: Sends consecutive error frames (e.g., `send_error 3` for 3 errors).
+    - **send_raw <bits> [ --force ]**: Transmits a raw bit sequence (e.g., `send_raw 0110001 --force` with forced override).
+    - **wait_bus_free**: Pauses until the bus is idle (e.g., `wait_bus_free`).
+    - **send_msg <id> [ --extended ] [ --rtr ] [ --force ] [ <data> ]**: Sends a CAN frame (e.g., `send_msg 0x400 0x01 --force` for a forced start command).
+    - **set_bitstuffing <state>**: Enables/disables bitstuffing (e.g., `set_bitstuffing off`).
+4. Example: To force an engine start:
+    - `match_id 0x300`
+    - `match_data 2 0x00,0x00`
+    - `wait 10`
+    - `send_msg 0x400 0x01 --force`
+    - `save "engine_start"`
+5. Manage the sequence with `list`, `delete <index>`, or `move <from> <to>`, then `exit` to return to the main menu.
+6. Add to the plan with `add_custom engine_start` and execute with `attack` (e.g., `attack 1`).
+7. Use `help` or `help <command>` (e.g., `help send_msg`) for primitive details or assistance.
+
+## How it works
+
+`TODO`

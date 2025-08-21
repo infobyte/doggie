@@ -1,8 +1,18 @@
 # Spoofing Attack
-- **Command**: `spoofing_attack <ID> <data> <mask>`
-  - `<ID>`: The CAN ID to spoof (e.g., `0x100`).
-  - `<data>`: The data payload to send (e.g., `0x2,0x0,0x0` for speed = 0).
-  - `<mask>`: A bitmask to filter which bits to spoof (e.g., `0x2` to target specific data fields).
-- **Description**: This attack sends fake CAN messages to override legitimate ones with the specified ID. It monitors the bus for the target ID, then injects the provided data when a matching frame is detected. The mask ensures only the intended data fields are altered, preserving other frame content.
-- **Example**: `spoofing_attack 0x100 0x2,0x0,0x0 0x2` spoofs a speed message to set speed to 0, useful for simulating a stopped vehicle.
-- **Use Case**: Ideal for manipulating sensor data (e.g., speed, RPM) to deceive ECUs.
+
+## Description
+
+The `spoofing_attack` enables injection of a forged CAN message immediately following the detection of a matching real message. It monitors the bus in real-time for a specified ID (with an optional data match) and transmits the spoofed data to override or augment the original frame. This is effective for altering sensor data (e.g., speed) or control signals to mislead ECUs.
+
+## Console Usage
+
+1. Access the main menu via the serial console.
+2. Add the attack to the plan with `spoofing_attack <id> <spoofed_data> [ <match_data> ] [ --extended ]`.
+    - Example: `spoofing_attack 0x100 0x00,0x00,0x00 0x01,0x02 --extended`
+        - Targets ID `0x100` (29-bit extended) with spoofed data `0x00,0x00,0x00`, triggered by a match with data starting `0x01,0x02`.
+3. Verify the plan with `list`, then execute with `attack` (e.g., `attack 10` for 10 iterations).
+4. Refer to `help spoofing_attack` for parameter details or troubleshooting.
+
+## How it works
+
+`TODO`
