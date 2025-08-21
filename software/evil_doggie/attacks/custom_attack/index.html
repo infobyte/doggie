@@ -71,6 +71,12 @@
                 </li>
                 <li class="toctree-l3 current"><a class="reference internal current" href="#">Custom Attack</a>
     <ul class="current">
+    <li class="toctree-l4"><a class="reference internal" href="#description">Description</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#console-usage">Console Usage</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#how-it-works">How it works</a>
+    </li>
     </ul>
                 </li>
     </ul>
@@ -147,38 +153,39 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="custom-attacks-in-evildoggie">Custom Attacks in evilDoggie</h1>
-<p>The <code>custom_attack</code> submenu allows you to craft sophisticated attacks by combining low-level primitives tailored to specific CAN Bus manipulation needs. These attacks leverage the physical layer and protocol weaknesses, offering flexibility beyond predefined options. Here’s how to create and manage custom attacks:</p>
-<ul>
-<li><strong>Entering Custom Attack Mode</strong>: Type <code>custom_attack</code> from the main menu to access this submenu. The prompt changes to <code>&gt;&gt;</code> to indicate you’re in custom attack mode.</li>
-<li><strong>Available Primitives</strong>:</li>
-<li><code>wait_frame &lt;ID&gt;</code>: Waits for a CAN frame with the specified ID (e.g., <code>wait_frame 0x100</code>) before proceeding with the next step.</li>
-<li><code>inject_error &lt;bit_position&gt;</code>: Injects an error at the specified bit position in the next detected frame (e.g., <code>inject_error 6</code> targets the EOF field).</li>
-<li><code>force_dominant &lt;bit_range&gt;</code>: Forces bits to dominant (logic 0) over a specified range in a frame (e.g., <code>force_dominant 0-2</code> overrides the first three bits).</li>
-<li><code>send_frame &lt;ID&gt; &lt;data&gt;</code>: Sends a custom CAN frame with the given ID and data (e.g., <code>send_frame 0x123 0x11223344</code>).</li>
-<li><code>delay &lt;ms&gt;</code>: Introduces a delay in milliseconds (e.g., <code>delay 100</code> pauses for 100ms).</li>
-<li><strong>Building a Custom Attack</strong>:</li>
-<li>Example: To disable an airbag by triggering a double receive attack:<ol>
-<li><code>wait_frame 0x200</code> (wait for the airbag status frame).</li>
-<li><code>inject_error 6</code> (inject error in the EOF field to cause a double receive).</li>
-<li><code>save "airbag_disable"</code> (save the sequence as "airbag_disable").</li>
-</ol>
-</li>
-<li>Example: To start an engine without a key:<ol>
-<li><code>wait_frame 0x300</code> (wait for the key status frame).</li>
-<li><code>force_dominant 0-7</code> (override the entire byte to dominant, simulating key presence).</li>
-<li><code>send_frame 0x400 0x01</code> (send engine start command).</li>
-<li><code>save "engine_start"</code></li>
-</ol>
-</li>
-<li><strong>Managing Custom Attacks</strong>:</li>
-<li><code>list_custom</code>: Displays all saved custom attacks.</li>
-<li><code>delete_custom &lt;name&gt;</code>: Removes a custom attack (e.g., <code>delete_custom airbag_disable</code>).</li>
-<li><code>edit_custom &lt;name&gt;</code>: Re-enters edit mode for an existing custom attack to modify its sequence.</li>
-<li><code>exit</code>: Returns to the main menu, saving the current custom attack if <code>save</code> was used.</li>
-<li><strong>Executing Custom Attacks</strong>: After saving, return to the main menu and add the custom attack to the plan with <code>add_custom &lt;name&gt;</code> (e.g., <code>add_custom airbag_disable</code>). Launch it with <code>attack [count]</code>.</li>
+                <h1 id="custom-attack">Custom Attack</h1>
+<h2 id="description">Description</h2>
+<p>The <code>custom_attack</code> submenu allows users to construct low-level attacks with bit-level precision by chaining primitives. Predefined attacks are built from these primitives, but custom attacks offer granular control for complex scenarios, such as forcing an engine start. It supports primitives like <code>send_msg</code>, <code>wait_bus_free</code>, and <code>send_error</code> to tailor attacks to specific vulnerabilities.</p>
+<h2 id="console-usage">Console Usage</h2>
+<ol>
+<li>Access the main menu via the serial console.</li>
+<li>Enter the custom attack submenu with <code>custom_attack</code> (prompt changes to <code>custom_attack&gt;</code>).</li>
+<li>Build the attack using the following primitives:<ul>
+<li><strong>match_id <id> [ --extended ]</strong>: Waits for a message with the specified CAN ID (e.g., <code>match_id 0x300 --extended</code> for a 29-bit ID).</li>
+<li><strong>match_data <dlc> [ <data> ]</strong>: Filters by data length and content (e.g., <code>match_data 2 0x00,0x00</code> matches 2 bytes starting with <code>0x00,0x00</code>).</li>
+<li><strong>skip_data</strong>: Ignores data fields, matching only ID and DLC (e.g., <code>skip_data</code>).</li>
+<li><strong>wait <bits></strong>: Inserts a delay in CAN bit times (e.g., <code>wait 10</code> for 10 bits).</li>
+<li><strong>send_error <count></strong>: Sends consecutive error frames (e.g., <code>send_error 3</code> for 3 errors).</li>
+<li><strong>send_raw <bits> [ --force ]</strong>: Transmits a raw bit sequence (e.g., <code>send_raw 0110001 --force</code> with forced override).</li>
+<li><strong>wait_bus_free</strong>: Pauses until the bus is idle (e.g., <code>wait_bus_free</code>).</li>
+<li><strong>send_msg <id> [ --extended ] [ --rtr ] [ --force ] [ <data> ]</strong>: Sends a CAN frame (e.g., <code>send_msg 0x400 0x01 --force</code> for a forced start command).</li>
+<li><strong>set_bitstuffing <state></strong>: Enables/disables bitstuffing (e.g., <code>set_bitstuffing off</code>).</li>
 </ul>
-<p>Custom attacks are powerful for targeting specific vulnerabilities, such as overriding key checks or silencing ECUs, and can be iterated upon based on real-time CAN Bus analysis.</p>
+</li>
+<li>Example: To force an engine start:<ul>
+<li><code>match_id 0x300</code></li>
+<li><code>match_data 2 0x00,0x00</code></li>
+<li><code>wait 10</code></li>
+<li><code>send_msg 0x400 0x01 --force</code></li>
+<li><code>save "engine_start"</code></li>
+</ul>
+</li>
+<li>Manage the sequence with <code>list</code>, <code>delete &lt;index&gt;</code>, or <code>move &lt;from&gt; &lt;to&gt;</code>, then <code>exit</code> to return to the main menu.</li>
+<li>Add to the plan with <code>add_custom engine_start</code> and execute with <code>attack</code> (e.g., <code>attack 1</code>).</li>
+<li>Use <code>help</code> or <code>help &lt;command&gt;</code> (e.g., <code>help send_msg</code>) for primitive details or assistance.</li>
+</ol>
+<h2 id="how-it-works">How it works</h2>
+<p><code>TODO</code></p>
               
             </div>
           </div><footer>

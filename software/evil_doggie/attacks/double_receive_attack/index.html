@@ -69,6 +69,12 @@
                 </li>
                 <li class="toctree-l3 current"><a class="reference internal current" href="#">Double Receive Attack</a>
     <ul class="current">
+    <li class="toctree-l4"><a class="reference internal" href="#description">Description</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#console-usage">Console Usage</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#how-it-works">How it works</a>
+    </li>
     </ul>
                 </li>
                 <li class="toctree-l3"><a class="reference internal" href="../custom_attack/">Custom Attack</a>
@@ -148,14 +154,21 @@
             <div class="section" itemprop="articleBody">
               
                 <h1 id="double-receive-attack">Double Receive Attack</h1>
-<ul>
-<li><strong>Command</strong>: <code>double_receive_attack &lt;ID&gt; &lt;bit_position&gt;</code></li>
-<li><code>&lt;ID&gt;</code>: The CAN ID to target (e.g., <code>0x200</code> for airbag status).</li>
-<li><code>&lt;bit_position&gt;</code>: The bit position to inject an error (e.g., <code>6</code> in the EOF field).</li>
-<li><strong>Description</strong>: This attack exploits the CAN protocol's error handling by injecting a bit error at a specific position (typically the EOF field) in a frame. This causes the receiving ECU to detect a double receive (reception of the same frame twice due to error recovery), potentially leading to misinterpretation or disabling of the targeted function.</li>
-<li><strong>Example</strong>: <code>double_receive_attack 0x200 6</code> injects an error in the airbag status frame's EOF, triggering a double receive to disable the airbag.</li>
-<li><strong>Use Case</strong>: Effective for disabling safety features like airbags by confusing ECUs with repeated frame reception.</li>
+<h2 id="description">Description</h2>
+<p>The <code>double_receive_attack</code> exploits CAN error handling by injecting timed error frames, causing the sender to retransmit while the receiver processes the initial frame. This results in duplicate message processing, potentially disrupting state machines or disabling features like airbags by confusing the ECU.</p>
+<h2 id="console-usage">Console Usage</h2>
+<ol>
+<li>Connect to the main menu via the serial console.</li>
+<li>Add the attack with <code>double_receive_attack &lt;id&gt; &lt;errors&gt; [ &lt;match_data&gt; ] [ --extended ]</code>.<ul>
+<li>Example: <code>double_receive_attack 0x200 3 0x10</code></li>
+<li>Targets ID <code>0x200</code>, injecting 3 errors after data starting with <code>0x10</code> to trigger a double receive.</li>
 </ul>
+</li>
+<li>Check the plan with <code>list</code>, then execute with <code>attack</code> (e.g., <code>attack 1</code> for one attempt).</li>
+<li>See <code>help double_receive_attack</code> for parameter specifics.</li>
+</ol>
+<h2 id="how-it-works">How it works</h2>
+<p><code>TODO</code></p>
               
             </div>
           </div><footer>

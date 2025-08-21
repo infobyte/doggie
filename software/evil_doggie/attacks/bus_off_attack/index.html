@@ -67,6 +67,12 @@
                 </li>
                 <li class="toctree-l3 current"><a class="reference internal current" href="#">Bus Off Attack</a>
     <ul class="current">
+    <li class="toctree-l4"><a class="reference internal" href="#description">Description</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#console-usage">Console Usage</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#how-it-works">How it works</a>
+    </li>
     </ul>
                 </li>
                 <li class="toctree-l3"><a class="reference internal" href="../double_receive_attack/">Double Receive Attack</a>
@@ -148,14 +154,23 @@
             <div class="section" itemprop="articleBody">
               
                 <h1 id="bus-off-attack">Bus Off Attack</h1>
-<ul>
-<li><strong>Command</strong>: <code>bus_off_attack &lt;ID&gt; &lt;error_count&gt;</code></li>
-<li><code>&lt;ID&gt;</code>: The CAN ID to target (e.g., <code>0x105</code> for an ABS heartbeat).</li>
-<li><code>&lt;error_count&gt;</code>: Number of errors to inject (e.g., <code>50</code> to force bus off).</li>
-<li><strong>Description</strong>: This attack floods the target ECU with errors by injecting bit errors into frames with the specified ID. After accumulating enough errors (typically 255 per CAN spec), the ECU enters a "bus off" state, disconnecting from the network.</li>
-<li><strong>Example</strong>: <code>bus_off_attack 0x105 50</code> targets an ABS ECU, causing it to go offline by injecting errors after each heartbeat.</li>
-<li><strong>Use Case</strong>: Used to silence specific ECUs, such as disabling ABS or other safety systems.</li>
+<h2 id="description">Description</h2>
+<p>The <code>bus_off_attack</code> disrupts a target ECU by injecting a series of error frames upon detecting a matching message. This floods the bus, driving the target node's CAN controller into a "bus off" state (after 255 errors per CAN specification), effectively disabling or delaying its communication. Useful for silencing systems like ABS.</p>
+<h2 id="console-usage">Console Usage</h2>
+<ol>
+<li>Enter the main menu via the serial console.</li>
+<li>Add the attack with <code>bus_off_attack &lt;id&gt; &lt;errors&gt; [ &lt;match_data&gt; ] [ --extended ]</code>.<ul>
+<li>Example: <code>bus_off_attack 0x105 50 0xFF</code><ul>
+<li>Targets ID <code>0x105</code>, injecting 50 errors when data starts with <code>0xFF</code>.</li>
 </ul>
+</li>
+</ul>
+</li>
+<li>Review the plan with <code>list</code>, then launch with <code>attack</code> (e.g., <code>attack 5</code> for 5 bursts).</li>
+<li>Consult <code>help bus_off_attack</code> for additional options or clarification.</li>
+</ol>
+<h2 id="how-it-works">How it works</h2>
+<p><code>TODO</code></p>
               
             </div>
           </div><footer>
