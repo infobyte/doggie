@@ -2,33 +2,36 @@ site_name: evilDoggie
 nav:
   - Introduction: index.md
   - Software:
-    - Doggie:
-      - Introdutcion: software/doggie/intro.md
-      - Get Started: software/doggie/get_started.md
-      - Slcan: software/doggie/slcan.md
-    - evilDoggie:
-      - Introduction: software/evil_doggie/intro.md
-      - Get Started: software/evil_doggie/get_started.md
-      - Attacks:
-        - Spoofing Attack: software/evil_doggie/attacks/spoofing_attack.md
-        - Bus Off Attack: software/evil_doggie/attacks/bus_off_attack.md
-        - Double Receive Attack: software/evil_doggie/attacks/double_receive_attack.md
-        - Custom Attack: software/evil_doggie/attacks/custom_attack.md
-      - Force: software/evil_doggie/force.md
+      - Doggie:
+          - Introdutcion: software/doggie/intro.md
+          - Get Started: software/doggie/get_started.md
+          - Slcan: software/doggie/slcan.md
+      - evilDoggie:
+          - Introduction: software/evil_doggie/intro.md
+          - Get Started: software/evil_doggie/get_started.md
+          - Attacks:
+              - Spoofing Attack: software/evil_doggie/attacks/spoofing_attack.md
+              - Bus Off Attack: software/evil_doggie/attacks/bus_off_attack.md
+              - Double Receive Attack: software/evil_doggie/attacks/double_receive_attack.md
+              - Custom Attack: software/evil_doggie/attacks/custom_attack.md
+          - Force: software/evil_doggie/force.md
   - Hardware:
-    - Faraday: hardware/faraday.md
-    - DIY:
-      - Introduction: hardware/diy/intro.md
-      - Microcontrollers:
-        - ESP32: hardware/diy/esp32.md
-        - RP2040 (Raspberry Pico): hardware/diy/rp.md
-        - STM32F1 (bluepill): hardware/diy/bluepill.md
-      - MCP2515 Notes: hardware/diy/mcp.md
-    - Force: hardware/force.md
+      - Faraday: hardware/faraday.md
+      - DIY:
+          - Introduction: hardware/diy/intro.md
+          - Microcontrollers:
+              - ESP32: hardware/diy/esp32.md
+              - RP2040 (Raspberry Pico): hardware/diy/rp.md
+              - STM32F1 (bluepill): hardware/diy/bluepill.md
+          - MCP2515 Notes: hardware/diy/mcp.md
+      - Force: hardware/force.md
   - Notes:
-    - BLE: software/ble.md
+      - BLE: software/ble.md
   - evilDoggie lab:
-    - Introduction: workshop/intro.md
+      - Introduction: workshop/intro.md
+      - Get Started: workshop/get_started.md
+      - Challenges: workshop/challenges.md
+      - CAN Protocol: workshop/can_protocol.md
 
 theme:
   name: readthedocs
