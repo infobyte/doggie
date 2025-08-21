@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>STM32F1 (bluepill) - evilDoggie</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "STM32F1 (bluepill)";
+        var mkdocs_page_input_path = "hardware/diy/bluepill.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> evilDoggie
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Introduction</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Software</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" >Doggie</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../software/doggie/intro/">Introdutcion</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../software/doggie/get_started/">Get Started</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../software/doggie/slcan/">Slcan</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >evilDoggie</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../software/evil_doggie/intro/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../software/evil_doggie/get_started/">Get Started</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Attacks</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../software/evil_doggie/attacks/spoofing_attack/">Spoofing Attack</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../software/evil_doggie/attacks/bus_off_attack/">Bus Off Attack</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../software/evil_doggie/attacks/double_receive_attack/">Double Receive Attack</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../software/evil_doggie/attacks/custom_attack/">Custom Attack</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../software/evil_doggie/force/">Force</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Hardware</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../../faraday/">Faraday</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >DIY</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../intro/">Introduction</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" >Microcontrollers</a>
+    <ul class="current">
+                <li class="toctree-l3"><a class="reference internal" href="../esp32/">ESP32</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../rp/">RP2040 (Raspberry Pico)</a>
+                </li>
+                <li class="toctree-l3 current"><a class="reference internal current" href="#">STM32F1 (bluepill)</a>
+    <ul class="current">
+    </ul>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../mcp/">MCP2515 Notes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../force.md">Force</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Notes</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../software/ble/">BLE</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">evilDoggie lab</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../workshop/intro/">Introduction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../workshop/get_started/">Get Started</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../workshop/challenges/">Challenges</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../workshop/can_protocol/">CAN Protocol</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">evilDoggie</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Hardware</li>
+          <li class="breadcrumb-item">DIY</li>
+          <li class="breadcrumb-item">Microcontrollers</li>
+      <li class="breadcrumb-item active">STM32F1 (bluepill)</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <p>Final Structure:</p>
+<pre><code>- Introduction: intro.md
+- Doggie:
+  - Introduction: doggie/intro.md
+  - Get Started: doggie/get_started.md
+- evilDoggie:
+  - Introduction: evil_doggie/intro.md
+  - Get Started: evil_doggie/get_started.md
+- Bluetooth LE: ble.md
+- slcan: slcan.md
+- Hardware:
+  - Faraday: hardware/faraday.md
+  - DIY:
+    - Introduction: hardware/diy/intro.md
+    - Microcontrollers:
+      - ESP32: hardware/diy/esp32.md
+      - RP2040 (Raspberry Pico): hardware/diy/rp.md
+      - STM32F1 (bluepill): hardware/diy/bluepill.md
+    - MCP2515 Notes: hardware/mcp.md
+- evilDoggie lab:
+  - Introduction: workshop/intro.md
+</code></pre>
+<h3 id="intromd">intro.md</h3>
+<h1 id="doggie-and-evildoggie-project-overview">Doggie and evilDoggie Project Overview</h1>
+<p>Doggie is an open-source, modular project designed to build a DIY CAN Bus to serial adapter (USB, BLE, UART). It connects your computer to a CAN Bus network using the slcan protocol (CAN over Serial) for compatibility with tools like SocketCAN and Python-can. The project emphasizes modularity, supporting various microcontrollers (e.g., RP2040, STM32F103C8, ESP32) and CAN controllers (built-in or MCP2515).</p>
+<p>evilDoggie is the offensive firmware variant of Doggie, tailored for automotive security research and low-level CAN Bus manipulation. It enables advanced attacks like spoofing, bus off, double receive, and physical-layer overrides, making it ideal for red teaming and vulnerability testing in simulated or real CAN environments.</p>
+<p>Developed by Faraday Security, the project was presented at Black Hat Arsenal on August 6-7, 2025, in Las Vegas. Both variants are open-source under the MIT License and available on GitHub at <a href="https://github.com/infobyte/doggie">https://github.com/infobyte/doggie</a>. Use responsibly for research and training only.</p>
+<p>For detailed introductions, see the sub-sections for Doggie and evilDoggie.</p>
+<h3 id="doggieintromd">doggie/intro.md</h3>
+<h1 id="doggie-introduction">Doggie Introduction</h1>
+<p><strong>Doggie</strong> is an open-source, modular project designed to build a DIY CAN Bus to serial adapter (USB, BLE, UART). The device connects your computer to a CAN Bus network and uses the <strong>slcan protocol</strong> (CAN over Serial) to ensure compatibility with popular tools like <strong>SocketCAN</strong>, <strong>Python-can</strong>, and other slcan-compatible software.  </p>
+<p>The project emphasizes <strong>modularity</strong>, allowing users to select from various hardware configurations with different microcontrollers and CAN transceivers, making it accessible and cost-effective. Whether you're using a microcontroller's built-in CAN controller or an <strong>MCP2515</strong> (SPI to CAN) module, <strong>Doggie</strong> adapts to your needs.</p>
+<h2 id="supported-configurations">Supported Configurations</h2>
+<h3 id="microcontrollers">Microcontrollers:</h3>
+<ul>
+<li><strong>Raspberry Pi Pico (RP2040)</strong>:  <a href="./doggie_pico/README.md">doggie_pico</a></li>
+<li><strong>STM32F103C8 (Bluepill)</strong>: <a href="./doggie_bluepill/README.md">doggie_bluepill</a></li>
+<li><strong>ESP32</strong>: <a href="./doggie_esp32/README.md">doggie_esp32</a></li>
+</ul>
+<h3 id="can-controllers">CAN Controllers:</h3>
+<ul>
+<li>Built-in CAN controllers (if supported by the microcontroller)  </li>
+<li><strong>MCP2515</strong> (SPI to CAN, see <a href="../docs/mcp_mod.md">compatibility modification</a>)  </li>
+</ul>
+<h3 id="serial-connectivity">Serial Connectivity:</h3>
+<ul>
+<li><strong>Microcontroller USB</strong> (native USB support)</li>
+<li><strong>UART with USB Bridge</strong></li>
+<li><strong>Bluetooth</strong>  </li>
+</ul>
+<p>Each hardware configuration is detailed in its respective subdirectory under the <code>doggie_{bsp}</code> folder.</p>
+<h2 id="disclaimer">Disclaimer</h2>
+<p>This project is a <strong>work in progress</strong>, and contributions are highly encouraged! While it is functional, some features may still be under development.  </p>
+<p>If you encounter issues or have suggestions for improvements, please feel free to open an issue or submit a pull request.  </p>
+<h3 id="license">License</h3>
+<p>This project is licensed under the MIT License. See the <a href="./LICENSE">LICENSE</a> file for details.</p>
+<h3 id="doggieget_startedmd">doggie/get_started.md</h3>
+<h1 id="doggie-get-started">Doggie Get Started</h1>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>If you want to build the project, you will need Rust and Cargo.
+Follow the installation instructions from the official <a href="https://doc.rust-lang.org/book/ch01-01-installation.html">Rust website</a>.</p>
+<p>The instructions of how to build and flash Doggie are in the README.md of each possible configuration, as
+it depends on the microcontroller. For more information check <code>doggie_{bsp}/README.md</code>.</p>
+<h2 id="using-socketcan-on-linux">Using SocketCAN on Linux</h2>
+<p>SocketCAN is a powerful framework for interfacing with CAN networks. Once the device is connected, follow these steps:</p>
+<h3 id="1-install-can-utilities">1. Install CAN Utilities</h3>
+<pre><code class="language-bash"># On Ubuntu
+sudo apt-get install can-utils
+</code></pre>
+<h3 id="2-attach-the-device">2. Attach the Device</h3>
+<p>Identify the device (e.g., <code>/dev/ttyUSB0</code>) and attach it.</p>
+<p>First we start the slcan daemon with the configuration:
+* The <code>-sX</code> argument determines the speed:
+  - s0: 10 kbit/s
+  - s1: 20 kbit/s
+  - s2: 50 kbit/s
+  - s3: 100 kbit/s
+  - s4: 125 kbit/s
+  - s5: 250 kbit/s
+  - s6: 500 kbit/s
+  - s7: 800 kbit/s
+  - s8: 1 Mbit/s
+* The <code>-S{baudrate}</code> determines the serial interface baudrate (Not necessary on most USB implementations)</p>
+<pre><code class="language-bash"># Start the slcan daemon:
+sudo slcand -s5 -S115200 /dev/ttyUSB0 can0
+
+# Set the interface UP
+sudo ifconfig can0 up
+</code></pre>
+<h3 id="3-sendreceive-can-messages">3. Send/Receive CAN Messages</h3>
+<ul>
+<li>
+<p><strong>Send a CAN message:</strong><br />
+<code>bash
+  cansend can0 123#11223344</code></p>
+</li>
+<li>
+<p><strong>Receive CAN messages:</strong><br />
+<code>bash
+  candump can0</code></p>
+</li>
+</ul>
+<p>For more advanced commands, refer to the <a href="https://www.kernel.org/doc/Documentation/networking/can.txt">SocketCAN documentation</a>.</p>
+<h2 id="ble">BLE</h2>
+<p>As some boards supports BLE to send and receive serial information we need a way to bridge the BLE data to a serial interface implementing the NUS service.
+Visit the <a href="/docs/bluetooth_notes.md">BLE notes</a> for mor information.</p>
+<p>In linux we could use the <code>ble-serial</code> package as we show:</p>
+<p>First we install the package</p>
+<pre><code>$ pip install ble-serial
+</code></pre>
+<p>And then we run the bridge with the mac address of our device</p>
+<pre><code>$ ble-serial -d 12:00:3B:01:B2:A5 --write-with-response
+10:38:57.733 | INFO | linux_pty.py: Port endpoint created on /tmp/ttyBLE -&gt; /dev/pts/4
+10:38:57.733 | INFO | ble_client.py: Receiver set up
+10:38:57.938 | INFO | ble_client.py: Trying to connect with 12:00:3B:01:B2:A5: esp32c3
+10:38:59.627 | INFO | ble_client.py: Device 12:00:3B:01:B2:A5 connected
+10:38:59.628 | INFO | ble_client.py: Found write characteristic 6e400002-b5a3-f393-e0a9-e50e24dcca9e (H. 2)
+10:38:59.628 | INFO | ble_client.py: Found notify characteristic 6e400003-b5a3-f393-e0a9-e50e24dcca9e (H. 4)
+10:38:59.699 | INFO | main.py: Running main loop!
+</code></pre>
+<p>We could see in the logs that the program creates a virtual interface in <code>/dev/pts/4</code>, that's the interface we will use as a serial can.</p>
+<h3 id="evil_doggieintromd">evil_doggie/intro.md</h3>
+<h1 id="evildoggie-introduction">evilDoggie Introduction</h1>
+<p>evilDoggie is the offensive firmware variant of Doggie, created for advanced security research and low-level CAN Bus manipulation. It extends Doggie's capabilities with features for exploiting CAN protocol weaknesses, such as:</p>
+<ul>
+<li>Spoofing messages with bit-level precision.</li>
+<li>Injecting errors to trigger double receives or bus off states.</li>
+<li>Forcing dominant bits to override recessive ones at the physical layer.</li>
+<li>Bus takeover to silence other ECUs.</li>
+<li>Custom attack scripting for targeted vulnerabilities.</li>
+</ul>
+<p>These features make evilDoggie a powerful tool for deeper research into how CAN networks can be broken and secured.</p>
+<p>⚠ Important: evilDoggie is for research and training purposes only. Use it responsibly!</p>
+<p>Project repository: <a href="https://github.com/infobyte/doggie">https://github.com/infobyte/doggie</a></p>
+<h3 id="evil_doggieget_startedmd">evil_doggie/get_started.md</h3>
+<h1 id="evildoggie-get-started">evilDoggie Get Started</h1>
+<h2 id="evil-mode">Evil Mode</h2>
+<p>evilDoggie has a different approach; it uses the serial interface to display a menu that lets the user configure attacks. The --omap lfcrlf and --imap lfcrlf arguments are used to match the control characters of the evilDoggie’s terminal. To exit from picocom, the keybinding is [ctrl + a, ctrl + x].</p>
+<p>Now you should be in the evilDoggie console! If you press a key, you will see a banner and a prompt with ‘&gt;’. You can type ‘help’ to see the available commands.</p>
+<p>"GOOD" and "EVIL" is used to select the mode in which the board will boot. GOOD for Doggie and EVIL for evilDoggie. Note that you will need to reboot the board after switching modes if it is already powered.</p>
+<h2 id="the-logic-behind-evildoggie-attacks">The Logic Behind evilDoggie Attacks</h2>
+<p>As an attacker you will connect Doggie or evilDoggie to the bus to complete the challenges.</p>
+<h2 id="how-it-is-physically-connected">How It Is Physically Connected</h2>
+<p>As the attacks covered by evilDoggie target physical bus characteristics, there needs to be a real CAN bus where an attacker can connect. You can simulate a full CAN Bus without using a Doggie for each ECU! And then, as an attacker, you can connect your own evilDoggie and make an online attack, just like on a real car.</p>
+<h3 id="blemd">ble.md</h3>
+<h1 id="evildoggie-over-bluetooth">(Evil)Doggie over Bluetooth</h1>
+<p>In this note we will cover how and why we implemented BLE for (Evil)Doggie instead of using other Bluetooth solutions like <code>Rfcomm</code> or <code>L2CAP CoC</code>.  This doesn't mean that future implementations of Bluetooth can't be done by the community, and we encourage the reader to try it. For time restrictions we had to focus only on one implementation.</p>
+<p>First of all, I would like to remark something: Doggie was made with one idea in mind, to be as  flexible as we could, speaking in terms of use and compatibility. With that in mind, we chose <code>slcan</code> (serial CAN Bus) protocol, as it is the most compatible driver for CAN.</p>
+<p>Having said this, the decision of using BLE NUS (Nordic-Uart Service) over a GATT server is clear: to be widely compatible with more hardware. Lets explain why.</p>
+<h2 id="classic-bluetooth-vs-ble">Classic Bluetooth vs BLE</h2>
+<p>We use <code>slcan</code> that, as the name suggests, is a serial implementation of CAN. So the most straight forward incorporation of Bluetooth should be <code>Rfcomm</code> as it provides a serial communication over Bluetooth. But <code>Rfcomm</code> only supports Classic Bluetooth and not Bluetooth Low Energy. The problem is the compatibility with the microcontrollers we chose for Doggie. Using as an example the ESP32 and its variants, we can see that the BLE is supported for more microcontrollers than the Classic Bluetooth. This decision sacrifices performance over hardware compatibility.</p>
+<table>
+<thead>
+<tr>
+<th>Device</th>
+<th>Classic Bluetooth</th>
+<th>BLE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ESP32</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>ESP32-S2</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td>ESP32-S3</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>ESP32-C2</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>ESP32-C3</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>ESP32-C6</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>ESP32-H2</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>ESP32-C5</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>ESP32-P4</td>
+<td>No</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<h2 id="l2cap-coc-vs-nus">L2CAP CoC vs NUS</h2>
+<p>After selecting BLE we had another decision to make, as there are two available options. The first one is using the lower layer of the BLE Host, L2CAP. This protocol can be used as a Channel-Oriented connection, as it provides a channel with two ends for communication between devices. Using L2CAP allows to avoid all the upper layers of the stack reducing the overhead in communication. But, the problem with L2CAP is the lack of compatibility with existent tools, specially on Windows. Hence, we chose the other option: NUS.</p>
+<p><img alt="alt text" src="ble_stack.png" /></p>
+<p><a href="https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/libraries/bluetooth/services/nus.html">NUS</a> (Nordic-Uart Service) is a GATT Service used to receive and write data serving as bridge for UART interfaces. And as we need a serial interface, it fits. Using NUS sacrifices performance and connection stability but allows the use of existing tools even on Windows, increasing the compatibility. The service presents the following characteristics:</p>
+<h3 id="service-uuid">Service UUID</h3>
+<p>The 128-bit vendor-specific service UUID is <code>6E400001-B5A3-F393-E0A9-E50E24DCCA9E</code> (16-bit offset: <code>0x0001</code>).</p>
+<h3 id="characteristics">Characteristics</h3>
+<p>This service has two characteristics.</p>
+<h4 id="rx-characteristic-6e400002-b5a3-f393-e0a9-e50e24dcca9e">RX Characteristic (<code>6E400002-B5A3-F393-E0A9-E50E24DCCA9E</code>)</h4>
+<p>Write or Write Without Response</p>
+<pre><code>Write data to the RX Characteristic to send it to the UART interface.
+</code></pre>
+<h4 id="tx-characteristic-6e400003-b5a3-f393-e0a9-e50e24dcca9e">TX Characteristic (<code>6E400003-B5A3-F393-E0A9-E50E24DCCA9E</code>)</h4>
+<p>Notify</p>
+<pre><code>Enable notifications for the TX Characteristic to receive data from the application. The application transmits all data that is received over UART as notifications.
+</code></pre>
+<h2 id="implementation">Implementation</h2>
+<p>The BLE implementation is in <code>/doggie_ble</code> and is used as a separate crate for the hardware variants that support BLE. It depends on the <code>trouble-host</code> crate, witch is based on <code>bt_hci</code>.</p>
+<p>Just as an extra, we can see the GATT Server definition:</p>
+<pre><code class="language-Rust">#[gatt_server]
+struct Server {
+    nus_service: NordicUartService,
+}
+
+/// Nordic UART Service
+#[gatt_service(uuid = &quot;6E400001-B5A3-F393-E0A9-E50E24DCCA9E&quot;)]
+struct NordicUartService {
+    /// TX Characteristic - used to send data to central (notify)
+    #[characteristic(uuid = &quot;6E400003-B5A3-F393-E0A9-E50E24DCCA9E&quot;, notify, read)]
+    tx: Vec&lt;u8, MAX_CMD_LEN&gt;, // Maximum BLE packet size for data
+
+    /// RX Characteristic - used to receive data from central (write)
+    #[characteristic(
+        uuid = &quot;6E400002-B5A3-F393-E0A9-E50E24DCCA9E&quot;,
+        write,
+        write_without_response
+    )]
+    rx: Vec&lt;u8, MAX_CMD_LEN&gt;,
+}
+</code></pre>
+<p>We made two structs and a function called BleSerial, BleServer and create_ble_pipe. This makes it easier to port BLE to other hardware variants. The only requirement is to implement a Controller, run the BLE server on a separate task and then just use the BleSerial as a serial interface.</p>
+<pre><code class="language-rust">let connector = BleConnector::new(init, peripherals.BT);
+let controller = ExternalController::new(connector);
+
+let (ble_server, ble_serial) = create_ble_pipe();
+
+let _ = select(
+    ble_server.run(controller),
+    async {
+        let mut buffer = [0; 255];
+        loop {
+            let size = ble_serial.read(&amp;mut buffer).await.unwrap();
+            ble_serial.write_all(&amp;buffer[0..size]).await;
+        }
+    }
+).await;
+</code></pre>
+<h2 id="usage">Usage</h2>
+<p>The implementation is compatible with a lot of different UART-BLE programs for different platforms.  For PC, we recomend <a href="https://pypi.org/project/ble-serial">ble-serial</a>, a Python module that allows to create a virtual port bridged with BLE.</p>
+<p>To use it, first we install the package</p>
+<pre><code>$ pip install ble-serial
+</code></pre>
+<p>Then you should be able to discover a device with name <code>Doggie BLE</code>:</p>
+<pre><code>$ ble-scan
+Started general BLE scan
+
+28:CD:C1:04:D7:E3 (rssi=-62): Doggie BLE
+</code></pre>
+<p>And finally, create the bridge using the mac address of the Doggie BLE device</p>
+<pre><code>$ ble-serial -d 12:00:3B:01:B2:A5 -t 10000
+10:38:57.733 | INFO | linux_pty.py: Port endpoint created on /tmp/ttyBLE -&gt; /dev/pts/4
+10:38:57.733 | INFO | ble_client.py: Receiver set up
+10:38:57.938 | INFO | ble_client.py: Trying to connect with 12:00:3B:01:B2:A5: esp32c3
+10:38:59.627 | INFO | ble_client.py: Device 12:00:3B:01:B2:A5 connected
+10:38:59.628 | INFO | ble_client.py: Found write characteristic 6e400002-b5a3-f393-e0a9-e50e24dcca9e (H. 2)
+10:38:59.628 | INFO | ble_client.py: Found notify characteristic 6e400003-b5a3-f393-e0a9-e50e24dcca9e (H. 4)
+10:38:59.699 | INFO | main.py: Running main loop!
+</code></pre>
+<p>You should see in the logs that the program creates a virtual interface (in this case <code>/dev/pts/4</code>), you can now use that interface as a serial CAN.</p>
+<h3 id="slcanmd">slcan.md</h3>
+<h1 id="slcan-protocol">SLCAN Protocol</h1>
+<p>SLCAN (Serial Line CAN) is a text-based ASCII protocol for transmitting CAN (Controller Area Network) frames over a serial interface. It is based on the Lawicel SLCAN protocol and is widely used for interfacing CAN networks with computers via USB-to-serial adapters or similar devices. SLCAN enables compatibility with tools like SocketCAN on Linux and Python-can libraries, allowing for easy sending and receiving of CAN messages.</p>
+<h2 id="key-features">Key Features</h2>
+<ul>
+<li><strong>ASCII-Based</strong>: Commands and data are sent as human-readable text, making it simple to implement and debug.</li>
+<li><strong>Compatible Interfaces</strong>: Works with slcan-compatible hardware, including LAWICEL adapters, and supports both local and remote serial ports (usable on Windows, Linux, etc.).</li>
+<li><strong>Commands</strong>: Includes setup for baud rate, opening/closing the CAN interface, transmitting frames, and receiving frames.</li>
+<li><strong>Frame Format</strong>: A typical transmit command might look like <code>t123811223344</code> (where <code>t</code> is transmit, <code>123</code> is the CAN ID, <code>8</code> is data length, and <code>11223344</code> is the data).</li>
+</ul>
+<h2 id="usage-example-with-python-can">Usage Example with Python-can</h2>
+<p>Python-can provides direct support for SLCAN interfaces:</p>
+<pre><code class="language-python">import can
+
+bus = can.interface.Bus(bustype='slcan', channel='/dev/ttyUSB0', receive_own_messages=True)
+msg = can.Message(arbitration_id=0x123, data=[0x11, 0x22, 0x33], is_extended_id=False)
+bus.send(msg)
+</code></pre>
+<p>For more details, refer to the <a href="https://python-can.readthedocs.io/en/stable/interfaces/slcan.html">Python-can SLCAN documentation</a> or open-source implementations like <a href="https://github.com/mac-can/SerialCAN">SerialCAN on GitHub</a>.</p>
+<p>SLCAN is the core protocol used in Doggie for CAN over serial communication.</p>
+<h3 id="hardwarefaradaymd">hardware/faraday.md</h3>
+<h1 id="faraday-hardware">Faraday Hardware</h1>
+<p>Faraday Doggie is the official, professionally manufactured hardware version of the Doggie project, released by Faraday Security in 2025. It serves as a modular, flexible, open-source adapter that bridges a computer to a CAN Bus network via USB, with support for BLE and UART extensions.</p>
+<h2 id="key-features_1">Key Features</h2>
+<ul>
+<li><strong>Modular Design</strong>: Compatible with standard CAN tools like SocketCAN and Python-can via SLCAN protocol.</li>
+<li><strong>Hardware Specs</strong>: Built around supported microcontrollers (e.g., ESP32 variants) with integrated CAN controllers or MCP2515 modules.</li>
+<li><strong>Use Cases</strong>: Ideal for car hacking, automotive security research, and CAN Bus analysis. For example, it can be used to sniff and inject messages into vehicles like a 2010 Jeep Liberty to unlock doors.</li>
+<li><strong>Open-Source</strong>: Fully open-source firmware and schematics, available on GitHub.</li>
+</ul>
+<p>For DIY builds, see the DIY section. More info at <a href="https://faradaysec.com/introducing-doggie-your-modular-can-bus-usb-adapter/">Faraday Security's Doggie page</a>.</p>
+<h3 id="hardwarediyintromd">hardware/diy/intro.md</h3>
+<h1 id="diy-hardware-introduction">DIY Hardware Introduction</h1>
+<p>Doggie supports DIY builds using common microcontrollers and CAN modules. This modular approach allows customization based on available parts, with options for USB, UART, or BLE connectivity. </p>
+<p>Key components:
+- Microcontrollers: RP2040 (Pico), STM32F103C8 (Bluepill), ESP32 variants.
+- CAN Controllers: Built-in (e.g., TWAI on ESP32) or external MCP2515 (requires modification for 3.3V compatibility; see MCP2515 Notes).
+- Transceivers: MCP2551 or TJA1050 (included in MCP2515 modules).</p>
+<p>Refer to the microcontroller-specific guides for connections, flashing, and compilation. All firmware is built with Rust.</p>
+<h3 id="hardwarediyesp32md">hardware/diy/esp32.md</h3>
+<h1 id="esp32-diy-configuration">ESP32 DIY Configuration</h1>
+<h2 id="description">Description</h2>
+<p>This implementation provides a <strong>CAN Bus to USB or BLE adapter</strong> using the <strong>ESP32</strong> microcontroller (commonly available in devkits such as the ESP-WROOM-32 we will use as example). The adapter uses the <strong>slcan protocol</strong> (CAN over Serial), making it compatible with popular software tools such as <strong>SocketCAN</strong>, <strong>Python-can</strong>, and other slcan-compatible applications. Since these boards include a UART bridge connected to the UART0 peripheral, SLCAN will be available through UART0 and USB using the default configuration.</p>
+<h2 id="supported-configurations_1">Supported Configurations</h2>
+<p>The ESP32 implementation supports the following configurations.</p>
+<p>As the ESP32 doesn't have 5v tolerant GPIOs, we should modify the MCP2515 or use a logic level shifter in order to make it compatible. Read <a href="../docs/mcp_mod.md">MCP2515 module compatibility note</a> for more information.</p>
+<ol>
+<li><strong>USB, UART0 or BLE, and MCP2515 (SPI to CAN)</strong></li>
+<li>The <strong>USB</strong> port, the <strong>UART0</strong> port and the BLE of the ESP32 can be used for communication with the host system.</li>
+<li>The <strong>MCP2515</strong> (SPI to CAN) module is used for CAN Bus communication.</li>
+<li>
+<p>This configuration allows the device to interface with a CAN network while communicating with the host via USB or BLE.</p>
+<p><strong>Connections</strong> (MCP2515 mod):
+| Function |    MCP2515     |
+| -------- | -------------- |
+|   Vcc 3.3|       VCC      |
+|   Vcc 5v | Tranceiver Vcc |
+|   GND    |       GND      |
+|   MOSI   |       SI       |
+|   MISO   |       SO       |
+|   Clock  |       SCK      |
+|   CS     |       CS       |</p>
+<p><img alt="alt text" src="../docs/esp32_mcp_mod.png" /></p>
+<p><strong>Connections</strong> (MCP2515 with level shifter):
+| Function | Level Shifter | MCP2515 |
+| -------- | ------------- | ------- |
+|   Vcc    |        -      |    5v   |
+|   GND    |        -      |    GND  |
+|   MOSI   | &lt;-----------&gt; |    SI   |
+|   MISO   | &lt;-----------&gt; |    SO   |
+|   Clock  | &lt;-----------&gt; |    SCK  |
+|   CS     | &lt;-----------&gt; |    CS   |</p>
+<p><img alt="alt text" src="../docs/esp32_mcp_ls.png" /></p>
+</li>
+<li>
+<p><strong>USB, UART0 or BLE, and TWAI (Internal controller)</strong></p>
+</li>
+<li>The <strong>USB</strong> port, the <strong>UART0</strong> port and the BLE of the ESP32 can be used for communication with the host system.</li>
+<li>The TWAI controller is used for CAN Bus communication.</li>
+<li>
+<p>This configuration allows the device to interface with a CAN network using only a transceiver while communicating with the host via USB or BLE.</p>
+<p><img alt="alt text" src="../docs/esp32_twai.png" /></p>
+<p><strong>Connections</strong>:
+| Function |   Tranceiver   |
+| -------- |--------------- |
+|   Vcc    |       VCC      |
+|   GND    |       GND      |
+|   CAN TX |       TX       |
+|   CAN RX |       RX       |</p>
+<p>For each esp32 varian we will use different pins that are defined but they could be easily changed in the code. Some variants are not implemented but are compatible and will be implemented on demand.</p>
+</li>
+</ol>
+<p><strong>Connections variants</strong>:
+    | Function  |   ESP32  | ESP32c3  |
+    | ----------- | -------- | -------- |
+    |    Vcc 3.3  |   3v3    |    3.3   |
+    |    Vcc 5v   |  VIN/5v  |    5v    |
+    |    GND      |   GND    |     G    |
+    |    MOSI     |   D13    |     6    |
+    |    MISO     |   D12    |     5    |
+    |    Clock    |   D14    |     9    |
+    |    CS       |   D15    |     7    |
+    |    CAN TX   |   D4     |     10    |
+    |    CAN RX   |   D3     |     9    |
+    | LOGS (UART) |   D10    |     3    |</p>
+<h2 id="notes-on-debugging">Notes on Debugging</h2>
+<p>The UART-USB or SerialJtagUsb bridge of the esp32 is usually used to flash, write logs and debugging, but as we will be using it as a serial interface for CAN Bus, we need another way to log and debug. For that we set up another UART interface that will print logs. In the "Connections Variants" table we could find the corresponding UART TX pins as <strong>LOGS</strong>.</p>
+<h2 id="how-to-flash-a-release">How to Flash a Release</h2>
+<ol>
+<li>Install <code>espflash</code>
+    <code>cargo install espflash
+    cargo install cargo-espflash</code></li>
+<li>Download the release <code>doggie_esp32</code>.</li>
+<li>Run <code>espflash flash --monitor -L defmt doggie_esp32</code></li>
+</ol>
+<h2 id="how-to-compile-and-flash">How to Compile and Flash</h2>
+<h3 id="prerequisites_1">Prerequisites</h3>
+<ol>
+<li>
+<p>Install <strong>Rust</strong> and <strong>cargo</strong>.
+   Follow the installation instructions from the official <a href="https://www.rust-lang.org/tools/install">Rust website</a>.</p>
+</li>
+<li>
+<p>Install <code>ldproxy</code>, <code>espup</code> and the ESP32 toolchain:
+    <code>cargo install ldproxy
+    cargo install espup --version 0.13.0
+    espup install --toolchain-version 1.84.0
+    . $HOME/export-esp.sh           # Or add to .zshrc/.bashrc</code></p>
+</li>
+<li>
+<p>Install <code>espflash</code>
+    <code>cargo install cargo-espflash --version 3.2.0</code></p>
+</li>
+</ol>
+<h3 id="compile-and-flash-the-firmware">Compile and Flash the Firmware</h3>
+<p>In order to manage the compilation with different hardware variants we use features. The most important feature is the one that select the board (<strong>esp32</strong>, <strong>esp32c3</strong>, etc). And we have the other features:
+* <code>twai</code>: Enable the internal CAN controller (TWAI)
+* <code>mcp</code>: Enable the MCP2515 SPI interface as CAN controller
+* <code>ble</code>: Enable BLE interface</p>
+<p>By default <code>twai</code> and <code>ble</code> are enabled.</p>
+<ol>
+<li>
+<p>Connect ESP32 to the PC via USB</p>
+</li>
+<li>
+<p>Build and flash:
+    <code>bash
+    DEFMT_LOG=off cargo {BOARD} --bin {BINARY} --disable-default-features --features {FEATURES}</code></p>
+<p>For example:
+```bash</p>
+<h1 id="esp32c3-with-twai-and-ble">ESP32c3 with TWAI and BLE</h1>
+<p>DEFMT_LOG=off cargo esp32c3 --bin doggie</p>
+<h1 id="esp32-with-mcp2515-and-ble">ESP32 with MCP2515 and BLE</h1>
+<p>DEFMT_LOG=off cargo esp32 --bin doggie --disable-default-features --features mcp,ble
+```</p>
+</li>
+</ol>
+<h3 id="hardwarediyrpmd">hardware/diy/rp.md</h3>
+<h1 id="rp2040-raspberry-pico-diy-configuration">RP2040 (Raspberry Pico) DIY Configuration</h1>
+<h2 id="description_1">Description</h2>
+<p>This implementation provides a <strong>CAN Bus to USB adapter</strong> using the <strong>RP2040</strong> microcontroller (commonly known as <strong>Raspberry Pico</strong> or <strong>Raspberry Pico W</strong>). It supports <strong>two configurations</strong> for interacting with a CAN Bus network, enabling communication via USB or UART. The adapter uses the <strong>slcan protocol</strong> (CAN over Serial), making it compatible with popular software tools such as <strong>SocketCAN</strong>, <strong>Python-can</strong>, and other slcan-compatible applications.</p>
+<h2 id="supported-configurations_2">Supported Configurations</h2>
+<p>The Raspberry Pico implementation supports the following configurations.</p>
+<p>As the RP2040 doesn't have 5v tolerant GPIOs, we shoud modify the MCP2515 or use a logic level shifter in order to make it compatible. Read <a href="../docs/mcp_mod.md">MCP2515 module compatibility note</a> for more information.</p>
+<ol>
+<li><strong>USB and MCP2515 (SPI to CAN)</strong>  </li>
+<li>The <strong>USB</strong> port of the Pico is used for communication with the host system.  </li>
+<li>The <strong>MCP2515</strong> (SPI to CAN) module is used for CAN Bus communication.  </li>
+<li>
+<p>This configuration allows the device to interface with a CAN network while communicating with the host via USB.</p>
+<p><strong>Connections</strong> (MCP2515 mod):<br />
+| Function |   Pico   |    MCP2515     |
+| -------- | -------- | -------------- |
+|   Vcc    |   3.3    |    VCC         |
+|   Vcc 5v |   VBUS   | Tranceiver VCC |
+|   GND    |   GND    |    GND         |
+|   MOSI   |   GP19   |    SI          |
+|   MISO   |   GP16   |    SO          |
+|   Clock  |   GP18   |    SCK         |
+|   CS     |   GP17   |    CS          |</p>
+<p><img alt="alt text" src="../docs/pico_mcp_mod.png" /></p>
+<p><strong>Connections</strong> (MCP2515 with level shifter):<br />
+| Function |   Pico   | Level Shifter | MCP2515 |
+| -------- | -------- | ------------- | ------- |
+|   Vcc    |   VBUS   |               |    VCC  |
+|   GND    |   GND    |               |    GND  |
+|   MOSI   |   GP19   | &lt;-----------&gt; |    SI   |
+|   MISO   |   GP16   | &lt;-----------&gt; |    SO   |
+|   Clock  |   GP18   | &lt;-----------&gt; |    SCK  |
+|   CS     |   GP17   | &lt;-----------&gt; |    CS   |</p>
+<p><img alt="alt text" src="../docs/pico_mcp_ls.png" /></p>
+</li>
+<li>
+<p><strong>UART and MCP2515 (SPI to CAN)</strong>  </p>
+</li>
+<li>The <strong>UART</strong> port of the Pico is used to communicate with the host system.  </li>
+<li>The <strong>MCP2515</strong> (SPI to CAN) module is used for CAN Bus communication.  </li>
+<li>
+<p>This configuration is useful when the USB port is unavailable or when using a serial connection instead of USB.</p>
+<p><strong>Connections</strong> (MCP2515 mod):<br />
+| Function |   Pico   |    MCP2515     | USB-UART |
+| -------- | -------- | -------------- | -------- |
+|   Vcc    |   3.3    |       VCC      |    -     |
+|   Vcc 5v |   VBUS   | Tranceiver VCC |    5v    |
+|   MOSI   |   GP19   |       SI       |    -     |
+|   MISO   |   GP16   |       SO       |    -     |
+|   Clock  |   GP18   |       SCK      |    -     |
+|   CS     |   GP17   |       CS       |    -     |
+|   TX     |   GP0    |        -       |    RX    |
+|   RX     |   GP1    |        -       |    TX    |   </p>
+<p><img alt="alt text" src="../docs/bluepill_uart_mcp.png" /></p>
+</li>
+</ol>
+<h2 id="how-to-compile-and-flash_1">How to Compile and Flash</h2>
+<h3 id="prerequisites_2">Prerequisites</h3>
+<p>probe-rs (para programar con otra pico):
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-tools-installer.sh | sh</p>
+<ol>
+<li>
+<p>Install <strong>Rust</strong> and <strong>cargo</strong> with support for ARM architecture.<br />
+   Follow the installation instructions from the official <a href="https://www.rust-lang.org/tools/install">Rust website</a>.  </p>
+</li>
+<li>
+<p>Add the target architecture:
+    <code>rustup target add thumbv6m-none-eabi</code></p>
+</li>
+<li>
+<p>To program a Pico, you can put it in bootloader mode and copy the firmware or use another Pico as a probe.</p>
+</li>
+<li>
+<p>If you want to program your Pico by copying the firmware, install <code>elf2uf2-rs</code>:
+    <code>cargo install elf2uf2-rs</code></p>
+</li>
+<li>
+<p>If you want to program your Pico using another Pico as a probe, install <code>probe-rs</code>:
+    <code>curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-tools-installer.sh | sh</code></p>
+<p>Additionally, you have to modify <code>doggie_pico/.cargo/config.toml</code>:
+```
+[target.'cfg(all(target_arch = "arm", target_os = "none"))']</p>
+<h1 id="runner-elf2uf2-rs-d">runner = "elf2uf2-rs -d"</h1>
+<p>runner = "probe-rs run --chip RP2040"</p>
+<p>[build]
+target = "thumbv6m-none-eabi"        # Cortex-M0 and Cortex-M0+</p>
+<p>[env]
+DEFMT_LOG = "trace"
+```</p>
+<p>And setup a Pico as a probe by cloning the <a href="https://github.com/raspberrypi/debugprobe">RPI debug probe repo</a>, building it for the pico:
+<code>git clone https://github.com/raspberrypi/debugprobe.git
+cd debugprobe
+mkdir build
+cd build
+cmake -DDEBUG_ON_PICO=ON ..
+make</code>
+Copying the resulting <code>.uf2</code> image to the Pico, and connecting it to the target Pico.</p>
+<p><strong>Connections</strong>:<br />
+| Function |   Pico Probe   | Target Probe |
+| -------- | -------------- | ------------ |
+|  Vcc     |      VBUS      |     VBUS     |
+|  GND     |      GND       |     GND      |
+|  SWCLK   |      GP2       |     SWCLK    |
+|  SWDIO   |      GP3       |     SWDIO    |
+|  UART -&gt; |      GP4       |     GP1      |
+|  UART &lt;- |      GP5       |     GP0      |</p>
+<p><img alt="alt text" src="../docs/pico_probe.png" /></p>
+<p>Note that you will be using the probe as a SWD programer and as a UART bridge, so you must compile doggie using the <code>uart</code> feature.</p>
+<p><strong>Make the modification to the MCP2515 or use a logic level shifter</strong></p>
+</li>
+</ol>
+<h3 id="compile-and-flash-the-firmware_1">Compile and Flash the Firmware:</h3>
+<p>To enable BLE and select UART or USB we use features:
+* <code>ble</code>: Enable Bluetooth Low Energy.
+* <code>uart</code>: Use UART as serial interface.
+* <code>usb</code>: Use USB as serial interface.</p>
+<p><em>Note: one, and only one, serial interface feature (uart or usb) must be selected</em></p>
+<ol>
+<li>
+<p>Connect the target Pico to the PC in bootloader mode or to the probe as shown before.  </p>
+</li>
+<li>
+<p>Build and flash with selected features</p>
+<ul>
+<li>USB and MCP2515 with BLE enable:
+    <code>cargo run --release</code></li>
+<li>UART and MCP2515 with ble (Use this feature if you are using the probe):
+    <code>cargo run --release --no-default-features --features uart,ble</code></li>
+</ul>
+</li>
+</ol>
+<h3 id="hardwarediybluepillmd">hardware/diy/bluepill.md</h3>
+<h1 id="stm32f1-bluepill-diy-configuration">STM32F1 (Bluepill) DIY Configuration</h1>
+<h2 id="description_2">Description</h2>
+<p>This implementation provides a <strong>CAN Bus to USB adapter</strong> using the <strong>STM32F103C8</strong> microcontroller (commonly known as <strong>Bluepill</strong>). It supports <strong>three configurations</strong> for interacting with a CAN Bus network, enabling communication via USB or UART, while leveraging different CAN transceiver options. The adapter uses the <strong>slcan protocol</strong> (CAN over Serial), making it compatible with popular software tools such as <strong>SocketCAN</strong>, <strong>Python-can</strong>, and other slcan-compatible applications.</p>
+<h2 id="supported-configurations_3">Supported Configurations</h2>
+<p>The Bluepill implementation supports the following configurations:</p>
+<ol>
+<li><strong>USB and MCP2515 (SPI to CAN)</strong>  </li>
+<li>The <strong>USB</strong> port of the Bluepill is used for communication with the host system.  </li>
+<li>The <strong>MCP2515</strong> (SPI to CAN) module is used for CAN Bus communication.  </li>
+<li>
+<p>This configuration allows the device to interface with a CAN network while communicating with the host via USB.</p>
+<p><strong>Connections</strong>:<br />
+| Function |  Bluepill  | MCP2515 |
+| -------- | ---------- | ------- |
+|   Vcc    |    5v      |    5v   |
+|   GND    |    GND     |    GND  |
+|   MOSI   |    PB15    |    SI   |
+|   MISO   |    PB14    |    SO   |
+|   Clock  |    PB13    |    SCK  |
+|   CS     |    PB12    |    CS   |</p>
+<p><img alt="alt text" src="../docs/bluepill_usb_mcp.png" /></p>
+</li>
+<li>
+<p><strong>UART and MCP2515 (SPI to CAN)</strong>  </p>
+</li>
+<li>The <strong>UART</strong> port of the Bluepill is used to communicate with the host system.  </li>
+<li>The <strong>MCP2515</strong> (SPI to CAN) module is used for CAN Bus communication.  </li>
+<li>
+<p>This configuration is useful when the USB port is unavailable or when using a serial connection instead of USB.</p>
+<p><strong>Connections</strong>:<br />
+| Function |  Bluepill  | MCP2515 | USB-UART |
+| -------- | ---------- | ------- | -------- |
+|   Vcc    |    5v      |    5v   |    5v    |
+|   GND    |    GND     |    GND  |   GND    |
+|   MOSI   |    PB15    |    SI   |    -     |
+|   MISO   |    PB14    |    SO   |    -     |
+|   Clock  |    PB13    |    SCK  |    -     |
+|   CS     |    PB12    |    CS   |    -     |
+|   TX     |    A2      |    -    |    RX    |
+|   RX     |    A3      |    -    |    TX    |   </p>
+<p><img alt="alt text" src="../docs/bluepill_uart_mcp.png" /></p>
+</li>
+<li>
+<p><strong>UART and Internal CAN Controller</strong>  </p>
+</li>
+<li>The <strong>UART</strong> port of the Bluepill is used to communicate with the host system.  </li>
+<li>The internal <strong>CAN controller</strong> of the STM32F103C8 microcontroller is used for CAN Bus communication and one tranceiver (MCP2551 in this case).  </li>
+<li>
+<p><strong>Note:</strong> The Bluepill's <strong>USB port</strong> and <strong>internal CAN controller</strong> cannot be used simultaneously. If the internal CAN controller is selected, the only available communication interface with the host is <strong>UART</strong>.</p>
+<p><strong>Connections</strong>:<br />
+| Function | Bluepill | MCP2551 | USB-UART |
+| -------- | -------- | ------- | -------- |
+|   Vcc    |    5v    |    VDD  |    5v    |
+|   GND    |    GND   |    VSS  |   GND    |
+|   CAN TX |    B8    |    TX   |    -     |
+|   CAN RX |    B9    |    RX   |    -     |
+|   RS     |    GND   |    RS   |    -     |
+|   TX     |    A2    |    -    |    RX    |
+|   RX     |    A3    |    -    |    TX    |  </p>
+<p><img alt="alt text" src="../docs/bluepill_uart_internal.png" /></p>
+</li>
+</ol>
+<h3 id="note-on-mcp2551-compatibility">Note on MCP2551 compatibility</h3>
+<p>There is no need to modify the MCP2551 standard module as the bluepill pins selected for the SPI are 5v tolerant.</p>
+<h2 id="how-to-flash-a-release-using-st-link-v2">How to Flash a Release Using St-Link v2</h2>
+<h3 id="prerequisites_3">Prerequisites</h3>
+<p><strong>Installing stlink tools</strong></p>
+<pre><code class="language-bash">sudo apt update
+sudo apt install stlink-tools
+</code></pre>
+<p>Alternatively, build the tools from source (if you need the latest version):</p>
+<pre><code class="language-bash">git clone https://github.com/stlink-org/stlink.git
+cd stlink
+make release
+sudo make install
+</code></pre>
+<h2 id="preparing-the-firmware">Preparing the Firmware</h2>
+<p>Ensure your firmware binary is compiled and ready to flash. You could download the release file <code>doggie_bluepill_{serial}_{can}</code> with the desired configuration from the <a href="https://github.com/infobyte/doggie/releases">Release</a> page.</p>
+<h2 id="flashing-the-firmware">Flashing the Firmware</h2>
+<ol>
+<li>Connect the ST-LINK programmer to your computer via USB.</li>
+<li><code>ST-LINK SWDIO</code> → <code>Bluepill SWDIO</code></li>
+<li><code>ST-LINK SWCLK</code> → <code>Bluepill SWCLK</code></li>
+<li><code>ST-LINK GND</code> → <code>Bluepill GND</code></li>
+<li>
+<p><code>ST-LINK 3.3V</code> → <code>Bluepill 3.3V</code> (if not powered externally)</p>
+<p><img alt="alt text" src="../docs/bluepill_stlink.webp" /></p>
+</li>
+<li>
+<p>Power the Bluepill (either through the ST-LINK or an external power source).</p>
+</li>
+<li>Open a terminal and navigate to the folder containing your downloaded firmware binary.</li>
+<li>Flash the firmware using <code>st-flash</code>:
+   <code>bash
+   st-flash write doggie_bluepill_usb_mcp 0x8000000</code>
+   Explanation:</li>
+<li><code>write</code>: Command to write the firmware.</li>
+<li><code>doggie_bluepill_usb_mcp</code>: The binary firmware file to be flashed.</li>
+<li><code>0x8000000</code>: Starting address of the STM32F103C8 flash memory.</li>
+</ol>
+<h2 id="how-to-compile-and-flash_2">How to Compile and Flash</h2>
+<h3 id="prerequisites_4">Prerequisites</h3>
+<ol>
+<li>
+<p>Install <strong>Rust</strong> and <strong>cargo</strong> with support for ARM architecture.<br />
+   Follow the installation instructions from the official <a href="https://www.rust-lang.org/tools/install">Rust website</a>.  </p>
+</li>
+<li>
+<p>Add the target architecture:
+    <code>rustup target add thumbv7m-none-eabi</code></p>
+</li>
+<li>
+<p>Install <code>probe-rs</code>
+    <code>curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-tools-installer.sh | sh</code></p>
+</li>
+</ol>
+<h3 id="compile-and-flash-the-firmware-using-st-link-v2">Compile and Flash the Firmware Using ST-Link V2:</h3>
+<p>In order to manage the compilation with different hardware variants we use the following features.
+* <code>int</code>: Enable the internal CAN controller
+* <code>mcp</code>: Enable the MCP2515 SPI interface as CAN controller
+* <code>usb</code>: Use the USB as a serial interface
+* <code>uart</code>: Use the UART as a serial interface</p>
+<p><em>NOTE: One, and only one, CAN interface feature must be enabled, and the same for the serial interfaces. Also, 'int' and 'usb' can't be enabled at the same time due to a hardware compatibility issue. By default, 'uart' and 'int' are enabled.</em></p>
+<ol>
+<li>
+<p>Connect Bluepill to the programmer  </p>
+</li>
+<li>
+<p>Build and flash with selected features</p>
+<ul>
+<li>USB and MCP2515:
+    <code>cargo run --bin doggie --release --no-default-features --features usb,mcp</code></li>
+<li>UART and MCP2515:
+    <code>cargo run --bin doggie --release --no-default-features --features uart,mcp</code></li>
+<li>UART and internal CAN:
+    <code>cargo run --bin doggie --release --no-default-features --features uart,int</code></li>
+</ul>
+</li>
+</ol>
+<h3 id="hardwaremcpmd">hardware/mcp.md</h3>
+<h3 id="mcp2515-module-modification-guide">MCP2515 Module Modification Guide</h3>
+<p>The project supports a variety of hardware configurations, but the most straightforward and widely recommended approach is to use the popular MCP2515 module in conjunction with a compatible microcontroller. While the MCP2515 module is a cost-effective and reliable choice for CAN Bus interfacing, it requires a specific modification to ensure seamless compatibility with most modern microcontrollers. This section explains the compatibility issue in detail, its root cause, and provides two practical solutions to address it.</p>
+<p><img alt="alt text" src="mcp2515.jpg" /></p>
+<h4 id="background-understanding-the-mcp2515-module">Background: Understanding the MCP2515 Module</h4>
+<p>The MCP2515 module is a complete solution for CAN Bus communication, integrating two key components:
+1. <strong>MCP2515 CAN Bus Controller</strong>: A standalone controller that communicates with a microcontroller via the Serial Peripheral Interface (SPI) protocol. It is responsible for managing CAN Bus data frames and can operate at either 3.3V or 5V logic levels.
+2. <strong>TJA1050 CAN Transceiver</strong>: A high-speed transceiver that interfaces directly with the CAN Bus physical layer, converting the controller’s signals into the differential voltages required by the CAN protocol. The TJA1050, however, operates exclusively at 5V.</p>
+<p>These components are typically sold pre-assembled on a single module, with both the MCP2515 controller and the TJA1050 transceiver sharing a single power pin (VCC). This design simplifies the module but introduces a compatibility challenge when interfacing with microcontrollers that operate at 3.3V, as explained below.</p>
+<p><img alt="alt text" src="mcp_diagram.png" /></p>
+<p><strong>Datasheet References</strong>:
+- MCP2515: <a href="https://ww1.microchip.com/downloads/en/DeviceDoc/MCP2515-Stand-Alone-CAN-Controller-with-SPI-20001801J.pdf">Link to MCP2515 Datasheet</a>
+- TJA1050: <a href="https://www.nxp.com/docs/en/data-sheet/TJA1050.pdf">Link to TJA1050 Datasheet</a></p>
+<h4 id="the-compatibility-issue">The Compatibility Issue</h4>
+<p>The MCP2515 module’s single VCC pin forces both the controller and transceiver to operate at the same voltage. While the MCP2515 can function at either 3.3V or 5V, the TJA1050 requires 5V to operate correctly. As a result, the module is typically powered at 5V to satisfy the transceiver’s requirements. However, this causes the MCP2515 to output 5V logic levels on its SPI pins (e.g., MOSI, MISO, SCK, and CS), which are used to communicate with the microcontroller.</p>
+<p>Many modern development boards—such as the Raspberry Pi, Arduino models with 3.3V logic, or various ARM-based microcontrollers—operate at 3.3V and do not tolerate 5V logic levels on their GPIO pins. Applying 5V signals to a 3.3V microcontroller can damage the hardware or cause unreliable operation, rendering the unmodified MCP2515 module incompatible with these systems.</p>
+<h4 id="solution-1-using-a-logic-level-shifter">Solution 1: Using a Logic Level Shifter</h4>
+<p>The first and simplest solution is to retain the module’s default 5V power configuration and add a logic level shifter between the MCP2515 module and the microcontroller. This approach works as follows:
+- <strong>Power the MCP2515 Module at 5V</strong>: Connect the module’s VCC pin to a 5V supply, ensuring both the MCP2515 controller and TJA1050 transceiver function correctly.
+- <strong>Add a Logic Level Shifter</strong>: Place a bidirectional logic level shifter (e.g., based on a 74LVC series IC or a MOSFET-based shifter) between the SPI pins of the MCP2515 module (operating at 5V) and the microcontroller’s GPIO pins (operating at 3.3V). This converts the 5V logic signals from the MCP2515 to 3.3V signals compatible with the microcontroller, and vice versa.</p>
+<p><img alt="alt text" src="mcp_ls.png" /></p>
+<p><strong>Advantages</strong>:
+- No physical modification to the module is required, preserving its original state.
+- Straightforward to implement with widely available, inexpensive components.</p>
+<p><strong>Disadvantages</strong>:
+- Adds extra hardware complexity and cost to the project.
+- Requires careful wiring to ensure proper signal integrity.</p>
+<p><strong>Implementation Steps</strong>:
+1. Power the MCP2515 module with a 5V supply.
+2. Connect a logic level shifter to the SPI lines (MOSI, MISO, SCK, CS) between the module and the microcontroller.
+3. Verify the shifter’s low-voltage side is connected to 3.3V and the high-voltage side to 5V, per the shifter’s specifications.
+4. Test the setup to confirm reliable SPI communication.</p>
+<h4 id="solution-2-modifying-the-mcp2515-module">Solution 2: Modifying the MCP2515 Module</h4>
+<p>A second, more hardware-oriented solution involves physically modifying the MCP2515 module to separate the power supplies for the MCP2515 controller and the TJA1050 transceiver. This allows the controller to operate at 3.3V (matching the microcontroller’s logic levels) while the transceiver remains at 5V. Here’s how it works:
+- <strong>Desolder the TJA1050 VCC Pin</strong>: On the MCP2515 module, locate the TJA1050 transceiver’s VCC pin (typically connected to the module’s shared VCC line). Carefully desolder this pin to disconnect it from the module’s power rail.
+- <strong>Add a Separate 5V Supply</strong>: Solder a small wire from the TJA1050’s VCC pin to an external 5V power source, ensuring the transceiver receives the required voltage.
+- <strong>Power the MCP2515 at 3.3V</strong>: Connect the module’s VCC pin (now powering only the MCP2515 controller) to a 3.3V supply. This configures the MCP2515’s SPI pins to output 3.3V logic levels, making it directly compatible with 3.3V microcontrollers.</p>
+<p><img alt="alt text" src="mcp_mod.jpg" /></p>
+<p><strong>Advantages</strong>:
+- Eliminates the need for an external logic level shifter, reducing component count.
+- Provides a clean, direct 3.3V interface with the microcontroller.</p>
+<p><strong>Disadvantages</strong>:
+- Requires soldering skills and careful modification of the module, which may risk damage if done incorrectly.
+- Slightly more complex to document and replicate for end users.</p>
+<p><strong>Implementation Steps</strong>:
+1. Identify the TJA1050 transceiver on the MCP2515 module and locate its VCC pin (refer to the module schematic or TJA1050 datasheet).
+2. Using a soldering iron and desoldering tools (e.g., braid or pump), carefully lift the TJA1050 VCC pin from the shared power trace.
+3. Solder a thin wire (e.g., 30 AWG) from the lifted VCC pin to a 5V power source.
+4. Connect the module’s VCC pin to a 3.3V supply.
+5. Verify the modification with a multimeter to ensure the MCP2515 receives 3.3V and the TJA1050 receives 5V.
+6. Test the module with a 3.3V microcontroller to confirm SPI communication and CAN Bus functionality.</p>
+<h4 id="recommendation">Recommendation</h4>
+<p>We recommend <strong>Solution 2 (module modification)</strong> as the preferred approach, as it aligns with the goal of creating a seamless, plug-and-play CAN Bus adapter compatible with a wide range of microcontrollers. While it requires more effort upfront, it simplifies the end-user experience by eliminating the need for additional components. However, for users uncomfortable with soldering, <strong>Solution 1 (logic level shifter)</strong> remains a viable alternative and should be documented as an option.</p>
+<h4 id="conclusion">Conclusion</h4>
+<p>The MCP2515 module is an excellent choice for CAN Bus interfacing, but its default configuration poses a voltage compatibility challenge with 3.3V microcontrollers. By implementing one of the above solutions—either a logic level shifter or a physical modification—users can ensure reliable operation with the "Doggie" USB adapter. Both methods have been tested and validated for this project, and detailed schematics, photos, or diagrams of the modification process can be provided upon request.</p>
+<h3 id="workshopintromd">workshop/intro.md</h3>
+<h1 id="evildoggie-workshop-introduction">evilDoggie Workshop Introduction</h1>
+<h2 id="workshop-overview">Workshop Overview</h2>
+<p>This workshop is designed to introduce participants to Doggie and its offensive variant, evilDoggie. Rather than teaching how a real car works, the workshop focuses on using Doggie and evilDoggie to analyze and manipulate a simulated CAN Bus environment specially built for training. Through several progressive challenges, participants will learn how Doggie integrates with standard tools and how, using evilDoggie, an attacker could take advantage of this protocol. For more information about CAN protocol and CAN hacking, check the appendix at the end of this guide.</p>
+<h2 id="content-outline">Content Outline</h2>
+<ul>
+<li>Introduction</li>
+<li>Doggie and evilDoggie</li>
+<li>What is Doggie?</li>
+<li>What is evilDoggie?</li>
+<li>Get Started</li>
+<li>Good Mode<ul>
+<li>Install tools</li>
+<li>Create the CAN interface</li>
+<li>Bring up the interface</li>
+<li>Start sniffing with candump</li>
+</ul>
+</li>
+<li>Evil Mode<ul>
+<li>The logic behind evilDoggie attacks</li>
+<li>How this workshop works</li>
+<li>How it is physically connected</li>
+</ul>
+</li>
+<li>Challenges</li>
+<li>
+<ol>
+<li>VIN Spoofing (details in full guide)</li>
+</ol>
+</li>
+<li>Speed Spoofing: Use spoofing_attack to set speed to 0.</li>
+<li>Door Unlock: Handle bus contention with higher priority messages.</li>
+<li>Airbag Disable: Use double receive attack by injecting errors in EOF field.</li>
+<li>Bus Off Attack: Force target ECU offline by injecting errors.</li>
+<li>Engine Start without Key: Use force mode to override key status at physical level.</li>
+</ul>
+<h2 id="detailed-challenges">Detailed Challenges</h2>
+<h3 id="challenge-speed-spoofing">Challenge: Speed Spoofing</h3>
+<p>The car’s speed is 0 km/h. Instead of just sniffing or sending normal messages, here you’ll need to use evilDoggie, the offensive firmware variant of Doggie. You’ll apply a classic attack known as spoofing, where you send fake messages with speed = 0.</p>
+<p>evilDoggie provides a special spoofing_attack command:</p>
+<blockquote>
+<p>spoofing_attack 0x100 0x2,0x0,0x0 0x2</p>
+</blockquote>
+<ul>
+<li>0x100: CAN ID</li>
+<li>0x2,0x0,0x0: data (speed = 0)</li>
+<li>0x2: mask (spoof only other messages on the same ID)</li>
+</ul>
+<p>Run the attack multiple times with &gt; attack 20.</p>
+<p>Observe: The accelerator goes to 0% as the CC ECU now knows the actual speed.</p>
+<h3 id="challenge-door-unlock">Challenge: Door Unlock</h3>
+<p>Here’s how to build and run this attack step by step with evilDoggie.</p>
+<p>First, open evilDoggie in your terminal.</p>
+<p>The first part of the attack: Notice how a GoodDoggie tries to send a message with higher priority, just as the evilDoggie is trying to send a door unlock message. This results in a bus error.</p>
+<p>A successful one looks like this: In this case, there is no contention for the bus. The evilDoggie sends the door unlock message successfully, and is ACK’ed by the GoodDoggies.</p>
+<p>This can be avoided using the bus takeover feature of evilDoggie. By taking full control of the bus and silencing other ECUs, the attacker can ensure that their messages go through.</p>
+<h3 id="challenge-airbag-disable">Challenge: Airbag Disable</h3>
+<p>Here’s how to do this step by step with evilDoggie.</p>
+<p>To set up a double receive attack, use: Toggle the airbag button on the simulator UI.</p>
+<p>If the attack succeeds:
+- evilDoggie’s console will log that the double receive attack was launched.
+- The Instrument Cluster will show the airbag disabled.</p>
+<p>Observe the result in the logic analyzer: evilDoggie injects an error just after the 6th bit of the EOF field in the CAN frame corresponding to the Airbag.</p>
+<h3 id="challenge-bus-off-attack">Challenge: Bus Off Attack</h3>
+<p>Here’s how to do this attack using evilDoggie.</p>
+<blockquote>
+<p>bus_off_attack 0x105 50</p>
+</blockquote>
+<p>evilDoggie will wait for messages with ID 0x105 (ABS heartbeat) and inject errors, effectively silencing the target ECU for a while.</p>
+<p>Observe: The evilDoggie injecting errors after each ABS heartbeat message causing the ABS ECU to go silent for a period.</p>
+<h3 id="challenge-engine-start-without-key">Challenge: Engine Start without Key</h3>
+<p>The engine can’t start unless the Immo ECU reports the key is present. You’ll use a unique feature of evilDoggie called force to override the messages that report the key status at the physical level.</p>
+<p>evilDoggie’s force mode (also called dominant-override) can:
+- Take control of the bus.
+- Force recessive bits to dominant at the physical level.</p>
+<p>This keeps the Immo ECU from sending “key not present” messages and allows evilDoggie to send forged “key is present” messages, followed by a start command.</p>
+<p>Solution: We’ll build a custom attack in evilDoggie using the force feature.</p>
+<p>Enter the custom attack menu:</p>
+<blockquote>
+<p>custom_attack</p>
+</blockquote>
+<p>First, wait until the attack succeeded.</p>
+<p>Congratulations—you’ve completed the final and most advanced challenge, using evilDoggie’s physical-layer force capability to break the car’s security and start the engine without a key!</p>
+<p>Observe in the logic analyzer: evilDoggie is forcing the KeyMessage indicating that the key is present. Depending on the timing you might see the RX line does not match the data its trying to send, it enters into an error state. Finally, evilDoggie sends the message to start the car.</p>
+<h2 id="appendix-can-protocol">Appendix: CAN Protocol</h2>
+<p>The CAN protocol is always evolving. You can build your own DIY Doggie by combining parts you already have! For more information on this, check the appendix on CAN protocol at the end of this guide. And that’s exactly why we’ll use tools like Doggie and evilDoggie to see how these protocol details can be turned into practical attacks</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../rp/" class="btn btn-neutral float-left" title="RP2040 (Raspberry Pico)"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../mcp/" class="btn btn-neutral float-right" title="MCP2515 Notes">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../rp/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../mcp/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

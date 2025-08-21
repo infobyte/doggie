@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Slcan - evilDoggie</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Slcan";
+        var mkdocs_page_input_path = "software/doggie/slcan.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> evilDoggie
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Introduction</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Software</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" >Doggie</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../intro/">Introdutcion</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../get_started/">Get Started</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Slcan</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#key-features">Key Features</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#usage-example-with-python-can">Usage Example with Python-can</a>
+    </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >evilDoggie</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../evil_doggie/intro/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../evil_doggie/get_started/">Get Started</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Attacks</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../evil_doggie/attacks/spoofing_attack/">Spoofing Attack</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../evil_doggie/attacks/bus_off_attack/">Bus Off Attack</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../evil_doggie/attacks/double_receive_attack/">Double Receive Attack</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../evil_doggie/attacks/custom_attack/">Custom Attack</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../evil_doggie/force/">Force</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Hardware</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../hardware/faraday/">Faraday</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >DIY</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../hardware/diy/intro/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Microcontrollers</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../hardware/diy/esp32/">ESP32</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../hardware/diy/rp/">RP2040 (Raspberry Pico)</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../hardware/diy/bluepill/">STM32F1 (bluepill)</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../hardware/diy/mcp/">MCP2515 Notes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../hardware/force.md">Force</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Notes</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../ble/">BLE</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">evilDoggie lab</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../workshop/intro/">Introduction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../workshop/get_started/">Get Started</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../workshop/challenges/">Challenges</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../workshop/can_protocol/">CAN Protocol</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">evilDoggie</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Software</li>
+          <li class="breadcrumb-item">Doggie</li>
+      <li class="breadcrumb-item active">Slcan</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="slcan-protocol">SLCAN Protocol</h1>
+<p>SLCAN (Serial Line CAN) is a text-based ASCII protocol for transmitting CAN (Controller Area Network) frames over a serial interface. It is based on the Lawicel SLCAN protocol and is widely used for interfacing CAN networks with computers via USB-to-serial adapters or similar devices. SLCAN enables compatibility with tools like SocketCAN on Linux and Python-can libraries, allowing for easy sending and receiving of CAN messages.</p>
+<h2 id="key-features">Key Features</h2>
+<ul>
+<li><strong>ASCII-Based</strong>: Commands and data are sent as human-readable text, making it simple to implement and debug.</li>
+<li><strong>Compatible Interfaces</strong>: Works with slcan-compatible hardware, including LAWICEL adapters, and supports both local and remote serial ports (usable on Windows, Linux, etc.).</li>
+<li><strong>Commands</strong>: Includes setup for baud rate, opening/closing the CAN interface, transmitting frames, and receiving frames.</li>
+<li><strong>Frame Format</strong>: A typical transmit command might look like <code>t123811223344</code> (where <code>t</code> is transmit, <code>123</code> is the CAN ID, <code>8</code> is data length, and <code>11223344</code> is the data).</li>
+</ul>
+<h2 id="usage-example-with-python-can">Usage Example with Python-can</h2>
+<p>Python-can provides direct support for SLCAN interfaces:</p>
+<pre><code class="language-python">import can
+
+bus = can.interface.Bus(bustype='slcan', channel='/dev/ttyUSB0', receive_own_messages=True)
+msg = can.Message(arbitration_id=0x123, data=[0x11, 0x22, 0x33], is_extended_id=False)
+bus.send(msg)
+</code></pre>
+<p>For more details, refer to the <a href="https://python-can.readthedocs.io/en/stable/interfaces/slcan.html">Python-can SLCAN documentation</a>.</p>
+<p>SLCAN is the core protocol used in Doggie for CAN over serial communication.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../get_started/" class="btn btn-neutral float-left" title="Get Started"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../evil_doggie/intro/" class="btn btn-neutral float-right" title="Introduction">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../get_started/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../../evil_doggie/intro/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

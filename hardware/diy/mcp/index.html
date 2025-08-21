@@ -4,21 +4,21 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Mcp mod - evilDoggie</title>
-    <link rel="stylesheet" href="../../css/theme.css" />
-    <link rel="stylesheet" href="../../css/theme_extra.css" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>MCP2515 Notes - evilDoggie</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Mcp mod";
-        var mkdocs_page_input_path = "old_docs/mcp_mod.md";
+        var mkdocs_page_name = "MCP2515 Notes";
+        var mkdocs_page_input_path = "hardware/diy/mcp.md";
         var mkdocs_page_url = null;
       </script>
     
     <!--[if lt IE 9]>
-      <script src="../../js/html5shiv.min.js"></script>
+      <script src="../../../js/html5shiv.min.js"></script>
     <![endif]-->
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
       <script>hljs.highlightAll();</script> 
@@ -30,9 +30,9 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
-          <a href="../.." class="icon icon-home"> evilDoggie
+          <a href="../../.." class="icon icon-home"> evilDoggie
         </a><div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
       <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
   </form>
 </div>
@@ -40,49 +40,97 @@
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
-                <li class="toctree-l1"><a class="" href="../../intro.md">Introduction</a>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Introduction</a>
                 </li>
               </ul>
-              <p class="caption"><span class="caption-text">Doggie</span></p>
+              <p class="caption"><span class="caption-text">Software</span></p>
               <ul>
-                  <li class="toctree-l1"><a class="" href="../../doggie/intro.md">Introdutcion</a>
+                  <li class="toctree-l1"><a class="reference internal" >Doggie</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../software/doggie/intro/">Introdutcion</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../software/doggie/get_started/">Get Started</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../software/doggie/slcan/">Slcan</a>
+                </li>
+    </ul>
                   </li>
-                  <li class="toctree-l1"><a class="" href="../../doggie/get_started.md">Get Started</a>
-                  </li>
-              </ul>
-              <p class="caption"><span class="caption-text">evilDoggie</span></p>
-              <ul>
-                  <li class="toctree-l1"><a class="" href="../../evil_doggie/intro.md">Introduction</a>
-                  </li>
-                  <li class="toctree-l1"><a class="" href="../../evil_doggie/get_started.md">Get Started</a>
+                  <li class="toctree-l1"><a class="reference internal" >evilDoggie</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../software/evil_doggie/intro/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../software/evil_doggie/get_started/">Get Started</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Attacks</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../software/evil_doggie/attacks/spoofing_attack/">Spoofing Attack</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../software/evil_doggie/attacks/bus_off_attack/">Bus Off Attack</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../software/evil_doggie/attacks/double_receive_attack/">Double Receive Attack</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../software/evil_doggie/attacks/custom_attack/">Custom Attack</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../software/evil_doggie/force/">Force</a>
+                </li>
+    </ul>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Hardware</span></p>
-              <ul>
-                  <li class="toctree-l1"><a class="" href="../../hardware/faraday.md">Faraday</a>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../../faraday/">Faraday</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" >DIY</a>
-    <ul>
-                <li class="toctree-l2"><a class="" href="../../hardware/diy/intro.md">Introduction</a>
+                  <li class="toctree-l1 current"><a class="reference internal current" >DIY</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../intro/">Introduction</a>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" >Microcontrollers</a>
     <ul>
-                <li class="toctree-l3"><a class="" href="../../hardware/diy/esp32.md">ESP32</a>
+                <li class="toctree-l3"><a class="reference internal" href="../esp32/">ESP32</a>
                 </li>
-                <li class="toctree-l3"><a class="" href="../../hardware/diy/rp.md">RP2040 (Raspberry Pico)</a>
+                <li class="toctree-l3"><a class="reference internal" href="../rp/">RP2040 (Raspberry Pico)</a>
                 </li>
-                <li class="toctree-l3"><a class="" href="../../hardware/diy/bluepill.md">STM32F1 (bluepill)</a>
-                </li>
-    </ul>
-                </li>
-                <li class="toctree-l2"><a class="" href="../../hardware/mcp.md">MCP2515 Notes</a>
+                <li class="toctree-l3"><a class="reference internal" href="../bluepill/">STM32F1 (bluepill)</a>
                 </li>
     </ul>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">MCP2515 Notes</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#background-understanding-the-mcp2515-module">Background: Understanding the MCP2515 Module</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#the-compatibility-issue">The Compatibility Issue</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#solution-1-using-a-logic-level-shifter">Solution 1: Using a Logic Level Shifter</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#solution-2-modifying-the-mcp2515-module">Solution 2: Modifying the MCP2515 Module</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#recommendation">Recommendation</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#conclusion">Conclusion</a>
+    </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../force.md">Force</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Notes</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../software/ble/">BLE</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">evilDoggie lab</span></p>
               <ul>
-                  <li class="toctree-l1"><a class="" href="../../workshop/intro.md">Introduction</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../workshop/intro/">Introduction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../workshop/get_started/">Get Started</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../workshop/challenges/">Challenges</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../workshop/can_protocol/">CAN Protocol</a>
                   </li>
               </ul>
       </div>
@@ -92,14 +140,16 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
       <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../..">evilDoggie</a>
+          <a href="../../..">evilDoggie</a>
         
       </nav>
       <div class="wy-nav-content">
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
-      <li class="breadcrumb-item active">Mcp mod</li>
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Hardware</li>
+          <li class="breadcrumb-item">DIY</li>
+      <li class="breadcrumb-item active">MCP2515 Notes</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -110,13 +160,13 @@
               
                 <h3 id="mcp2515-module-modification-guide">MCP2515 Module Modification Guide</h3>
 <p>The project supports a variety of hardware configurations, but the most straightforward and widely recommended approach is to use the popular MCP2515 module in conjunction with a compatible microcontroller. While the MCP2515 module is a cost-effective and reliable choice for CAN Bus interfacing, it requires a specific modification to ensure seamless compatibility with most modern microcontrollers. This section explains the compatibility issue in detail, its root cause, and provides two practical solutions to address it.</p>
-<p><img alt="alt text" src="mcp2515.jpg" /></p>
+<p><img alt="alt text" src="/res/mcp2515.jpg" /></p>
 <h4 id="background-understanding-the-mcp2515-module">Background: Understanding the MCP2515 Module</h4>
 <p>The MCP2515 module is a complete solution for CAN Bus communication, integrating two key components:
 1. <strong>MCP2515 CAN Bus Controller</strong>: A standalone controller that communicates with a microcontroller via the Serial Peripheral Interface (SPI) protocol. It is responsible for managing CAN Bus data frames and can operate at either 3.3V or 5V logic levels.
 2. <strong>TJA1050 CAN Transceiver</strong>: A high-speed transceiver that interfaces directly with the CAN Bus physical layer, converting the controller’s signals into the differential voltages required by the CAN protocol. The TJA1050, however, operates exclusively at 5V.</p>
 <p>These components are typically sold pre-assembled on a single module, with both the MCP2515 controller and the TJA1050 transceiver sharing a single power pin (VCC). This design simplifies the module but introduces a compatibility challenge when interfacing with microcontrollers that operate at 3.3V, as explained below.</p>
-<p><img alt="alt text" src="mcp_diagram.png" /></p>
+<p><img alt="alt text" src="/res/mcp_diagram.png" /></p>
 <p><strong>Datasheet References</strong>:
 - MCP2515: <a href="https://ww1.microchip.com/downloads/en/DeviceDoc/MCP2515-Stand-Alone-CAN-Controller-with-SPI-20001801J.pdf">Link to MCP2515 Datasheet</a>
 - TJA1050: <a href="https://www.nxp.com/docs/en/data-sheet/TJA1050.pdf">Link to TJA1050 Datasheet</a></p>
@@ -127,7 +177,7 @@
 <p>The first and simplest solution is to retain the module’s default 5V power configuration and add a logic level shifter between the MCP2515 module and the microcontroller. This approach works as follows:
 - <strong>Power the MCP2515 Module at 5V</strong>: Connect the module’s VCC pin to a 5V supply, ensuring both the MCP2515 controller and TJA1050 transceiver function correctly.
 - <strong>Add a Logic Level Shifter</strong>: Place a bidirectional logic level shifter (e.g., based on a 74LVC series IC or a MOSFET-based shifter) between the SPI pins of the MCP2515 module (operating at 5V) and the microcontroller’s GPIO pins (operating at 3.3V). This converts the 5V logic signals from the MCP2515 to 3.3V signals compatible with the microcontroller, and vice versa.</p>
-<p><img alt="alt text" src="mcp_ls.png" /></p>
+<p><img alt="alt text" src="/res/mcp_ls.png" /></p>
 <p><strong>Advantages</strong>:
 - No physical modification to the module is required, preserving its original state.
 - Straightforward to implement with widely available, inexpensive components.</p>
@@ -165,6 +215,10 @@
               
             </div>
           </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../bluepill/" class="btn btn-neutral float-left" title="STM32F1 (bluepill)"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../../software/ble/" class="btn btn-neutral float-right" title="BLE">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
 
   <hr/>
 
@@ -186,14 +240,18 @@
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
+      <span><a href="../bluepill/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../../../software/ble/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>
-    <script src="../../js/jquery-3.6.0.min.js"></script>
-    <script>var base_url = "../..";</script>
-    <script src="../../js/theme_extra.js"></script>
-    <script src="../../js/theme.js"></script>
-      <script src="../../search/main.js"></script>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
     <script>
         jQuery(function () {
             SphinxRtdTheme.Navigation.enable(true);

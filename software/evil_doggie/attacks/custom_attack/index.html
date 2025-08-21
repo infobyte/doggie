@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../../img/favicon.ico" />
+    <title>Custom Attack - evilDoggie</title>
+    <link rel="stylesheet" href="../../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Custom Attack";
+        var mkdocs_page_input_path = "software/evil_doggie/attacks/custom_attack.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../../.." class="icon icon-home"> evilDoggie
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../..">Introduction</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Software</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" >Doggie</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../doggie/intro/">Introdutcion</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../doggie/get_started/">Get Started</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../doggie/slcan/">Slcan</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >evilDoggie</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../../intro/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../get_started/">Get Started</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" >Attacks</a>
+    <ul class="current">
+                <li class="toctree-l3"><a class="reference internal" href="../spoofing_attack/">Spoofing Attack</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../bus_off_attack/">Bus Off Attack</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../double_receive_attack/">Double Receive Attack</a>
+                </li>
+                <li class="toctree-l3 current"><a class="reference internal current" href="#">Custom Attack</a>
+    <ul class="current">
+    </ul>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../force/">Force</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Hardware</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../../hardware/faraday/">Faraday</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >DIY</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../hardware/diy/intro/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Microcontrollers</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../../hardware/diy/esp32/">ESP32</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../../hardware/diy/rp/">RP2040 (Raspberry Pico)</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../../hardware/diy/bluepill/">STM32F1 (bluepill)</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../hardware/diy/mcp/">MCP2515 Notes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../../hardware/force.md">Force</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Notes</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../ble/">BLE</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">evilDoggie lab</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../../workshop/intro/">Introduction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../../workshop/get_started/">Get Started</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../../workshop/challenges/">Challenges</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../../workshop/can_protocol/">CAN Protocol</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../..">evilDoggie</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Software</li>
+          <li class="breadcrumb-item">evilDoggie</li>
+          <li class="breadcrumb-item">Attacks</li>
+      <li class="breadcrumb-item active">Custom Attack</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="custom-attacks-in-evildoggie">Custom Attacks in evilDoggie</h1>
+<p>The <code>custom_attack</code> submenu allows you to craft sophisticated attacks by combining low-level primitives tailored to specific CAN Bus manipulation needs. These attacks leverage the physical layer and protocol weaknesses, offering flexibility beyond predefined options. Here’s how to create and manage custom attacks:</p>
+<ul>
+<li><strong>Entering Custom Attack Mode</strong>: Type <code>custom_attack</code> from the main menu to access this submenu. The prompt changes to <code>&gt;&gt;</code> to indicate you’re in custom attack mode.</li>
+<li><strong>Available Primitives</strong>:</li>
+<li><code>wait_frame &lt;ID&gt;</code>: Waits for a CAN frame with the specified ID (e.g., <code>wait_frame 0x100</code>) before proceeding with the next step.</li>
+<li><code>inject_error &lt;bit_position&gt;</code>: Injects an error at the specified bit position in the next detected frame (e.g., <code>inject_error 6</code> targets the EOF field).</li>
+<li><code>force_dominant &lt;bit_range&gt;</code>: Forces bits to dominant (logic 0) over a specified range in a frame (e.g., <code>force_dominant 0-2</code> overrides the first three bits).</li>
+<li><code>send_frame &lt;ID&gt; &lt;data&gt;</code>: Sends a custom CAN frame with the given ID and data (e.g., <code>send_frame 0x123 0x11223344</code>).</li>
+<li><code>delay &lt;ms&gt;</code>: Introduces a delay in milliseconds (e.g., <code>delay 100</code> pauses for 100ms).</li>
+<li><strong>Building a Custom Attack</strong>:</li>
+<li>Example: To disable an airbag by triggering a double receive attack:<ol>
+<li><code>wait_frame 0x200</code> (wait for the airbag status frame).</li>
+<li><code>inject_error 6</code> (inject error in the EOF field to cause a double receive).</li>
+<li><code>save "airbag_disable"</code> (save the sequence as "airbag_disable").</li>
+</ol>
+</li>
+<li>Example: To start an engine without a key:<ol>
+<li><code>wait_frame 0x300</code> (wait for the key status frame).</li>
+<li><code>force_dominant 0-7</code> (override the entire byte to dominant, simulating key presence).</li>
+<li><code>send_frame 0x400 0x01</code> (send engine start command).</li>
+<li><code>save "engine_start"</code></li>
+</ol>
+</li>
+<li><strong>Managing Custom Attacks</strong>:</li>
+<li><code>list_custom</code>: Displays all saved custom attacks.</li>
+<li><code>delete_custom &lt;name&gt;</code>: Removes a custom attack (e.g., <code>delete_custom airbag_disable</code>).</li>
+<li><code>edit_custom &lt;name&gt;</code>: Re-enters edit mode for an existing custom attack to modify its sequence.</li>
+<li><code>exit</code>: Returns to the main menu, saving the current custom attack if <code>save</code> was used.</li>
+<li><strong>Executing Custom Attacks</strong>: After saving, return to the main menu and add the custom attack to the plan with <code>add_custom &lt;name&gt;</code> (e.g., <code>add_custom airbag_disable</code>). Launch it with <code>attack [count]</code>.</li>
+</ul>
+<p>Custom attacks are powerful for targeting specific vulnerabilities, such as overriding key checks or silencing ECUs, and can be iterated upon based on real-time CAN Bus analysis.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../double_receive_attack/" class="btn btn-neutral float-left" title="Double Receive Attack"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../force/" class="btn btn-neutral float-right" title="Force">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../double_receive_attack/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../../force/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../../..";</script>
+    <script src="../../../../js/theme_extra.js"></script>
+    <script src="../../../../js/theme.js"></script>
+      <script src="../../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Challenges - evilDoggie</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Challenges";
+        var mkdocs_page_input_path = "workshop/challenges.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> evilDoggie
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Software</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" >Doggie</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../software/doggie/intro/">Introdutcion</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../software/doggie/get_started/">Get Started</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../software/doggie/slcan/">Slcan</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >evilDoggie</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../software/evil_doggie/intro/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../software/evil_doggie/get_started/">Get Started</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Attacks</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../software/evil_doggie/attacks/spoofing_attack/">Spoofing Attack</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../software/evil_doggie/attacks/bus_off_attack/">Bus Off Attack</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../software/evil_doggie/attacks/double_receive_attack/">Double Receive Attack</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../software/evil_doggie/attacks/custom_attack/">Custom Attack</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../software/evil_doggie/force/">Force</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Hardware</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../hardware/faraday/">Faraday</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >DIY</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../hardware/diy/intro/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Microcontrollers</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../hardware/diy/esp32/">ESP32</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../hardware/diy/rp/">RP2040 (Raspberry Pico)</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../hardware/diy/bluepill/">STM32F1 (bluepill)</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../hardware/diy/mcp/">MCP2515 Notes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../hardware/force.md">Force</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Notes</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../software/ble/">BLE</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">evilDoggie lab</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../intro/">Introduction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../get_started/">Get Started</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Challenges</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#getting-the-vin-number">Getting the VIN number</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#hints">Hints</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#solution">Solution</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../can_protocol/">CAN Protocol</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">evilDoggie</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">evilDoggie lab</li>
+      <li class="breadcrumb-item active">Challenges</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="challenges">Challenges</h1>
+<h2 id="getting-the-vin-number">Getting the VIN number</h2>
+<p>In this first challenge, your goal is to retrieve the car’s VIN number by sending a diagnostic request over the CAN Bus.</p>
+<p>Modern cars store the VIN (Vehicle Identification Number) inside an ECU, and diagnostic tools can read it by sending a special request. You have to do the same, but using Doggie to send the request and listen for the response, just like a mechanic (or an attacker!) would.</p>
+<h3 id="hints">Hints</h3>
+<p><strong>What is the VIN?</strong></p>
+<p>The Vehicle Identification Number (VIN) is a unique 17-character identifier every car has. In real life, mechanics and dealerships use diagnostic tools to read it through the OBD2 port by sending a standardized request.</p>
+<p><strong>What protocol is used to retrieve the VIN?</strong></p>
+<p>While normal CAN messages are short (up to 8 bytes), some diagnostics need to exchange longer data, like the VIN. To achieve this, the automotive world utilizes UDS (Unified Diagnostic Services, ISO 14229), which runs over ISO-TP (ISO 15765-2), a protocol designed to send multi-frame messages over CAN.</p>
+<p>With ISO-TP, the VIN ECU can:</p>
+<ul>
+<li>Receive a diagnostic request from the tester (your tool)</li>
+<li>Send back a multi-frame response containing the VIN</li>
+</ul>
+<p><strong>Which ECUs are involved?</strong>
+In our simulator, there’s a special VIN ECU that:</p>
+<ul>
+<li>Listens for ISO-TP requests sent to CAN ID <strong>0x7E8</strong></li>
+<li>Replies with the VIN using ISO-TP</li>
+</ul>
+<p>You act as the tester, using CAN ID <strong>0x7DF</strong>.</p>
+<p><strong>Linux tools you’ll use:</strong></p>
+<p>To interact over ISO-TP, you can use two powerful tools from can-utils:</p>
+<ul>
+<li><strong>isotpsend</strong>: to send a diagnostic request</li>
+<li><strong>isotprecv</strong>: to listen for the diagnostic response</li>
+</ul>
+<p>They set up a virtual ISO-TP link over the physical CAN interface (your Doggie).</p>
+<p><strong>Diagnostic request details:</strong></p>
+<p>The UDS protocol has a series of services and parameter IDs. To get the VIN, you can use:</p>
+<ul>
+<li><strong>Service 09</strong>: Request Vehicle Information</li>
+<li><strong>PID 02</strong>: VIN</li>
+</ul>
+<p>So, the request payload becomes: 09 02 (hex). In a real scan tool, this would be built automatically—but here you’ll craft and send it manually to understand what happens behind the scenes.</p>
+<figure align="center">
+    <img src="/res/workshop_vin_msgs.png" alt="VIN Messages">
+</figure>
+
+<h3 id="solution">Solution</h3>
+<p><strong>Start listening for the VIN ECU response</strong></p>
+<p>Open a terminal and run:</p>
+<p><code>isotprecv -s 7DF -d 7E8 -p 8:8 -l doggie</code></p>
+<p>Where the arguments have the following meaning:</p>
+<ul>
+<li>-s 7DF: source (tester’s) CAN ID</li>
+<li>-d 7E8: destination (VIN ECU’s) CAN ID</li>
+<li>-p 8:8: padding config (common ISO-TP setting)</li>
+<li>-l: listen mode (prints raw response)</li>
+</ul>
+<p><strong>Send the diagnostic request</strong></p>
+<p>In another terminal, send the request:</p>
+<p><code>echo "09 02" | isotpsend -s 7DF -d 7E8 -p 8:8 doggie</code></p>
+<p>This sends a VIN request to the VIN ECU.</p>
+<p><strong>See the response</strong></p>
+<p>The isotprecv terminal should print something like:</p>
+<p><code>49 02 01 57 58 30 58 58 58 58 58 58 58 58 58 58 58</code></p>
+<p>Example:</p>
+<figure align="center">
+    <img src="/res/workshop_vin_example.png" alt="VIN Example">
+</figure>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../get_started/" class="btn btn-neutral float-left" title="Get Started"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../can_protocol/" class="btn btn-neutral float-right" title="CAN Protocol">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../get_started/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../can_protocol/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

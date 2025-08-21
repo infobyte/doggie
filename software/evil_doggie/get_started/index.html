@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Get Started - evilDoggie</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Get Started";
+        var mkdocs_page_input_path = "software/evil_doggie/get_started.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> evilDoggie
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Introduction</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Software</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" >Doggie</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../doggie/intro/">Introdutcion</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../doggie/get_started/">Get Started</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../doggie/slcan/">Slcan</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >evilDoggie</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../intro/">Introduction</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Get Started</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#switching-to-evil-mode-faradays-doggie">Switching to Evil Mode (Faraday's Doggie)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#accessing-the-serial-console">Accessing the Serial Console</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#the-logic-behind-evildoggie-attacks">The Logic Behind evilDoggie Attacks</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#building-an-attack-plan">Building an Attack Plan</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-it-is-physically-connected">How It Is Physically Connected</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Attacks</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../attacks/spoofing_attack/">Spoofing Attack</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../attacks/bus_off_attack/">Bus Off Attack</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../attacks/double_receive_attack/">Double Receive Attack</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../attacks/custom_attack/">Custom Attack</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../force/">Force</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Hardware</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../hardware/faraday/">Faraday</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >DIY</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../hardware/diy/intro/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Microcontrollers</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../hardware/diy/esp32/">ESP32</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../hardware/diy/rp/">RP2040 (Raspberry Pico)</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../hardware/diy/bluepill/">STM32F1 (bluepill)</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../hardware/diy/mcp/">MCP2515 Notes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../hardware/force.md">Force</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Notes</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../ble/">BLE</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">evilDoggie lab</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../workshop/intro/">Introduction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../workshop/get_started/">Get Started</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../workshop/challenges/">Challenges</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../workshop/can_protocol/">CAN Protocol</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">evilDoggie</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Software</li>
+          <li class="breadcrumb-item">evilDoggie</li>
+      <li class="breadcrumb-item active">Get Started</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="evildoggie-get-started">evilDoggie Get Started</h1>
+<h2 id="switching-to-evil-mode-faradays-doggie">Switching to Evil Mode (Faraday's Doggie)</h2>
+<p>evilDoggie operates in "EVIL" mode, which is selected via a physical switch on the hardware. To boot in EVIL mode for evilDoggie (as opposed to "GOOD" mode for standard Doggie):</p>
+<ul>
+<li>Set the switch to "EVIL".</li>
+<li>Reset the board or reconnect it to power.</li>
+<li>Note: If the board is already powered, reboot it after switching modes to apply the change.</li>
+</ul>
+<p>This mode enables the offensive features, using the serial interface to display an interactive menu for configuring and launching attacks.</p>
+<h2 id="accessing-the-serial-console">Accessing the Serial Console</h2>
+<p>evilDoggie uses the serial interface to provide an interactive console menu for attack configuration. Unlike standard Doggie, which bridges CAN Bus via slcan for tools like SocketCAN, evilDoggie focuses on direct manipulation through this menu.</p>
+<p>To connect to the serial console, use a terminal emulator like picocom. Assuming you're on Ubuntu, install it with:</p>
+<pre><code class="language-bash">sudo apt install -y picocom
+</code></pre>
+<p>Run picocom with the corresponding USB device (replace <code>/dev/ttyUSBx</code> with your actual device, e.g., <code>/dev/ttyUSB0</code> or <code>/dev/ttyACM0</code>):</p>
+<pre><code class="language-bash">picocom -q -b 921600 /dev/ttyUSBx --omap lfcrlf --imap lfcrlf
+</code></pre>
+<ul>
+<li><code>-q</code>: Quiet mode (suppresses non-essential output).</li>
+<li><code>-b 921600</code>: Sets the baud rate to 921600, which is required for evilDoggie's serial communication.</li>
+<li><code>--omap lfcrlf</code> and <code>--imap lfcrlf</code>: Map line feed (LF) to carriage return line feed (CRLF) for output and input, matching evilDoggie's control characters to ensure proper display and input handling.</li>
+</ul>
+<p>To exit picocom, press <code>[Ctrl + A]</code> followed by <code>[Ctrl + X]</code>.</p>
+<p>Once connected, press any key to display the banner and the prompt <code>&gt;</code>. This enters the evilDoggie console.</p>
+<ul>
+<li>Type <code>help</code> to see information about the current menu and available commands.</li>
+<li>Type <code>help [command]</code> (e.g., <code>help spoofing_attack</code>) for details on a specific command.</li>
+</ul>
+<h2 id="the-logic-behind-evildoggie-attacks">The Logic Behind evilDoggie Attacks</h2>
+<p>evilDoggie allows you to build an "attack plan," which is a sequence of attacks executed in order. The main menu provides predefined attacks (e.g., spoofing, bus off) that you can add to the plan. For more advanced control, use the <code>custom_attack</code> submenu to chain low-level attack primitives (e.g., bit-level manipulations) into custom attacks.</p>
+<h3 id="building-an-attack-plan">Building an Attack Plan</h3>
+<ul>
+<li>Use commands like <code>spoofing_attack</code> to add predefined attacks to the plan.</li>
+<li>Enter <code>custom_attack</code> to build custom ones:<ul>
+<li>Chain primitives (e.g., wait for a frame, inject error, force dominant bit).</li>
+<li>Use <code>save</code> to add the custom attack to the main plan.</li>
+<li>Use <code>exit</code> to return to the main menu.</li>
+</ul>
+</li>
+<li>Edit the plan with <code>list</code> (view plan), <code>delete</code> (remove item), and <code>move</code> (reorder).</li>
+<li>Launch the plan with <code>attack [count]</code> (e.g., <code>attack 20</code> to run 20 times).</li>
+</ul>
+<p>As an attacker, connect evilDoggie to the CAN Bus to execute these attacks, targeting physical bus characteristics for real-time manipulation, just like in a vehicle.</p>
+<h2 id="how-it-is-physically-connected">How It Is Physically Connected</h2>
+<p>The attacks in evilDoggie exploit physical CAN Bus properties, requiring a connection to a real CAN Bus. In workshops or simulations, you can emulate multiple ECUs on a single bus without needing a Doggie per ECU. Then, connect your evilDoggie as the attack device for online exploitation, mimicking real-car scenarios.</p>
+<p>For hardware connections, refer to the specific microcontroller guides in the Hardware/DIY section (e.g., ESP32, RP2040, Bluepill). Ensure the device is in EVIL mode and connected via USB or UART for serial access.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../intro/" class="btn btn-neutral float-left" title="Introduction"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../attacks/spoofing_attack/" class="btn btn-neutral float-right" title="Spoofing Attack">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../intro/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../attacks/spoofing_attack/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

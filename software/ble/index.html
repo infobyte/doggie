@@ -5,15 +5,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>(Evil)Doggie over Bluetooth - evilDoggie</title>
+    <title>BLE - evilDoggie</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
     
       <script>
         // Current page data
-        var mkdocs_page_name = "(Evil)Doggie over Bluetooth";
-        var mkdocs_page_input_path = "old_docs/bluetooth_notes.md";
+        var mkdocs_page_name = "BLE";
+        var mkdocs_page_input_path = "software/ble.md";
         var mkdocs_page_url = null;
       </script>
     
@@ -40,49 +40,105 @@
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
-                <li class="toctree-l1"><a class="" href="../../intro.md">Introduction</a>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
                 </li>
               </ul>
-              <p class="caption"><span class="caption-text">Doggie</span></p>
+              <p class="caption"><span class="caption-text">Software</span></p>
               <ul>
-                  <li class="toctree-l1"><a class="" href="../../doggie/intro.md">Introdutcion</a>
+                  <li class="toctree-l1"><a class="reference internal" >Doggie</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../doggie/intro/">Introdutcion</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../doggie/get_started/">Get Started</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../doggie/slcan/">Slcan</a>
+                </li>
+    </ul>
                   </li>
-                  <li class="toctree-l1"><a class="" href="../../doggie/get_started.md">Get Started</a>
-                  </li>
-              </ul>
-              <p class="caption"><span class="caption-text">evilDoggie</span></p>
-              <ul>
-                  <li class="toctree-l1"><a class="" href="../../evil_doggie/intro.md">Introduction</a>
-                  </li>
-                  <li class="toctree-l1"><a class="" href="../../evil_doggie/get_started.md">Get Started</a>
+                  <li class="toctree-l1"><a class="reference internal" >evilDoggie</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../evil_doggie/intro/">Introduction</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../evil_doggie/get_started/">Get Started</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Attacks</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../evil_doggie/attacks/spoofing_attack/">Spoofing Attack</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../evil_doggie/attacks/bus_off_attack/">Bus Off Attack</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../evil_doggie/attacks/double_receive_attack/">Double Receive Attack</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../evil_doggie/attacks/custom_attack/">Custom Attack</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../evil_doggie/force/">Force</a>
+                </li>
+    </ul>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Hardware</span></p>
               <ul>
-                  <li class="toctree-l1"><a class="" href="../../hardware/faraday.md">Faraday</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../../hardware/faraday/">Faraday</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" >DIY</a>
     <ul>
-                <li class="toctree-l2"><a class="" href="../../hardware/diy/intro.md">Introduction</a>
+                <li class="toctree-l2"><a class="reference internal" href="../../hardware/diy/intro/">Introduction</a>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" >Microcontrollers</a>
     <ul>
-                <li class="toctree-l3"><a class="" href="../../hardware/diy/esp32.md">ESP32</a>
+                <li class="toctree-l3"><a class="reference internal" href="../../hardware/diy/esp32/">ESP32</a>
                 </li>
-                <li class="toctree-l3"><a class="" href="../../hardware/diy/rp.md">RP2040 (Raspberry Pico)</a>
+                <li class="toctree-l3"><a class="reference internal" href="../../hardware/diy/rp/">RP2040 (Raspberry Pico)</a>
                 </li>
-                <li class="toctree-l3"><a class="" href="../../hardware/diy/bluepill.md">STM32F1 (bluepill)</a>
+                <li class="toctree-l3"><a class="reference internal" href="../../hardware/diy/bluepill/">STM32F1 (bluepill)</a>
                 </li>
     </ul>
                 </li>
-                <li class="toctree-l2"><a class="" href="../../hardware/mcp.md">MCP2515 Notes</a>
+                <li class="toctree-l2"><a class="reference internal" href="../../hardware/diy/mcp/">MCP2515 Notes</a>
                 </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../hardware/force.md">Force</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Notes</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">BLE</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#classic-bluetooth-vs-ble">Classic Bluetooth vs BLE</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#l2cap-coc-vs-nus">L2CAP CoC vs NUS</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#service-uuid">Service UUID</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#characteristics">Characteristics</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#rx-characteristic-6e400002-b5a3-f393-e0a9-e50e24dcca9e">RX Characteristic (6E400002-B5A3-F393-E0A9-E50E24DCCA9E)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#tx-characteristic-6e400003-b5a3-f393-e0a9-e50e24dcca9e">TX Characteristic (6E400003-B5A3-F393-E0A9-E50E24DCCA9E)</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#implementation">Implementation</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a>
+    </li>
     </ul>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">evilDoggie lab</span></p>
               <ul>
-                  <li class="toctree-l1"><a class="" href="../../workshop/intro.md">Introduction</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../../workshop/intro/">Introduction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../workshop/get_started/">Get Started</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../workshop/challenges/">Challenges</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../workshop/can_protocol/">CAN Protocol</a>
                   </li>
               </ul>
       </div>
@@ -99,7 +155,8 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
-      <li class="breadcrumb-item active">(Evil)Doggie over Bluetooth</li>
+          <li class="breadcrumb-item">Notes</li>
+      <li class="breadcrumb-item active">BLE</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -172,7 +229,7 @@
 </table>
 <h2 id="l2cap-coc-vs-nus">L2CAP CoC vs NUS</h2>
 <p>After selecting BLE we had another decision to make, as there are two available options. The first one is using the lower layer of the BLE Host, L2CAP. This protocol can be used as a Channel-Oriented connection, as it provides a channel with two ends for communication between devices. Using L2CAP allows to avoid all the upper layers of the stack reducing the overhead in communication. But, the problem with L2CAP is the lack of compatibility with existent tools, specially on Windows. Hence, we chose the other option: NUS.</p>
-<p><img alt="alt text" src="ble_stack.png" /></p>
+<p><img alt="alt text" src="/res/ble_stack.png" /></p>
 <p><a href="https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/libraries/bluetooth/services/nus.html">NUS</a> (Nordic-Uart Service) is a GATT Service used to receive and write data serving as bridge for UART interfaces. And as we need a serial interface, it fits. Using NUS sacrifices performance and connection stability but allows the use of existing tools even on Windows, increasing the compatibility. The service presents the following characteristics:</p>
 <h3 id="service-uuid">Service UUID</h3>
 <p>The 128-bit vendor-specific service UUID is <code>6E400001-B5A3-F393-E0A9-E50E24DCCA9E</code> (16-bit offset: <code>0x0001</code>).</p>
@@ -252,6 +309,10 @@ Started general BLE scan
               
             </div>
           </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../../hardware/diy/mcp/" class="btn btn-neutral float-left" title="MCP2515 Notes"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../workshop/intro/" class="btn btn-neutral float-right" title="Introduction">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
 
   <hr/>
 
@@ -273,6 +334,10 @@ Started general BLE scan
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
+      <span><a href="../../hardware/diy/mcp/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../../workshop/intro/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>
