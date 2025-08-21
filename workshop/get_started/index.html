@@ -152,7 +152,7 @@
 <p>If you are using a custom board you'll have to flash the corresponding firmware for each challenge. Please check the specific section depending on your choice of microcontroller: <a href="/hardware/diy/esp32/">ESP32</a>, <a href="/hardware/diy/rp/">RP2040</a>, or <a href="/hardware/diy/bluepill/">STM32F1</a>.</p>
 <p>On the other hand, Faraday's board has the capability of booting two different firmwares. It should be already flashed, but if you need to re-flash it or update the firmwares, please refer to <a href="/hardware/faraday/">this section</a>. The switch labeled with <strong>"GOOD"</strong> and <strong>"EVIL"</strong> is used to select the mode in which the board will boot. GOOD for Doggie and EVIL for evilDoggie. Note that you will need to reboot the board after switching modes if it is already powered.</p>
 <figure align="center">
-    <img src="res/faraday_board.png" alt="Faraday Board">
+    <img src="../../res/faraday_board.png" alt="Faraday Board">
 </figure>
 
 <p>Before doing this workshop you should follow the corresponding sections for getting started with <a href="/software/doggie/get_started/">Doggie</a> and <a href="/software/evil_doggie/get_started/">evilDoggie</a></p>
@@ -200,7 +200,7 @@
 </table>
 <p>As an attacker, you will connect Doggie or EvilDoggie to the bus to complete the challenges:</p>
 <figure align="center">
-    <img src="res/workshop_bus.png" alt="Workshop CAN bus">
+    <img src="../../res/workshop_bus.png" alt="Workshop CAN bus">
 </figure>
 
 <p>As the attacks covered by evilDoggie target physical bus characteristics, there needs to be a real CAN bus where an attacker can connect. The original setup uses two Doggies to expose the CAN messages sent by all the simulated ECUs:</p>
@@ -214,7 +214,7 @@
 </ul>
 <p>But you can also use any pair of can-utils compatible CAN adapters. This setup ensures that every ECU-to-ECU message travels on the physical CAN Bus without using a Doggie for each ECU! And then, as an attacker, you can connect your own evilDoggie and make an online attack, just like on a real car.</p>
 <figure align="center">
-    <img src="res/workshop_bus_physical.png" alt="Workshop CAN bus physical implementation">
+    <img src="../../res/workshop_bus_physical.png" alt="Workshop CAN bus physical implementation">
 </figure>
 
 <p>For more instruction on how to setup and launch the workshop, please refer to <a href="https://github.com/infobyte/doggie_workshop">this repo</a></p>

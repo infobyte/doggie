@@ -229,7 +229,7 @@
 </table>
 <h2 id="l2cap-coc-vs-nus">L2CAP CoC vs NUS</h2>
 <p>After selecting BLE we had another decision to make, as there are two available options. The first one is using the lower layer of the BLE Host, L2CAP. This protocol can be used as a Channel-Oriented connection, as it provides a channel with two ends for communication between devices. Using L2CAP allows to avoid all the upper layers of the stack reducing the overhead in communication. But, the problem with L2CAP is the lack of compatibility with existent tools, specially on Windows. Hence, we chose the other option: NUS.</p>
-<p><img alt="alt text" src="res/ble_stack.png" /></p>
+<p><img alt="alt text" src="../../res/ble_stack.png" /></p>
 <p><a href="https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/libraries/bluetooth/services/nus.html">NUS</a> (Nordic-Uart Service) is a GATT Service used to receive and write data serving as bridge for UART interfaces. And as we need a serial interface, it fits. Using NUS sacrifices performance and connection stability but allows the use of existing tools even on Windows, increasing the compatibility. The service presents the following characteristics:</p>
 <h3 id="service-uuid">Service UUID</h3>
 <p>The 128-bit vendor-specific service UUID is <code>6E400001-B5A3-F393-E0A9-E50E24DCCA9E</code> (16-bit offset: <code>0x0001</code>).</p>
