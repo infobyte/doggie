@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../../css/theme.css" />
     <link rel="stylesheet" href="../../../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../../../styles/fix_width.css" rel="stylesheet" />
     
       <script>
         // Current page data
@@ -73,7 +74,11 @@
     </li>
     <li class="toctree-l4"><a class="reference internal" href="#console-usage">Console Usage</a>
     </li>
+    <li class="toctree-l4"><a class="reference internal" href="#help">Help</a>
+    </li>
     <li class="toctree-l4"><a class="reference internal" href="#how-it-works">How it works</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#implementation">Implementation</a>
     </li>
     </ul>
                 </li>
@@ -122,7 +127,23 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../../../workshop/get_started/">Get Started</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../../../workshop/challenges/">Challenges</a>
+                  <li class="toctree-l1"><a class="reference internal" >Challenges</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../workshop/vin/">Getting the VIN Number</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../workshop/doors/">Open Sesame</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../workshop/cruisecontrol/">Cruise-Control Confusion</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../workshop/doors2/">Open Sesame on the Highway</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../workshop/airbag/">Airbag Toggle Inversion</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../workshop/abs/">ABS Disconection</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../workshop/key/">Starting the Car without the Key</a>
+                </li>
+    </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../../../workshop/can_protocol/">CAN Protocol</a>
                   </li>
@@ -160,15 +181,111 @@
 <ol>
 <li>Connect to the main menu via the serial console.</li>
 <li>Add the attack with <code>double_receive_attack &lt;id&gt; &lt;errors&gt; [ &lt;match_data&gt; ] [ --extended ]</code>.<ul>
-<li>Example: <code>double_receive_attack 0x200 3 0x10</code></li>
+<li>Example: <code>double_receive_attack 0x200 3 0x10</code><ul>
 <li>Targets ID <code>0x200</code>, injecting 3 errors after data starting with <code>0x10</code> to trigger a double receive.</li>
+</ul>
+</li>
 </ul>
 </li>
 <li>Check the plan with <code>list</code>, then execute with <code>attack</code> (e.g., <code>attack 1</code> for one attempt).</li>
 <li>See <code>help double_receive_attack</code> for parameter specifics.</li>
 </ol>
+<h2 id="help">Help</h2>
+<pre><code>&gt; help double_receive_attack
+
+SUMMARY:
+  double_receive_attack &lt;id&gt; &lt;errors&gt; [ &lt;match_data&gt; ] [ --extended ]
+
+PARAMETERS:
+  &lt;id&gt;
+    CAN ID to match, in hex (e.g., 0x123, 0x12345678).
+
+  &lt;errors&gt;
+    Number of consecutive error frames to inject.
+
+  &lt;match_data&gt;
+    Match only after seeing a real message on the bus with the same ID and whose first data bytes match these comma‑separated hex values. Useful to target specific messages when multiple messages share the same ID.
+
+  --extended
+    Use if the target ID is an extended 29‑bit ID. Defaults to standard 11‑bit IDs.
+
+
+
+DESCRIPTION:
+Configure a double receive attack that injects error frames with precise timing to cause the sender to retransmit a frame while the receiver still accepts the first one.
+
+This results in the receiver processing the same message twice, which can confuse state machines or logic relying on single delivery.
+</code></pre>
 <h2 id="how-it-works">How it works</h2>
-<p><code>TODO</code></p>
+<p>This technique takes advantage of the fact that the sender and receiver rely on slightly different points of the CAN frame to confirm that the message was successfully sent. After the 6th bit of the EOF field in the CAN frame, the receiver already thinks the frame is valid and accepts it, but the sender waits until after the 7th bit to confirm transmission.</p>
+<p>If you inject an error frame at exactly the right moment, the receiver will have already accepted the message, but the sender will think there was an error and resend it. The effect is that the receiver sees the same message twice, while the sender believes it has only sent it once.</p>
+<p><img alt="Double Receive Timin" src="../../../../res/double_receive_attack_timing.png" /></p>
+<p>For example, if we want to attack a message with id <code>0x102</code> and the first byte with <code>0x2</code> inserting only one error, we use the following command:</p>
+<pre><code>&gt; double_receive_attack 0x102 1 0x2
+&gt; attack
+</code></pre>
+<p>If we see that in the logic analyzer we will see the following:</p>
+<p><img alt="Double Receive Logic Analyzer" src="../../../../res/double_receive_attack_la.png" /></p>
+<p>Here, we have 3 devices involved, and the channels are:</p>
+<ul>
+<li><strong>E TX</strong>: evilDoggie TX</li>
+<li><strong>E RX</strong>: evilDoggie RX</li>
+<li><strong>G0 TX</strong>: Doggie 0 TX </li>
+<li><strong>G1 TX</strong>: Doggie 1 TX</li>
+</ul>
+<p>We can see that <strong>G0</strong> sends the message, <strong>E</strong> injects an error frame in time and <strong>G0</strong> sends the message again. Notice that <strong>G1</strong> ACKs both messages.</p>
+<h2 id="implementation">Implementation</h2>
+<p>Like all the attacks, the Double Receive Attack is built on top of attack primitives, but the primitives may change depending on the attack arguments used.
+Let's see the primitives involved in the example:</p>
+<ol>
+<li>First it disables the bit stuffing and waits (this is used as warmup):  <ul>
+<li>SetBitStuffing { state: false }</li>
+<li>Wait { bits: 8 }</li>
+<li>SetBitStuffing { state: true }</li>
+<li>WaitBusFree { ... }</li>
+</ul>
+</li>
+<li>After the warmup, it will wait for a Start Of Frame<ul>
+<li>WaitForSof</li>
+</ul>
+</li>
+<li>It skips the SoF bit<ul>
+<li>Wait { bits: 1 }</li>
+</ul>
+</li>
+<li>Then, match all the bits from the ID until the DLC (not included). It will abort if doesn't match.<ul>
+<li>Match { stream: FastBitQueue { value: 0b10000001000000, len: 14, ... } }</li>
+</ul>
+</li>
+<li>Now, it will read the DLC<ul>
+<li>Read { len: 4 }</li>
+</ul>
+</li>
+<li>Matches the only byte of data that we give as argument. It will abort if doesn't match.<ul>
+<li>Match { stream: FastBitQueue { value: 0x02 , len: 8, ... } }</li>
+</ul>
+</li>
+<li>Calculates how much bits has left in the DATA field and wait that amount of bits.<ul>
+<li>SubBuffered { sub: 1 }</li>
+<li>MulBuffered { mult: 8 }</li>
+<li>WaitBuffered</li>
+</ul>
+</li>
+<li>Skipes the CRC and ACK fields<ul>
+<li>Wait { bits: 15 }</li>
+</ul>
+</li>
+<li>It will now wait until the desired bit to change<ul>
+<li>SetBitStuffing { state: false }</li>
+<li>Wait { bits: 9 }</li>
+</ul>
+</li>
+<li>Sends the desired amount of error frames<ul>
+<li>Send { stream: FastBitQueue { value: 0b11111111000000, len: 14, ... } }</li>
+<li>SetBitStuffing { state: true }</li>
+</ul>
+</li>
+</ol>
               
             </div>
           </div><footer>

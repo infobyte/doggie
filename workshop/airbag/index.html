@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Get Started - evilDoggie</title>
+    <title>Airbag Toggle Inversion - evilDoggie</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -13,8 +13,8 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Get Started";
-        var mkdocs_page_input_path = "workshop/get_started.md";
+        var mkdocs_page_name = "Airbag Toggle Inversion";
+        var mkdocs_page_input_path = "workshop/airbag.md";
         var mkdocs_page_url = null;
       </script>
     
@@ -113,14 +113,10 @@
               <ul class="current">
                   <li class="toctree-l1"><a class="reference internal" href="../intro/">Introduction</a>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Get Started</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#how-does-this-workshop-work">How does this workshop work?</a>
-    </li>
-    </ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../get_started/">Get Started</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" >Challenges</a>
-    <ul>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Challenges</a>
+    <ul class="current">
                 <li class="toctree-l2"><a class="reference internal" href="../vin/">Getting the VIN Number</a>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../doors/">Open Sesame</a>
@@ -129,7 +125,17 @@
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../doors2/">Open Sesame on the Highway</a>
                 </li>
-                <li class="toctree-l2"><a class="reference internal" href="../airbag/">Airbag Toggle Inversion</a>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Airbag Toggle Inversion</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#hints">Hints</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#solution">Solution</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#observe-the-result-in-the-logic-analyzer-optional">Observe the result in the logic analyzer (optional)</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../abs/">ABS Disconection</a>
                 </li>
@@ -155,7 +161,8 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
           <li class="breadcrumb-item">evilDoggie lab</li>
-      <li class="breadcrumb-item active">Get Started</li>
+          <li class="breadcrumb-item">Challenges</li>
+      <li class="breadcrumb-item active">Airbag Toggle Inversion</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -164,83 +171,68 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="get-started">Get started</h1>
-<p>This workshop has several challenges of increasing difficulty. For the first two you have to use Doggie and for the rest evilDoggie. The last challenge requires the <a href="/software/evil_doggie/force">"Force"</a> feature and can only be solved using Faraday's board (<a href="/hardware/force">Force hardware implementation</a>).</p>
-<p>If you are using a custom board you'll have to flash the corresponding firmware for each challenge. Please check the specific section depending on your choice of microcontroller: <a href="/hardware/diy/esp32/">ESP32</a>, <a href="/hardware/diy/rp/">RP2040</a>, or <a href="/hardware/diy/bluepill/">STM32F1</a>.</p>
-<p>On the other hand, Faraday's board has the capability of booting two different firmwares. It should be already flashed, but if you need to re-flash it or update the firmwares, please refer to <a href="/hardware/faraday/">this section</a>. The switch labeled with <strong>"GOOD"</strong> and <strong>"EVIL"</strong> is used to select the mode in which the board will boot. GOOD for Doggie and EVIL for evilDoggie. Note that you will need to reboot the board after switching modes if it is already powered.</p>
-<figure align="center">
-    <img src="../../res/faraday_board.png" alt="Faraday Board">
-</figure>
-
-<p>Before doing this workshop you should follow the corresponding sections for getting started with <a href="/software/doggie/get_started/">Doggie</a> and <a href="/software/evil_doggie/get_started/">evilDoggie</a></p>
-<h2 id="how-does-this-workshop-work">How does this workshop work?</h2>
-<p>In this workshop, you’ll face CAN Bus challenges that recreate the essence of real-world scenarios. The challenges are implemented in a simulator we built to keep things practical, fun, and focused on CAN protocol security rather than complex car engineering.</p>
-<p>The simulator presents a simple fictional car with only one CAN Bus. While it’s far from a real car’s complexity, it was carefully designed to help you learn how attacks work on real automotive networks.</p>
-<p>The simulator emulates 7 ECUs (Electronic Control Units), each with its role, all communicating on the same CAN Bus:</p>
-<table>
-<thead>
-<tr>
-<th>ECU</th>
-<th>Function</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Central ECU</td>
-<td>Controls engine logic, status reporting, airbag liveness check, and other global functions.</td>
-</tr>
-<tr>
-<td>Instrument Cluster ECU</td>
-<td>Main user interface: displays car state and includes buttons to lock/unlock doors, start the engine, etc.</td>
-</tr>
-<tr>
-<td>Cruise Control ECU</td>
-<td>Manages speed setting, communicating with the Central ECU in a control loop.</td>
-</tr>
-<tr>
-<td>Doors ECU</td>
-<td>Locks/unlocks doors, and reports door status back to the Instrument Cluster ECU.</td>
-</tr>
-<tr>
-<td>ABS ECU</td>
-<td>Sends a liveness message when the ABS is working.</td>
-</tr>
-<tr>
-<td>Immo ECU</td>
-<td>Checks if the car can start the engine (e.g., simulates key inserted state).</td>
-</tr>
-<tr>
-<td>VIN ECU</td>
-<td>Speaks ISO-TP to provide the car’s VIN number, like a real OBD2 port.</td>
-</tr>
-</tbody>
-</table>
-<p>As an attacker, you will connect Doggie or EvilDoggie to the bus to complete the challenges:</p>
-<figure align="center">
-    <img src="../../res/workshop_bus.png" alt="Workshop CAN bus">
-</figure>
-
-<p>As the attacks covered by evilDoggie target physical bus characteristics, there needs to be a real CAN bus where an attacker can connect. The original setup uses two Doggies to expose the CAN messages sent by all the simulated ECUs:</p>
+                <h1 id="airbag-toggle-inversion">Airbag Toggle Inversion</h1>
+<p>In this challenge, your objective is to create a confusing and dangerous mismatch between what the Instrument Cluster ECU shows on the UI and the real airbag state. Specifically, you want the dashboard to indicate that the airbag is enabled, while in reality, it is disabled.</p>
+<p>The car’s airbag can be controlled through the Instrument Cluster UI, which has a toggle button. When someone presses this button, the Instrument Cluster ECU sends an <em>AirbagToggleMessage</em> to the Central ECU, which toggles the state of the airbag. The Central ECU then periodically sends back an AirbagStatusMessage, which the Instrument Cluster uses to display the current state of the airbag.</p>
+<p>Your goal is to exploit how the toggle mechanism works so that the driver sees the airbag light on (believing the airbag is active) even though it is off.</p>
+<h2 id="hints">Hints</h2>
+<p>Let’s look at how the airbag system communicates in the simulator and why this kind of desynchronization is possible.</p>
+<p>When the driver clicks the airbag toggle button on the dashboard, the Instrument Cluster ECU sends an <em>AirbagToggleMessage</em>*:</p>
 <ul>
-<li>
-<p>TX Doggie: Sends all simulator-generated CAN traffic onto the real bus</p>
-</li>
-<li>
-<p>RX Doggie: Receives those messages back into the simulator</p>
-</li>
+<li>CAN ID: 0x102</li>
+<li>Data: single byte 0x2 (always the same)</li>
 </ul>
-<p>But you can also use any pair of can-utils compatible CAN adapters. This setup ensures that every ECU-to-ECU message travels on the physical CAN Bus without using a Doggie for each ECU! And then, as an attacker, you can connect your own evilDoggie and make an online attack, just like on a real car.</p>
+<p>The Central ECU doesn’t care about the data content; it simply interprets this message as a “toggle” command. Since it’s a toggle, pressing the button again sends the same message, flipping the airbag state.</p>
+<p>The Central ECU then periodically broadcasts the <em>AirbagStatusMessage</em> so the Instrument Cluster can display whether the airbag is actually on:</p>
+<ul>
+<li>CAN ID: 0x100</li>
+<li>Data: first byte 0x4, second byte 0 if airbag is active, non-zero otherwise</li>
+</ul>
 <figure align="center">
-    <img src="../../res/workshop_bus_physical.png" alt="Workshop CAN bus physical implementation">
+    <img src="../../res/workshop_airbag_msgs.png" alt="Airbag CAN messages">
 </figure>
 
-<p>For more instruction on how to setup and launch the workshop, please refer to <a href="https://github.com/infobyte/doggie_workshop">this repo</a></p>
+<p>The UI shows the airbag light based on this status message, and keeps the toggle button in sync with the last action.</p>
+<p>The problem here is that the toggle message doesn’t directly say “enable” or “disable”. It just means “flip the current state.” This makes the system vulnerable to certain timing attacks.</p>
+<p>The attack you’ll use here is called a Double Receive attack. This technique takes advantage of the fact that the sender and receiver rely on slightly different points of the CAN frame to confirm that the message was successfully sent. After the 6th bit of the EOF field in the CAN frame, the receiver already thinks the frame is valid and accepts it, but the sender waits until after the 7th bit to confirm transmission.</p>
+<p>If you inject an error frame at exactly the right moment, the receiver will have already accepted the message, but the sender will think there was an error and resend it. The effect is that the receiver sees the same message twice, while the sender believes it has only sent it once.</p>
+<p>Since the <em>AirbagToggleMessage</em> is just a toggle, receiving it twice flips the airbag state twice: from enabled to disabled, and then back to enabled — but the rest of the system, including the Instrument Cluster UI, becomes unsynchronized. This creates the illusion on the dashboard that the airbag is enabled while it’s disabled.</p>
+<figure align="center">
+    <img src="../../res/workshop_airbag_msgs2.png" alt="Airbag Attack CAN messages">
+</figure>
+
+<h2 id="solution">Solution</h2>
+<p>Here’s how to do this step by step with evilDoggie. The serial interface allows you to configure built-in attacks. To set up a double receive attack, use:</p>
+<p><code>&gt; double_receive_attack 0x102 1 0x2</code></p>
+<ul>
+<li><strong>0x102</strong> is the CAN ID of the <em>AirbagToggleMessage</em>* sent by the Instrument Cluster</li>
+<li><strong>1</strong> means inject one error frame (enough to cause the double receive effect)</li>
+<li><strong>0x2</strong> ensures the attack only triggers on <em>AirbagToggleMessages</em> (ignores other messages with the same ID)</li>
+</ul>
+<p>After setting up the attack, launch it:</p>
+<p><code>&gt; attack</code></p>
+<p>The attack waits passively until it sees a message matching your filter: an <em>AirbagToggleMessage</em> with data byte 0x2. So now you need to press the airbag toggle button on the simulator UI (or ask someone to do it).</p>
+<p>If the attack succeeds:</p>
+<ul>
+<li>evilDoggie’s console will log that the double receive attack was launched</li>
+<li>The Instrument Cluster will show the airbag light as enabled, but the toggle button itself will look disabled</li>
+<li>Pressing the toggle button again will reverse the effect: the toggle appears enabled, but the airbag light shows disabled</li>
+</ul>
+<p>This demonstrates how you managed to desynchronize the ECU’s actual state from what the dashboard displays, inverting the real safety status of the airbag.</p>
+<h3 id="observe-the-result-in-the-logic-analyzer-optional">Observe the result in the logic analyzer (optional)</h3>
+<p>Connect you logic analyzer to evilDoggie's CAN Tx and Rx pins (E TX and E RX), and to the Tx pins of the other two interfaces (G0 TX and G1  TX).</p>
+<p>You should see how evilDoggie injects an error just after the 6th bit of the EOF field in the CAN frame corresponding to the <em>AirbagToggleMessage</em>. The receiver interface thinks the frame is valid and sends ACK, but the sender interface waits until after the 7th bit to confirm transmission and thinks it failed. In consequence, it sends it again:</p>
+<figure align="center">
+    <img src="../../res/workshop_airbag_la.png" alt="Airbag Toggle attack">
+</figure>
+
+<p>For information about CAN protocol and CAN message structure, you can check the Appendix at the end of this guide.</p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../intro/" class="btn btn-neutral float-left" title="Introduction"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../vin/" class="btn btn-neutral float-right" title="Getting the VIN Number">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../doors2/" class="btn btn-neutral float-left" title="Open Sesame on the Highway"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../abs/" class="btn btn-neutral float-right" title="ABS Disconection">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -263,10 +255,10 @@
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../intro/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../doors2/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../vin/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../abs/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

@@ -5,15 +5,16 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Challenges - evilDoggie</title>
+    <title>Open Sesame - evilDoggie</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../styles/fix_width.css" rel="stylesheet" />
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Challenges";
-        var mkdocs_page_input_path = "workshop/challenges.md";
+        var mkdocs_page_name = "Open Sesame";
+        var mkdocs_page_input_path = "workshop/doors.md";
         var mkdocs_page_url = null;
       </script>
     
@@ -114,16 +115,52 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../get_started/">Get Started</a>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Challenges</a>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Challenges</a>
     <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#getting-the-vin-number">Getting the VIN number</a>
-        <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../vin/">Getting the VIN Number</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Open Sesame</a>
+    <ul class="current">
     <li class="toctree-l3"><a class="reference internal" href="#hints">Hints</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#which-ecus-are-involved">Which ECUs are involved?</a>
     </li>
-    <li class="toctree-l3"><a class="reference internal" href="#solution">Solution</a>
+    <li class="toctree-l4"><a class="reference internal" href="#how-does-the-normal-flow-look">How does the normal flow look?</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#about-the-can-messages">About the CAN messages</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#tools-youll-use">Tools you’ll use</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#what-to-do-step-by-step">What to do, step by step</a>
     </li>
         </ul>
     </li>
+    <li class="toctree-l3"><a class="reference internal" href="#solution">Solution</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#start-sniffing-the-traffic">Start sniffing the traffic</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#press-lockunlock-on-the-simulator-ui">Press lock/unlock on the simulator UI</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#understand-the-door-mask">Understand the door mask</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#inject-your-crafted-message">Inject your crafted message</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#check-the-result">Check the result</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../cruisecontrol/">Cruise-Control Confusion</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../doors2/">Open Sesame on the Highway</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../airbag/">Airbag Toggle Inversion</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../abs/">ABS Disconection</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../key/">Starting the Car without the Key</a>
+                </li>
     </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../can_protocol/">CAN Protocol</a>
@@ -144,7 +181,8 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
           <li class="breadcrumb-item">evilDoggie lab</li>
-      <li class="breadcrumb-item active">Challenges</li>
+          <li class="breadcrumb-item">Challenges</li>
+      <li class="breadcrumb-item active">Open Sesame</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -153,73 +191,129 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="challenges">Challenges</h1>
-<h2 id="getting-the-vin-number">Getting the VIN number</h2>
-<p>In this first challenge, your goal is to retrieve the car’s VIN number by sending a diagnostic request over the CAN Bus.</p>
-<p>Modern cars store the VIN (Vehicle Identification Number) inside an ECU, and diagnostic tools can read it by sending a special request. You have to do the same, but using Doggie to send the request and listen for the response, just like a mechanic (or an attacker!) would.</p>
-<h3 id="hints">Hints</h3>
-<p><strong>What is the VIN?</strong></p>
-<p>The Vehicle Identification Number (VIN) is a unique 17-character identifier every car has. In real life, mechanics and dealerships use diagnostic tools to read it through the OBD2 port by sending a standardized request.</p>
-<p><strong>What protocol is used to retrieve the VIN?</strong></p>
-<p>While normal CAN messages are short (up to 8 bytes), some diagnostics need to exchange longer data, like the VIN. To achieve this, the automotive world utilizes UDS (Unified Diagnostic Services, ISO 14229), which runs over ISO-TP (ISO 15765-2), a protocol designed to send multi-frame messages over CAN.</p>
-<p>With ISO-TP, the VIN ECU can:</p>
+                <h1 id="open-sesame">Open sesame</h1>
+<p>Your goal: unlock only the front left door of the simulated car, not by clicking the button on the UI, but by sniffing the CAN Bus traffic to find which messages control the doors, and then injecting your own crafted message onto the bus.</p>
+<p>This is the first “real attacker” challenge: you’ll watch the traffic, figure out what’s going on, and then directly control part of the car.</p>
+<h2 id="hints">Hints</h2>
+<h3 id="which-ecus-are-involved">Which ECUs are involved?</h3>
+<p>For door locking, two ECUs talk to each other:</p>
 <ul>
-<li>Receive a diagnostic request from the tester (your tool)</li>
-<li>Send back a multi-frame response containing the VIN</li>
+<li>Instrument Cluster ECU (ICE):<ul>
+<li>Handles UI buttons like lock/unlock</li>
+<li>Sends commands to other ECUs</li>
 </ul>
-<p><strong>Which ECUs are involved?</strong>
-In our simulator, there’s a special VIN ECU that:</p>
-<ul>
-<li>Listens for ISO-TP requests sent to CAN ID <strong>0x7E8</strong></li>
-<li>Replies with the VIN using ISO-TP</li>
+</li>
+<li>Doors ECU (DE):<ul>
+<li>Receives commands from ICE</li>
+<li>Locks/unlocks doors</li>
 </ul>
-<p>You act as the tester, using CAN ID <strong>0x7DF</strong>.</p>
-<p><strong>Linux tools you’ll use:</strong></p>
-<p>To interact over ISO-TP, you can use two powerful tools from can-utils:</p>
-<ul>
-<li><strong>isotpsend</strong>: to send a diagnostic request</li>
-<li><strong>isotprecv</strong>: to listen for the diagnostic response</li>
+</li>
 </ul>
-<p>They set up a virtual ISO-TP link over the physical CAN interface (your Doggie).</p>
-<p><strong>Diagnostic request details:</strong></p>
-<p>The UDS protocol has a series of services and parameter IDs. To get the VIN, you can use:</p>
-<ul>
-<li><strong>Service 09</strong>: Request Vehicle Information</li>
-<li><strong>PID 02</strong>: VIN</li>
-</ul>
-<p>So, the request payload becomes: 09 02 (hex). In a real scan tool, this would be built automatically—but here you’ll craft and send it manually to understand what happens behind the scenes.</p>
+<p>Periodically sends back the current door status so the ICE can update the lights indicator in the UI</p>
+<h3 id="how-does-the-normal-flow-look">How does the normal flow look?</h3>
+<ol>
+<li>You click (or ask to) “unlock” doors on the UI (ICE)</li>
+<li>ICE sends a <em>DoorControlMessage</em> on the CAN Bus</li>
+<li>Doors ECU sees this message and unlocks the doors</li>
+<li>Doors ECU sends back a <em>DoorStatusMessage</em> to ICE, which updates the dashboard lights</li>
+</ol>
+<p>As an attacker, you can see both messages on the CAN Bus, and you can inject your own <em>DoorControlMessage</em> to control the doors directly.</p>
 <figure align="center">
-    <img src="../../res/workshop_vin_msgs.png" alt="VIN Messages">
+    <img src="../../res/workshop_doors_msgs.png" alt="Door CAN messages">
 </figure>
 
-<h3 id="solution">Solution</h3>
-<p><strong>Start listening for the VIN ECU response</strong></p>
-<p>Open a terminal and run:</p>
-<p><code>isotprecv -s 7DF -d 7E8 -p 8:8 -l doggie</code></p>
+<h3 id="about-the-can-messages">About the CAN messages</h3>
+<p>There are two message types to watch for (with fixed CAN IDs):</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>CAN ID</th>
+<th>Data</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DoorControlMessage</td>
+<td>0x102</td>
+<td>3 bytes: [command_type (0x1), lock/unlock, door mask]</td>
+</tr>
+<tr>
+<td>DoorStatusMessage</td>
+<td>0x103</td>
+<td>1 byte: door mask</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Lock/unlock</strong>: 1 = lock, 0 = unlock</p>
+<p><strong>Door mask</strong>: 4 bits, each bit represents a door.</p>
+<h3 id="tools-youll-use">Tools you’ll use</h3>
+<ul>
+<li><strong>cansniffer</strong>: a powerful tool to spot changing fields and patterns in live traffic</li>
+<li><strong>candump</strong>: simpler raw dump of all traffic</li>
+<li><strong>cansend</strong>: to inject your crafted message</li>
+</ul>
+<h3 id="what-to-do-step-by-step">What to do, step by step</h3>
+<ol>
+<li>Start by sniffing: run cansniffer while you lock/unlock doors from the UI</li>
+<li>Observe which messages appear or change when you press the button</li>
+<li>
+<p>Identify:</p>
+<ul>
+<li>DoorControlMessages: sent from ICE to DE</li>
+<li>DoorStatusMessages: sent from DE to ICE</li>
+</ul>
+</li>
+<li>
+<p>Once you know the structure, craft your own DoorControlMessage to control exactly what you want.</p>
+</li>
+</ol>
+<h2 id="solution">Solution</h2>
+<h3 id="start-sniffing-the-traffic">Start sniffing the traffic</h3>
+<p>Run:
+<code>cansniffer -c doggie</code></p>
 <p>Where the arguments have the following meaning:</p>
 <ul>
-<li>-s 7DF: source (tester’s) CAN ID</li>
-<li>-d 7E8: destination (VIN ECU’s) CAN ID</li>
-<li>-p 8:8: padding config (common ISO-TP setting)</li>
-<li>-l: listen mode (prints raw response)</li>
+<li><strong>-c</strong>: color mode (highlights changes)</li>
+<li><strong>doggie</strong>: your CAN interface</li>
 </ul>
-<p><strong>Send the diagnostic request</strong></p>
-<p>In another terminal, send the request:</p>
-<p><code>echo "09 02" | isotpsend -s 7DF -d 7E8 -p 8:8 doggie</code></p>
-<p>This sends a VIN request to the VIN ECU.</p>
-<p><strong>See the response</strong></p>
-<p>The isotprecv terminal should print something like:</p>
-<p><code>49 02 01 57 58 30 58 58 58 58 58 58 58 58 58 58 58</code></p>
-<p>Example:</p>
-<figure align="center">
-    <img src="../../res/workshop_vin_example.png" alt="VIN Example">
-</figure>
+<h3 id="press-lockunlock-on-the-simulator-ui">Press lock/unlock on the simulator UI</h3>
+<p>Watch the traffic. You’ll see CAN ID 0x102 messages with 3 data bytes:</p>
+<ul>
+<li>First byte: always 0x1 (command type)</li>
+<li>Second byte: changes when you lock/unlock</li>
+<li>Third byte: this is the door mask</li>
+</ul>
+<p>For example:</p>
+<ul>
+<li>0x102#01010F → lock all doors (mask: 00001111)</li>
+<li>0x102#01000F → unlock all doors (mask: 00000000)</li>
+</ul>
+<h3 id="understand-the-door-mask">Understand the door mask</h3>
+<ul>
+<li>Each bit in the third byte represents a door</li>
+<li>Bit order: FR FL RR RL</li>
+<li>To unlock only the front left door (FL):<ul>
+<li>Set only bit 2 → 00000100 → 0x04</li>
+</ul>
+</li>
+</ul>
+<h3 id="inject-your-crafted-message">Inject your crafted message</h3>
+<p>Use cansend: <code>cansend doggie 102#010004</code></p>
+<ul>
+<li><strong>102</strong>: CAN ID</li>
+<li><strong>#</strong>: separates ID from data</li>
+<li><strong>010004</strong>: data bytes → command type 0x1 + unlock + door mask 0x04</li>
+</ul>
+<h3 id="check-the-result">Check the result</h3>
+<p>You should see the Doors ECU reply with a DoorStatusMessage (0x103) showing the new door status. On the simulator UI, only the front left door light shows as unlocked.</p>
+<p>You just directly controlled a single door by sniffing and injecting CAN traffic!</p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../get_started/" class="btn btn-neutral float-left" title="Get Started"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../can_protocol/" class="btn btn-neutral float-right" title="CAN Protocol">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../vin/" class="btn btn-neutral float-left" title="Getting the VIN Number"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../cruisecontrol/" class="btn btn-neutral float-right" title="Cruise-Control Confusion">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -242,10 +336,10 @@ In our simulator, there’s a special VIN ECU that:</p>
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../get_started/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../vin/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../can_protocol/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../cruisecontrol/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

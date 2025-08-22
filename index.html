@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="css/theme.css" />
     <link rel="stylesheet" href="css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="styles/fix_width.css" rel="stylesheet" />
     
       <script>
         // Current page data
@@ -42,6 +43,10 @@
               <ul class="current">
                 <li class="toctree-l1 current"><a class="reference internal current" href="#">Introduction</a>
     <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#disclaimer">Disclaimer</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#license">License</a>
+    </li>
     </ul>
                 </li>
               </ul>
@@ -116,7 +121,23 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="workshop/get_started/">Get Started</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="workshop/challenges/">Challenges</a>
+                  <li class="toctree-l1"><a class="reference internal" >Challenges</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="workshop/vin/">Getting the VIN Number</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="workshop/doors/">Open Sesame</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="workshop/cruisecontrol/">Cruise-Control Confusion</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="workshop/doors2/">Open Sesame on the Highway</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="workshop/airbag/">Airbag Toggle Inversion</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="workshop/abs/">ABS Disconection</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="workshop/key/">Starting the Car without the Key</a>
+                </li>
+    </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="workshop/can_protocol/">CAN Protocol</a>
                   </li>
@@ -157,6 +178,17 @@
 <p><strong>evilDoggie</strong> is the offensive firmware variant of Doggie, tailored for automotive security research and low-level CAN Bus manipulation. It enables advanced attacks like spoofing, bus off, double receive, and physical-layer overrides, making it ideal for red teaming and vulnerability testing in simulated or real CAN environments.</p>
 <p>Developed by Faraday Security, the project was presented at Black Hat Arsenal on August 6-7, 2025, in Las Vegas. Both variants are open-source under the MIT License and available on GitHub at <a href="https://github.com/infobyte/doggie">https://github.com/infobyte/doggie</a>. Use responsibly for research and training only.</p>
 <p>For detailed introductions, see the sub-sections for <a href="/software/doggie/intro">Doggie</a> and <a href="/software/evil_doggie/intro">evilDoggie</a>.</p>
+<h2 id="disclaimer">Disclaimer</h2>
+<p>This project is a <strong>work in progress</strong>, and contributions are highly encouraged! While it is functional, some features may still be under development.<br />
+If you encounter issues or have suggestions for improvements, please feel free to open an issue or submit a pull request.  </p>
+<p><em>⚠ Doggie and EvilDoggie tools are provided for educational and research purposes only.
+By participating, you acknowledge that any testing, experimentation, or use of these tools on real vehicles or
+production systems is solely your responsibility. The authors and organizers do not accept any liability for damage,
+malfunction, legal consequences, or safety issues that may result from misuse, incorrect configuration, or applying
+these techniques outside of a controlled environment.
+Please use responsibly, and always test only on systems you own or have explicit permission to test.</em></p>
+<h2 id="license">License</h2>
+<p>This project is licensed under the MIT License. See the <a href="https://github.com/infobyte/doggie/blob/main/LICENSE">LICENSE</a> file for details.</p>
               
             </div>
           </div><footer>
@@ -205,5 +237,5 @@
 
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2025-08-21 22:27:01.694300+00:00
+Build Date UTC : 2025-08-22 19:30:49.683206+00:00
 -->

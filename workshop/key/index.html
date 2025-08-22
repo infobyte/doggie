@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Get Started - evilDoggie</title>
+    <title>Starting the Car without the Key - evilDoggie</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -13,8 +13,8 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Get Started";
-        var mkdocs_page_input_path = "workshop/get_started.md";
+        var mkdocs_page_name = "Starting the Car without the Key";
+        var mkdocs_page_input_path = "workshop/key.md";
         var mkdocs_page_url = null;
       </script>
     
@@ -113,14 +113,10 @@
               <ul class="current">
                   <li class="toctree-l1"><a class="reference internal" href="../intro/">Introduction</a>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Get Started</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#how-does-this-workshop-work">How does this workshop work?</a>
-    </li>
-    </ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../get_started/">Get Started</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" >Challenges</a>
-    <ul>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Challenges</a>
+    <ul class="current">
                 <li class="toctree-l2"><a class="reference internal" href="../vin/">Getting the VIN Number</a>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../doors/">Open Sesame</a>
@@ -133,7 +129,23 @@
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../abs/">ABS Disconection</a>
                 </li>
-                <li class="toctree-l2"><a class="reference internal" href="../key/">Starting the Car without the Key</a>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Starting the Car without the Key</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#hints">Hints</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#how-the-ignition-system-works">How the ignition system works:</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#what-is-the-force-feature">What is the force feature?</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#solution">Solution</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#observe-the-result-in-the-logic-analyzer-optional">Observe the result in the logic analyzer (optional)</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
                 </li>
     </ul>
                   </li>
@@ -155,7 +167,8 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
           <li class="breadcrumb-item">evilDoggie lab</li>
-      <li class="breadcrumb-item active">Get Started</li>
+          <li class="breadcrumb-item">Challenges</li>
+      <li class="breadcrumb-item active">Starting the Car without the Key</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -164,83 +177,89 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="get-started">Get started</h1>
-<p>This workshop has several challenges of increasing difficulty. For the first two you have to use Doggie and for the rest evilDoggie. The last challenge requires the <a href="/software/evil_doggie/force">"Force"</a> feature and can only be solved using Faraday's board (<a href="/hardware/force">Force hardware implementation</a>).</p>
-<p>If you are using a custom board you'll have to flash the corresponding firmware for each challenge. Please check the specific section depending on your choice of microcontroller: <a href="/hardware/diy/esp32/">ESP32</a>, <a href="/hardware/diy/rp/">RP2040</a>, or <a href="/hardware/diy/bluepill/">STM32F1</a>.</p>
-<p>On the other hand, Faraday's board has the capability of booting two different firmwares. It should be already flashed, but if you need to re-flash it or update the firmwares, please refer to <a href="/hardware/faraday/">this section</a>. The switch labeled with <strong>"GOOD"</strong> and <strong>"EVIL"</strong> is used to select the mode in which the board will boot. GOOD for Doggie and EVIL for evilDoggie. Note that you will need to reboot the board after switching modes if it is already powered.</p>
-<figure align="center">
-    <img src="../../res/faraday_board.png" alt="Faraday Board">
-</figure>
-
-<p>Before doing this workshop you should follow the corresponding sections for getting started with <a href="/software/doggie/get_started/">Doggie</a> and <a href="/software/evil_doggie/get_started/">evilDoggie</a></p>
-<h2 id="how-does-this-workshop-work">How does this workshop work?</h2>
-<p>In this workshop, you’ll face CAN Bus challenges that recreate the essence of real-world scenarios. The challenges are implemented in a simulator we built to keep things practical, fun, and focused on CAN protocol security rather than complex car engineering.</p>
-<p>The simulator presents a simple fictional car with only one CAN Bus. While it’s far from a real car’s complexity, it was carefully designed to help you learn how attacks work on real automotive networks.</p>
-<p>The simulator emulates 7 ECUs (Electronic Control Units), each with its role, all communicating on the same CAN Bus:</p>
-<table>
-<thead>
-<tr>
-<th>ECU</th>
-<th>Function</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Central ECU</td>
-<td>Controls engine logic, status reporting, airbag liveness check, and other global functions.</td>
-</tr>
-<tr>
-<td>Instrument Cluster ECU</td>
-<td>Main user interface: displays car state and includes buttons to lock/unlock doors, start the engine, etc.</td>
-</tr>
-<tr>
-<td>Cruise Control ECU</td>
-<td>Manages speed setting, communicating with the Central ECU in a control loop.</td>
-</tr>
-<tr>
-<td>Doors ECU</td>
-<td>Locks/unlocks doors, and reports door status back to the Instrument Cluster ECU.</td>
-</tr>
-<tr>
-<td>ABS ECU</td>
-<td>Sends a liveness message when the ABS is working.</td>
-</tr>
-<tr>
-<td>Immo ECU</td>
-<td>Checks if the car can start the engine (e.g., simulates key inserted state).</td>
-</tr>
-<tr>
-<td>VIN ECU</td>
-<td>Speaks ISO-TP to provide the car’s VIN number, like a real OBD2 port.</td>
-</tr>
-</tbody>
-</table>
-<p>As an attacker, you will connect Doggie or EvilDoggie to the bus to complete the challenges:</p>
-<figure align="center">
-    <img src="../../res/workshop_bus.png" alt="Workshop CAN bus">
-</figure>
-
-<p>As the attacks covered by evilDoggie target physical bus characteristics, there needs to be a real CAN bus where an attacker can connect. The original setup uses two Doggies to expose the CAN messages sent by all the simulated ECUs:</p>
+                <h1 id="starting-the-car-without-the-key">Starting the Car without the Key</h1>
+<p>In this last challenge, your mission is to do what should never be possible: start the car’s engine without having the key inserted. The car’s security system is designed so that the engine can’t start unless the Immo ECU reports the key is present. You’ll use a unique feature of evilDoggie called force to override the messages that report the key status at the physical level. This will trick the Central ECU into thinking the key is inserted, and then you’ll send the command to start the engine.</p>
+<h2 id="hints">Hints</h2>
+<p>To understand why this is possible, let’s look at two things: how the ignition system works and what the force feature does.</p>
+<h3 id="how-the-ignition-system-works">How the ignition system works:</h3>
 <ul>
-<li>
-<p>TX Doggie: Sends all simulator-generated CAN traffic onto the real bus</p>
-</li>
-<li>
-<p>RX Doggie: Receives those messages back into the simulator</p>
-</li>
+<li>The Immo ECU has a toggle button that simulates the key being inserted or removed.</li>
+<li>It sends periodic <em>KeyMessage</em> frames:<ul>
+<li>CAN ID: 0x101</li>
+<li>Data: one byte, non-zero if the key is inserted.</li>
 </ul>
-<p>But you can also use any pair of can-utils compatible CAN adapters. This setup ensures that every ECU-to-ECU message travels on the physical CAN Bus without using a Doggie for each ECU! And then, as an attacker, you can connect your own evilDoggie and make an online attack, just like on a real car.</p>
+</li>
+<li>The Central ECU checks these messages to know if the key is in.</li>
+<li>When the driver presses the ignition button on the Instrument Cluster, the Instrument Cluster ECU sends an <em>EngineControlMessage</em>:<ul>
+<li>CAN ID: 0x101</li>
+<li>Starts with 0 in the first byte and the second byte is non-zero to start the engine, or 0 to stop it.</li>
+</ul>
+</li>
+<li>The Central ECU verifies that the key is inserted before starting the engine.</li>
+<li>Finally, the Central ECU sends <em>EngineStatusMessage</em> (CAN ID 0x100) to show on the dashboard whether the engine is on.</li>
+</ul>
+<p>Without the key, pressing the ignition button won’t work because the Central ECU ignores the start command.</p>
 <figure align="center">
-    <img src="../../res/workshop_bus_physical.png" alt="Workshop CAN bus physical implementation">
+    <img src="../../res/workshop_key_msgs.png" alt="Ignition CAN messages">
 </figure>
 
-<p>For more instruction on how to setup and launch the workshop, please refer to <a href="https://github.com/infobyte/doggie_workshop">this repo</a></p>
+<h3 id="what-is-the-force-feature">What is the force feature?</h3>
+<p>In CAN Bus, bits can be dominant (0) or recessive (1). A dominant bit always wins over a recessive one. Physically, CAN HIGH and CAN LOW lines are driven to different voltages to create this effect. For more information on this, check the appendix on CAN protocol at the end of this guide.</p>
+<p>EvilDoggie’s force mode (also called dominant-override) can:</p>
+<ul>
+<li>Take control of the bus.</li>
+<li>Force recessive bits even when other ECUs try to send dominant bits.</li>
+<li>This lets us inject a message in a way that other ECUs can’t override, effectively controlling what appears on the bus at the physical level.</li>
+</ul>
+<p>This keeps the Immo ECU from sending “key not present” messages and at the same allows EvilDoggie to send forged “key is present” messages, followed by a start command.</p>
+<figure align="center">
+    <img src="../../res/workshop_key_msgs2.png" alt="Ignition CAN messages">
+</figure>
+
+<h2 id="solution">Solution</h2>
+<p>We’ll build a custom attack in EvilDoggie using the force feature.</p>
+<p>Enter the custom attack menu:</p>
+<p><code>&gt; custom_attack</code></p>
+<p>First, wait until the bus is free (so we don’t corrupt any messages that are mid-transmission):</p>
+<p><code>custom_attack&gt; wait_bus_free</code></p>
+<p>Next, we send multiple forced messages pretending to come from the Immo ECU, all reporting that the key is present. These messages must use force so that even if the real Immo ECU tries to say the opposite, it’s overridden.</p>
+<p><code>custom_attack&gt; send_msg 0x101 0x1 --force</code></p>
+<p>We add this command eight times (you can reuse the last command by pressing the up arrow). Finally, we send a message pretending to come from the Instrument Cluster ECU to start the engine:</p>
+<p><code>custom_attack&gt; send_msg 0x102 0x0,0x1 --force</code></p>
+<p>To check your attack plan, type:</p>
+<p><code>custom_attack&gt; list</code></p>
+<p>When you’re done, save and exit the custom attack menu:</p>
+<p><code>custom_attack&gt; save</code>
+<code>custom_attack&gt; exit</code></p>
+<p>Back in the main menu, run the attack:</p>
+<p><code>&gt; attack</code></p>
+<p>We don’t need extra arguments; running once is enough.</p>
+<p>If it works, you’ll see that the engine starts even though the key toggle in the Immo ECU is off. On the dashboard, the engine is running, showing that the attack succeeded.</p>
+<p>Congratulations you’ve completed the final and most advanced challenge, using evilDoggie’s physical-layer force capability to break the car’s security and start the engine without a key!</p>
+<h3 id="observe-the-result-in-the-logic-analyzer-optional">Observe the result in the logic analyzer (optional)</h3>
+<p>Connect you logic analyzer to evilDoggie's CAN Tx and Rx pins (E TX and E RX), and to the Tx pins of the other two interfaces (G0 TX and G1  TX).</p>
+<p>You should see the whole attack like this:</p>
+<figure align="center">
+    <img src="../../res/workshop_key_la.png" alt="Bus Takeover attack">
+</figure>
+
+<p>evilDoggie is forcing the <em>KeyMessage</em> indicating that the key is present. Depending on the timing you might see that the Immo ECU tries to send that the key is not present. However, as the data on the RX line does not match the data its trying to send, it enters into an error state:</p>
+<figure align="center">
+    <img src="../../res/workshop_key_la2.png" alt="Bus Takeover attack zoom">
+</figure>
+
+<p>Finally, evilDoggie sends the message to start the car:</p>
+<figure align="center">
+    <img src="../../res/workshop_key_la3.png" alt="Bus Takeover attack zoom">
+</figure>
+
+<p>For information about CAN protocol and CAN message structure, you can check the Appendix at the end of this guide.</p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../intro/" class="btn btn-neutral float-left" title="Introduction"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../vin/" class="btn btn-neutral float-right" title="Getting the VIN Number">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../abs/" class="btn btn-neutral float-left" title="ABS Disconection"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../can_protocol/" class="btn btn-neutral float-right" title="CAN Protocol">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -263,10 +282,10 @@
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../intro/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../abs/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../vin/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../can_protocol/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

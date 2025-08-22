@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../../css/theme.css" />
     <link rel="stylesheet" href="../../../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../../../styles/fix_width.css" rel="stylesheet" />
     
       <script>
         // Current page data
@@ -71,8 +72,6 @@
     </li>
     <li class="toctree-l4"><a class="reference internal" href="#console-usage">Console Usage</a>
     </li>
-    <li class="toctree-l4"><a class="reference internal" href="#how-it-works">How it works</a>
-    </li>
     </ul>
                 </li>
                 <li class="toctree-l3"><a class="reference internal" href="../double_receive_attack/">Double Receive Attack</a>
@@ -122,7 +121,23 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../../../workshop/get_started/">Get Started</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../../../workshop/challenges/">Challenges</a>
+                  <li class="toctree-l1"><a class="reference internal" >Challenges</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../workshop/vin/">Getting the VIN Number</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../workshop/doors/">Open Sesame</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../workshop/cruisecontrol/">Cruise-Control Confusion</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../workshop/doors2/">Open Sesame on the Highway</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../workshop/airbag/">Airbag Toggle Inversion</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../workshop/abs/">ABS Disconection</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../workshop/key/">Starting the Car without the Key</a>
+                </li>
+    </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../../../workshop/can_protocol/">CAN Protocol</a>
                   </li>
@@ -169,8 +184,105 @@
 <li>Review the plan with <code>list</code>, then launch with <code>attack</code> (e.g., <code>attack 5</code> for 5 bursts).</li>
 <li>Consult <code>help bus_off_attack</code> for additional options or clarification.</li>
 </ol>
+<h1 id="help">Help</h1>
+<pre><code>&gt; help bus_off_attack
+
+SUMMARY:
+  bus_off_attack &lt;id&gt; &lt;errors&gt; [ &lt;match_data&gt; ] [ --extended ]
+
+PARAMETERS:
+  &lt;id&gt;
+    CAN ID to match, in hex (e.g., 0x123, 0x12345678).
+
+  &lt;errors&gt;
+    Number of consecutive error frames to inject.
+
+  &lt;match_data&gt;
+    Match only after seeing a real message on the bus with the same ID and whose first data bytes match these comma‑separated hex values. Useful to target specific messages when multiple messages share the same ID.
+
+  --extended
+    Use if the target ID is an extended 29‑bit ID. Defaults to standard 11‑bit IDs.
+
+
+
+DESCRIPTION:
+Push a bus‑off attack that monitors the CAN bus and, when a matching message is detected, injects a burst of error frames timed to disrupt communication.
+
+By sending repeated errors during transmission, this attack can force a target node’s CAN controller into a bus off state or significantly delay its messages, making it temporarily stop communicating or degrade its performance.
+</code></pre>
 <h2 id="how-it-works">How it works</h2>
-<p><code>TODO</code></p>
+<p>The CAN protocol has built-in error detection and fault handling. When an ECU sends messages that keep failing to be acknowledged or keeps detecting errors, its transceiver’s error counters increase. After several consecutive errors, the ECU transitions into a bus off state, where it stops transmitting until it recovers.</p>
+<p>The Bus Off Attack exploits this by injecting error frames at exactly the right moment in the CAN frame, right before the sender believes the message was correctly sent. This results in:</p>
+<ul>
+<li>The victim ECU thinking its messages are being rejected or corrupted.</li>
+<li>In consequence, the victim ECU either delays sending new messages (retrying) or fully stops after entering bus off.</li>
+</ul>
+<p><img alt="CAN Error States" src="../../../../res/can_error_states.png" /></p>
+<p>The Bus Off Attack’s timing is similar to the Double Receive Attack, but here we deliberately corrupt the message so the receiver doesn’t get it either. We effectively silence the target ECU for a while.</p>
+<p>This attack will insert the error frames after the EOF2 bit in the End Of Frame as we could see in the following image, disrupting the sended message.</p>
+<p><img alt="Bus Off Attack Timing" src="../../../../res/bus_off_attack_timing.png" /></p>
+<p>For example, if we want to attack the messages with ID <code>0x105</code> we will do the following:</p>
+<pre><code>&gt; bus_off_attack 0x105 50
+&gt; attack
+</code></pre>
+<p>And this will make a Bus Off Attack to a message with that id and inserting 50 error frames.</p>
+<p>If we see the attack in a logic analyzer we could see the following:</p>
+<p><img alt="Bus Off Attack Logic Analyzer" src="../../../../res/bus_off_attack_la.png" /></p>
+<p>Here, we have 3 devices involved, and the channels are:</p>
+<ul>
+<li><strong>E TX</strong>: evilDoggie TX</li>
+<li><strong>E RX</strong>: evilDoggie RX</li>
+<li><strong>G0 TX</strong>: Doggie 0 TX </li>
+<li><strong>G1 TX</strong>: Doggie 1 TX</li>
+</ul>
+<p>We can see that <strong>G0</strong> sends the message, <strong>E</strong> attacks.</p>
+<h2 id="implementation">Implementation</h2>
+<p>Like all the attacks, the Bus Off Attack is built on top of attack primitives, but the primitives may change depending on the attack arguments used.
+Let's see the primitives involved in the example:</p>
+<ol>
+<li>First we do the warm up to avoid delays in other bits<ul>
+<li>SetBitStuffing { state: false }</li>
+<li>Wait { bits: 8 }</li>
+<li>SetBitStuffing { state: true }</li>
+<li>WaitBusFree { ... }</li>
+</ul>
+</li>
+<li>After the warmup, it will wait for a Start Of Frame<ul>
+<li>WaitForSof"</li>
+</ul>
+</li>
+<li>It skips the SoF bit<ul>
+<li>Wait { bits: 1 }</li>
+</ul>
+</li>
+<li>Then, match all the bits from the ID until the DLC (not included). It will abort if doesn't match.<ul>
+<li>Match { stream: FastBitQueue { value: 0b10000010100000, len: 14, ... } }</li>
+</ul>
+</li>
+<li>Now, it will read the DLC<ul>
+<li>Read { len: 4 }</li>
+</ul>
+</li>
+<li>Calculates how much bits has left in the DATA field and wait that amount of bits.<ul>
+<li>MulBuffered { mult: 8 }</li>
+<li>WaitBuffered</li>
+</ul>
+</li>
+<li>Skipes the CRC and ACK fields<ul>
+<li>Wait { bits: 15 }</li>
+</ul>
+</li>
+<li>It will now wait until the desired bit to change<ul>
+<li>SetBitStuffing { state: false }</li>
+<li>Wait { bits: 8 }</li>
+</ul>
+</li>
+<li>Sends the desired amount of error frames<ul>
+<li>Send { stream: FastBitQueue { value: 0b11111111000000111111110000001111111100000011111111000000, len: 56, ... } }</li>
+<li>SetBitStuffing { state: true }</li>
+</ul>
+</li>
+</ol>
               
             </div>
           </div><footer>

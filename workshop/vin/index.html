@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Get Started - evilDoggie</title>
+    <title>Getting the VIN Number - evilDoggie</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -13,8 +13,8 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Get Started";
-        var mkdocs_page_input_path = "workshop/get_started.md";
+        var mkdocs_page_name = "Getting the VIN Number";
+        var mkdocs_page_input_path = "workshop/vin.md";
         var mkdocs_page_url = null;
       </script>
     
@@ -113,15 +113,37 @@
               <ul class="current">
                   <li class="toctree-l1"><a class="reference internal" href="../intro/">Introduction</a>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Get Started</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../get_started/">Get Started</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Challenges</a>
     <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#how-does-this-workshop-work">How does this workshop work?</a>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Getting the VIN Number</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#hints">Hints</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#what-is-the-vin">What is the VIN?</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#what-protocol-is-used-to-retrieve-the-vin">What protocol is used to retrieve the VIN?</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#which-ecus-are-involved">Which ECUs are involved?</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#linux-tools-youll-use">Linux tools you’ll use:</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#diagnostic-request-details">Diagnostic request details:</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#solution">Solution</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#start-listening-for-the-vin-ecu-response">Start listening for the VIN ECU response</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#send-the-diagnostic-request">Send the diagnostic request</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#see-the-response">See the response</a>
+    </li>
+        </ul>
     </li>
     </ul>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" >Challenges</a>
-    <ul>
-                <li class="toctree-l2"><a class="reference internal" href="../vin/">Getting the VIN Number</a>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../doors/">Open Sesame</a>
                 </li>
@@ -155,7 +177,8 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
           <li class="breadcrumb-item">evilDoggie lab</li>
-      <li class="breadcrumb-item active">Get Started</li>
+          <li class="breadcrumb-item">Challenges</li>
+      <li class="breadcrumb-item active">Getting the VIN Number</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -164,83 +187,72 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="get-started">Get started</h1>
-<p>This workshop has several challenges of increasing difficulty. For the first two you have to use Doggie and for the rest evilDoggie. The last challenge requires the <a href="/software/evil_doggie/force">"Force"</a> feature and can only be solved using Faraday's board (<a href="/hardware/force">Force hardware implementation</a>).</p>
-<p>If you are using a custom board you'll have to flash the corresponding firmware for each challenge. Please check the specific section depending on your choice of microcontroller: <a href="/hardware/diy/esp32/">ESP32</a>, <a href="/hardware/diy/rp/">RP2040</a>, or <a href="/hardware/diy/bluepill/">STM32F1</a>.</p>
-<p>On the other hand, Faraday's board has the capability of booting two different firmwares. It should be already flashed, but if you need to re-flash it or update the firmwares, please refer to <a href="/hardware/faraday/">this section</a>. The switch labeled with <strong>"GOOD"</strong> and <strong>"EVIL"</strong> is used to select the mode in which the board will boot. GOOD for Doggie and EVIL for evilDoggie. Note that you will need to reboot the board after switching modes if it is already powered.</p>
-<figure align="center">
-    <img src="../../res/faraday_board.png" alt="Faraday Board">
-</figure>
-
-<p>Before doing this workshop you should follow the corresponding sections for getting started with <a href="/software/doggie/get_started/">Doggie</a> and <a href="/software/evil_doggie/get_started/">evilDoggie</a></p>
-<h2 id="how-does-this-workshop-work">How does this workshop work?</h2>
-<p>In this workshop, you’ll face CAN Bus challenges that recreate the essence of real-world scenarios. The challenges are implemented in a simulator we built to keep things practical, fun, and focused on CAN protocol security rather than complex car engineering.</p>
-<p>The simulator presents a simple fictional car with only one CAN Bus. While it’s far from a real car’s complexity, it was carefully designed to help you learn how attacks work on real automotive networks.</p>
-<p>The simulator emulates 7 ECUs (Electronic Control Units), each with its role, all communicating on the same CAN Bus:</p>
-<table>
-<thead>
-<tr>
-<th>ECU</th>
-<th>Function</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Central ECU</td>
-<td>Controls engine logic, status reporting, airbag liveness check, and other global functions.</td>
-</tr>
-<tr>
-<td>Instrument Cluster ECU</td>
-<td>Main user interface: displays car state and includes buttons to lock/unlock doors, start the engine, etc.</td>
-</tr>
-<tr>
-<td>Cruise Control ECU</td>
-<td>Manages speed setting, communicating with the Central ECU in a control loop.</td>
-</tr>
-<tr>
-<td>Doors ECU</td>
-<td>Locks/unlocks doors, and reports door status back to the Instrument Cluster ECU.</td>
-</tr>
-<tr>
-<td>ABS ECU</td>
-<td>Sends a liveness message when the ABS is working.</td>
-</tr>
-<tr>
-<td>Immo ECU</td>
-<td>Checks if the car can start the engine (e.g., simulates key inserted state).</td>
-</tr>
-<tr>
-<td>VIN ECU</td>
-<td>Speaks ISO-TP to provide the car’s VIN number, like a real OBD2 port.</td>
-</tr>
-</tbody>
-</table>
-<p>As an attacker, you will connect Doggie or EvilDoggie to the bus to complete the challenges:</p>
-<figure align="center">
-    <img src="../../res/workshop_bus.png" alt="Workshop CAN bus">
-</figure>
-
-<p>As the attacks covered by evilDoggie target physical bus characteristics, there needs to be a real CAN bus where an attacker can connect. The original setup uses two Doggies to expose the CAN messages sent by all the simulated ECUs:</p>
+                <h1 id="getting-the-vin-number">Getting the VIN number</h1>
+<p>In this first challenge, your goal is to retrieve the car’s VIN number by sending a diagnostic request over the CAN Bus.</p>
+<p>Modern cars store the VIN (Vehicle Identification Number) inside an ECU, and diagnostic tools can read it by sending a special request. You have to do the same, but using Doggie to send the request and listen for the response, just like a mechanic (or an attacker!) would.</p>
+<h2 id="hints">Hints</h2>
+<h3 id="what-is-the-vin">What is the VIN?</h3>
+<p>The Vehicle Identification Number (VIN) is a unique 17-character identifier every car has. In real life, mechanics and dealerships use diagnostic tools to read it through the OBD2 port by sending a standardized request.</p>
+<h3 id="what-protocol-is-used-to-retrieve-the-vin">What protocol is used to retrieve the VIN?</h3>
+<p>While normal CAN messages are short (up to 8 bytes), some diagnostics need to exchange longer data, like the VIN. To achieve this, the automotive world utilizes UDS (Unified Diagnostic Services, ISO 14229), which runs over ISO-TP (ISO 15765-2), a protocol designed to send multi-frame messages over CAN.</p>
+<p>With ISO-TP, the VIN ECU can:</p>
 <ul>
-<li>
-<p>TX Doggie: Sends all simulator-generated CAN traffic onto the real bus</p>
-</li>
-<li>
-<p>RX Doggie: Receives those messages back into the simulator</p>
-</li>
+<li>Receive a diagnostic request from the tester (your tool)</li>
+<li>Send back a multi-frame response containing the VIN</li>
 </ul>
-<p>But you can also use any pair of can-utils compatible CAN adapters. This setup ensures that every ECU-to-ECU message travels on the physical CAN Bus without using a Doggie for each ECU! And then, as an attacker, you can connect your own evilDoggie and make an online attack, just like on a real car.</p>
+<h3 id="which-ecus-are-involved">Which ECUs are involved?</h3>
+<p>In our simulator, there’s a special VIN ECU that:</p>
+<ul>
+<li>Listens for ISO-TP requests sent to CAN ID <strong>0x7E8</strong></li>
+<li>Replies with the VIN using ISO-TP</li>
+</ul>
+<p>You act as the tester, using CAN ID <strong>0x7DF</strong>.</p>
+<h3 id="linux-tools-youll-use">Linux tools you’ll use:</h3>
+<p>To interact over ISO-TP, you can use two powerful tools from can-utils:</p>
+<ul>
+<li><strong>isotpsend</strong>: to send a diagnostic request</li>
+<li><strong>isotprecv</strong>: to listen for the diagnostic response</li>
+</ul>
+<p>They set up a virtual ISO-TP link over the physical CAN interface (your Doggie).</p>
+<h3 id="diagnostic-request-details">Diagnostic request details:</h3>
+<p>The UDS protocol has a series of services and parameter IDs. To get the VIN, you can use:</p>
+<ul>
+<li><em>Service 09</em>: Request Vehicle Information</li>
+<li><em>PID 02</em>: VIN</li>
+</ul>
+<p>So, the request payload becomes: 09 02 (hex). In a real scan tool, this would be built automatically—but here you’ll craft and send it manually to understand what happens behind the scenes.</p>
 <figure align="center">
-    <img src="../../res/workshop_bus_physical.png" alt="Workshop CAN bus physical implementation">
+    <img src="../../res/workshop_vin_msgs.png" alt="VIN Messages">
 </figure>
 
-<p>For more instruction on how to setup and launch the workshop, please refer to <a href="https://github.com/infobyte/doggie_workshop">this repo</a></p>
+<h2 id="solution">Solution</h2>
+<h3 id="start-listening-for-the-vin-ecu-response">Start listening for the VIN ECU response</h3>
+<p>Open a terminal and run:</p>
+<p><code>isotprecv -s 7DF -d 7E8 -p 8:8 -l doggie</code></p>
+<p>Where the arguments have the following meaning:</p>
+<ul>
+<li><strong>-s 7DF</strong>: source (tester’s) CAN ID</li>
+<li><strong>-d 7E8</strong>: destination (VIN ECU’s) CAN ID</li>
+<li><strong>-p 8:8</strong>: padding config (common ISO-TP setting)</li>
+<li><strong>-l</strong>: listen mode (prints raw response)</li>
+</ul>
+<h3 id="send-the-diagnostic-request">Send the diagnostic request</h3>
+<p>In another terminal, send the request:</p>
+<p><code>echo "09 02" | isotpsend -s 7DF -d 7E8 -p 8:8 doggie</code></p>
+<p>This sends a VIN request to the VIN ECU.</p>
+<h3 id="see-the-response">See the response</h3>
+<p>The isotprecv terminal should print something like:</p>
+<p><code>49 02 01 57 58 30 58 58 58 58 58 58 58 58 58 58 58</code></p>
+<p>Example:</p>
+<figure align="center">
+    <img src="../../res/workshop_vin_example.png" alt="VIN Example">
+</figure>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../intro/" class="btn btn-neutral float-left" title="Introduction"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../vin/" class="btn btn-neutral float-right" title="Getting the VIN Number">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../get_started/" class="btn btn-neutral float-left" title="Get Started"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../doors/" class="btn btn-neutral float-right" title="Open Sesame">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -263,10 +275,10 @@
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../intro/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../get_started/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../vin/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../doors/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

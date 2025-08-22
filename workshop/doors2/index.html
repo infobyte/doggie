@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Get Started - evilDoggie</title>
+    <title>Open Sesame on the Highway - evilDoggie</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -13,8 +13,8 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Get Started";
-        var mkdocs_page_input_path = "workshop/get_started.md";
+        var mkdocs_page_name = "Open Sesame on the Highway";
+        var mkdocs_page_input_path = "workshop/doors2.md";
         var mkdocs_page_url = null;
       </script>
     
@@ -113,21 +113,27 @@
               <ul class="current">
                   <li class="toctree-l1"><a class="reference internal" href="../intro/">Introduction</a>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Get Started</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#how-does-this-workshop-work">How does this workshop work?</a>
-    </li>
-    </ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../get_started/">Get Started</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" >Challenges</a>
-    <ul>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Challenges</a>
+    <ul class="current">
                 <li class="toctree-l2"><a class="reference internal" href="../vin/">Getting the VIN Number</a>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../doors/">Open Sesame</a>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../cruisecontrol/">Cruise-Control Confusion</a>
                 </li>
-                <li class="toctree-l2"><a class="reference internal" href="../doors2/">Open Sesame on the Highway</a>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Open Sesame on the Highway</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#hints">Hints</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#solution">Solution</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#observe-the-result-in-the-logic-analyzer-optional">Observe the result in the logic analyzer (optional)</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../airbag/">Airbag Toggle Inversion</a>
                 </li>
@@ -155,7 +161,8 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
           <li class="breadcrumb-item">evilDoggie lab</li>
-      <li class="breadcrumb-item active">Get Started</li>
+          <li class="breadcrumb-item">Challenges</li>
+      <li class="breadcrumb-item active">Open Sesame on the Highway</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -164,83 +171,82 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="get-started">Get started</h1>
-<p>This workshop has several challenges of increasing difficulty. For the first two you have to use Doggie and for the rest evilDoggie. The last challenge requires the <a href="/software/evil_doggie/force">"Force"</a> feature and can only be solved using Faraday's board (<a href="/hardware/force">Force hardware implementation</a>).</p>
-<p>If you are using a custom board you'll have to flash the corresponding firmware for each challenge. Please check the specific section depending on your choice of microcontroller: <a href="/hardware/diy/esp32/">ESP32</a>, <a href="/hardware/diy/rp/">RP2040</a>, or <a href="/hardware/diy/bluepill/">STM32F1</a>.</p>
-<p>On the other hand, Faraday's board has the capability of booting two different firmwares. It should be already flashed, but if you need to re-flash it or update the firmwares, please refer to <a href="/hardware/faraday/">this section</a>. The switch labeled with <strong>"GOOD"</strong> and <strong>"EVIL"</strong> is used to select the mode in which the board will boot. GOOD for Doggie and EVIL for evilDoggie. Note that you will need to reboot the board after switching modes if it is already powered.</p>
-<figure align="center">
-    <img src="../../res/faraday_board.png" alt="Faraday Board">
-</figure>
-
-<p>Before doing this workshop you should follow the corresponding sections for getting started with <a href="/software/doggie/get_started/">Doggie</a> and <a href="/software/evil_doggie/get_started/">evilDoggie</a></p>
-<h2 id="how-does-this-workshop-work">How does this workshop work?</h2>
-<p>In this workshop, you’ll face CAN Bus challenges that recreate the essence of real-world scenarios. The challenges are implemented in a simulator we built to keep things practical, fun, and focused on CAN protocol security rather than complex car engineering.</p>
-<p>The simulator presents a simple fictional car with only one CAN Bus. While it’s far from a real car’s complexity, it was carefully designed to help you learn how attacks work on real automotive networks.</p>
-<p>The simulator emulates 7 ECUs (Electronic Control Units), each with its role, all communicating on the same CAN Bus:</p>
-<table>
-<thead>
-<tr>
-<th>ECU</th>
-<th>Function</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Central ECU</td>
-<td>Controls engine logic, status reporting, airbag liveness check, and other global functions.</td>
-</tr>
-<tr>
-<td>Instrument Cluster ECU</td>
-<td>Main user interface: displays car state and includes buttons to lock/unlock doors, start the engine, etc.</td>
-</tr>
-<tr>
-<td>Cruise Control ECU</td>
-<td>Manages speed setting, communicating with the Central ECU in a control loop.</td>
-</tr>
-<tr>
-<td>Doors ECU</td>
-<td>Locks/unlocks doors, and reports door status back to the Instrument Cluster ECU.</td>
-</tr>
-<tr>
-<td>ABS ECU</td>
-<td>Sends a liveness message when the ABS is working.</td>
-</tr>
-<tr>
-<td>Immo ECU</td>
-<td>Checks if the car can start the engine (e.g., simulates key inserted state).</td>
-</tr>
-<tr>
-<td>VIN ECU</td>
-<td>Speaks ISO-TP to provide the car’s VIN number, like a real OBD2 port.</td>
-</tr>
-</tbody>
-</table>
-<p>As an attacker, you will connect Doggie or EvilDoggie to the bus to complete the challenges:</p>
-<figure align="center">
-    <img src="../../res/workshop_bus.png" alt="Workshop CAN bus">
-</figure>
-
-<p>As the attacks covered by evilDoggie target physical bus characteristics, there needs to be a real CAN bus where an attacker can connect. The original setup uses two Doggies to expose the CAN messages sent by all the simulated ECUs:</p>
+                <h1 id="open-sesame-on-the-highway">Open Sesame on the Highway</h1>
+<p>In this challenge, you have to unlock a door while the car is moving at high speed.
+This sounds similar to the second challenge, where you sniffed and injected a DoorControlMessage to open the front left door. But this time, it’s harder: the Doors ECU now knows the current speed of the car, and if the speed is above a certain threshold, it refuses to unlock the doors, even if it receives the correct unlock message.</p>
+<p>Your goal is to find a way to trick the Doors ECU into thinking the car is moving slowly, so you can still unlock the door.</p>
+<h2 id="hints">Hints</h2>
+<p>Let’s review what happens inside the simulator and why the old attack won’t work anymore.
+The Doors ECU works just like before: it listens for DoorControlMessages with CAN ID 0x102. When it gets a message, it unlocks or locks the doors according to the mask in the message. But now the car is moving, and it also listens to the same SpeedStatusMessage sent by the Central ECU that the Cruise Control ECU reads. This message:</p>
 <ul>
-<li>
-<p>TX Doggie: Sends all simulator-generated CAN traffic onto the real bus</p>
-</li>
-<li>
-<p>RX Doggie: Receives those messages back into the simulator</p>
-</li>
+<li>Has CAN ID 0x100</li>
+<li>Has data starting with byte 0x2, followed by two bytes representing the current speed</li>
 </ul>
-<p>But you can also use any pair of can-utils compatible CAN adapters. This setup ensures that every ECU-to-ECU message travels on the physical CAN Bus without using a Doggie for each ECU! And then, as an attacker, you can connect your own evilDoggie and make an online attack, just like on a real car.</p>
+<p>If the speed reported in that message is too high, the Doors ECU ignores any unlock command it receives.</p>
 <figure align="center">
-    <img src="../../res/workshop_bus_physical.png" alt="Workshop CAN bus physical implementation">
+    <img src="../../res/workshop_doors2_msgs.png" alt="Door CAN messages">
 </figure>
 
-<p>For more instruction on how to setup and launch the workshop, please refer to <a href="https://github.com/infobyte/doggie_workshop">this repo</a></p>
+<p>The normal injection you used in challenge 2 (just sending a <em>DoorControlMessage</em>) won’t work anymore, because now the car is moving, and the Doors ECU has extra logic that checks the speed before unlocking the door.</p>
+<p>To bypass this, you need to combine two ideas:</p>
+<ul>
+<li>Use a spoofing attack (like in challenge 3) to send a fake <em>SpeedStatusMessage</em> with speed = 0 or another low value, just after the real one.</li>
+<li>Right after the spoofed speed message, send a <em>DoorControlMessage</em> to unlock the door.</li>
+</ul>
+<p>If the timing is right, the Doors ECU will read the fake speed and then accept your unlock command, even if the real car speed is high.</p>
+<figure align="center">
+    <img src="../../res/workshop_doors2_msgs2.png" alt="Attack CAN messages">
+</figure>
+
+<h2 id="solution">Solution</h2>
+<p>Here’s how to build and run this attack step by step with evilDoggie.</p>
+<p>First, open EvilDoggie in your terminal. You’ll see a prompt where you can enter attack commands. The first part of the attack plan is to spoof the <em>SpeedStatusMessage</em> with low-speed data, just like before:</p>
+<p><code>&gt; spoofing_attack 0x100 0x2,0x0,0x0 0x2</code></p>
+<p>This means:</p>
+<ul>
+<li>Watch for a real message with ID 0x100 and first byte 0x2</li>
+<li>Immediately send a fake message with ID 0x100 and data 0x2,0x0,0x0 (speed = 0)</li>
+</ul>
+<p>The second part is to send our unlock command. We’ll do this using a custom attack, so we can insert it exactly where we want. Type:</p>
+<p><code>&gt; custom_attack</code></p>
+<p>This opens a new menu. Inside it, write:</p>
+<p><code>custom_attack&gt; send_msg 0x102 0x1,0x0,0xf</code></p>
+<p>Here:</p>
+<ul>
+<li><strong>0x102</strong> is the CAN ID for DoorControlMessage</li>
+<li><strong>0x1</strong> is the command type</li>
+<li><strong>0x0</strong> is unlock</li>
+<li><strong>0xf</strong> is the door mask: unlock all doors (you could also use 0x4 to unlock only the front left door)</li>
+</ul>
+<p>Then type:</p>
+<p><code>custom_attack&gt; save</code>
+<code>custom_attack&gt; exit</code></p>
+<p>This saves the custom command and goes back to the main menu. Now your attack plan has two steps: first, spoofing the speed, then sending the unlock command. You can run “list” to see your attack plan and check that it looks correct.</p>
+<p>Finally, launch the attack with:</p>
+<p><code>&gt; attack</code></p>
+<p>When you run the attack, EvilDoggie will wait for a real SpeedStatusMessage with first byte 0x2, spoof a fake speed = 0, and then send the unlock message. As a result, the Doors ECU will see a low speed message just before the unlock command and will accept it, even though the car is moving fast. On the simulator UI, you’ll see the door unlock light turning on, proving that the attack worked.</p>
+<p>Note that this attack can fail because our door unlock message can collide with other messages with higher priority, resulting in a bus error. If the attack doesn’t work, just attack again until you succeed.</p>
+<p>This can be avoided using the bus takeover feature of EvilDoggie. By taking full control of the bus and silencing other ECUs, the attacker can ensure that their messages are always sent successfully. Don’t worry too much about this now, since this challenge can be solved without it. You will use this type of attack in the last challenge.</p>
+<h3 id="observe-the-result-in-the-logic-analyzer-optional">Observe the result in the logic analyzer (optional)</h3>
+<p>Connect you logic analyzer to evilDoggie's CAN Tx and Rx pins (E TX and E RX), and to the Tx pins of the other two interfaces (G0 TX and G1  TX).</p>
+<p>A failed attack attempt looks like this:</p>
+<figure align="center">
+    <img src="../../res/workshop_doors2_la.png" alt="Failed attack">
+</figure>
+
+<p>Notice how an interface tries to send a message with higher priority, just as the evilDoggie is trying to send a door unlock message. This results in a bus error.</p>
+<p>And a successful one looks like this:</p>
+<figure align="center">
+    <img src="../../res/workshop_doors2_la2.png" alt="Successful attack">
+</figure>
+
+<p>For information about CAN protocol and CAN message structure, you can check the Appendix at the end of this guide.</p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../intro/" class="btn btn-neutral float-left" title="Introduction"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../vin/" class="btn btn-neutral float-right" title="Getting the VIN Number">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../cruisecontrol/" class="btn btn-neutral float-left" title="Cruise-Control Confusion"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../airbag/" class="btn btn-neutral float-right" title="Airbag Toggle Inversion">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -263,10 +269,10 @@
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../intro/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../cruisecontrol/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../vin/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../airbag/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

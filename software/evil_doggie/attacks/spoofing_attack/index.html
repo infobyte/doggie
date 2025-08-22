@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../../css/theme.css" />
     <link rel="stylesheet" href="../../../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../../../styles/fix_width.css" rel="stylesheet" />
     
       <script>
         // Current page data
@@ -69,7 +70,11 @@
     </li>
     <li class="toctree-l4"><a class="reference internal" href="#console-usage">Console Usage</a>
     </li>
-    <li class="toctree-l4"><a class="reference internal" href="#how-it-works">How it works</a>
+    <li class="toctree-l4"><a class="reference internal" href="#help">Help</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#how-it-works">How It Works</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#implementation">Implementation</a>
     </li>
     </ul>
                 </li>
@@ -122,7 +127,23 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../../../workshop/get_started/">Get Started</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../../../workshop/challenges/">Challenges</a>
+                  <li class="toctree-l1"><a class="reference internal" >Challenges</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../workshop/vin/">Getting the VIN Number</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../workshop/doors/">Open Sesame</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../workshop/cruisecontrol/">Cruise-Control Confusion</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../workshop/doors2/">Open Sesame on the Highway</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../workshop/airbag/">Airbag Toggle Inversion</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../workshop/abs/">ABS Disconection</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../../workshop/key/">Starting the Car without the Key</a>
+                </li>
+    </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../../../workshop/can_protocol/">CAN Protocol</a>
                   </li>
@@ -169,8 +190,104 @@
 <li>Verify the plan with <code>list</code>, then execute with <code>attack</code> (e.g., <code>attack 10</code> for 10 iterations).</li>
 <li>Refer to <code>help spoofing_attack</code> for parameter details or troubleshooting.</li>
 </ol>
-<h2 id="how-it-works">How it works</h2>
-<p><code>TODO</code></p>
+<h2 id="help">Help</h2>
+<pre><code>&gt; help spoofing_attack
+
+SUMMARY:
+  spoofing_attack &lt;id&gt; &lt;spoofed_data&gt; [ &lt;match_data&gt; ] [ --extended ]
+
+PARAMETERS:
+  &lt;id&gt;
+    CAN ID to match, in hex (e.g., 0x123, 0x12345678).
+
+  &lt;spoofed_data&gt;
+    Data bytes to spoof as comma-separated hex values (e.g., 0x10,0x20,0x30)
+
+  &lt;match_data&gt;
+    Match only after seeing a real message on the bus with the same ID and whose first data bytes match these comma‑separated hex values. Useful to target specific messages when multiple messages share the same ID.
+
+  --extended
+    Use if the target ID is an extended 29‑bit ID. Defaults to standard 11‑bit IDs. 
+
+DESCRIPTION:
+Push to the plan a spoofing attack to injecting a forged message on the bus immediately after seeing a specific real message.
+
+This works by monitoring the bus in real‑time and, when a matching message is detected (using &lt;id&gt; and optional &lt;match_data&gt;), EvilDoggie quickly sends your crafted &lt;spoofed_data&gt; message.
+</code></pre>
+<h2 id="how-it-works">How It Works</h2>
+<p>As previously mentioned, the spoofing attack waits until a certain condition (ID, Data) matches the configured arguments and immediately afterward, it sends a new message.</p>
+<p>In the following example, we will run an attack on the message with ID <code>0x100</code> where the first data byte equals <code>0x02</code>, and we will send the same message with two additional data bytes <code>0x00</code> and <code>0x00</code>.
+We do so with the following commands:</p>
+<pre><code>&gt; spoofing_attack 0x100 0x2,0x0,0x0 0x2
+&gt; attack
+</code></pre>
+<p>Arguments:</p>
+<ul>
+<li>0x100: CAN ID</li>
+<li>0x2,0x0,0x0: data to spoof</li>
+<li>0x2: only trigger spoof when the first byte is 0x2 </li>
+</ul>
+<p>If we attach a logic analyzer, we could see something like this:</p>
+<p><img alt="Spoofing Attack Logic Analyzer" src="../../../../res/spoofing_attack_la.png" /></p>
+<p>Here, we have 3 devices involved, and the channels are:</p>
+<ul>
+<li><strong>E TX</strong>: evilDoggie TX</li>
+<li><strong>E RX</strong>: evilDoggie RX</li>
+<li><strong>G0 TX</strong>: Doggie 0 TX </li>
+<li><strong>G1 TX</strong>: Doggie 1 TX</li>
+</ul>
+<p>We can see that <strong>G0</strong> sends the message, and just after the End of Frame, <strong>E</strong> sends the new message.</p>
+<h2 id="implementation">Implementation</h2>
+<p>Like all the attacks, the Spoofing Attack is built on top of attack primitives, but the primitives may change depending on the attack arguments used.
+Let's see the primitives involved in the example:</p>
+<ol>
+<li>First it disables the bit stuffing and waits (this is used as warmup):  <ul>
+<li>SetBitStuffing { state: false }</li>
+<li>Wait { bits: 8 }</li>
+<li>SetBitStuffing { state: true }</li>
+<li>WaitBusFree { ... }</li>
+</ul>
+</li>
+<li>After the warmup, it will wait for a Start Of Frame<ul>
+<li>WaitForSof</li>
+</ul>
+</li>
+<li>It skips the SoF bit<ul>
+<li>Wait { bits: 1 }</li>
+</ul>
+</li>
+<li>Then, match all the bits from the ID until the DLC (not included). It will abort if doesn't match.<ul>
+<li>Match { stream: FastBitQueue { value: 0b10000000000000, len: 14, ... } }</li>
+</ul>
+</li>
+<li>Now, it will read the DLC<ul>
+<li>Read { len: 4 }</li>
+</ul>
+</li>
+<li>Matches the only byte of data that we give as argument. It will abort if doesn't match.<ul>
+<li>Match { stream: FastBitQueue { value: 0x02 , len: 8, ... } }</li>
+</ul>
+</li>
+<li>Calculates how much bits has left in the DATA field and wait that amount of bits.<ul>
+<li>SubBuffered { sub: 1 }</li>
+<li>MulBuffered { mult: 8 }</li>
+<li>WaitBuffered</li>
+</ul>
+</li>
+<li>Waits until the bus if free (until the End Of Frame)<ul>
+<li>SetBitStuffing { state: false }</li>
+<li>WaitBusFree { ... }</li>
+<li>SetBitStuffing { state: true }</li>
+</ul>
+</li>
+<li>Finally it sends the spoofed message<ul>
+<li>Send { stream: FastBitQueue { value: 0b1000000000000011000000100000000000000000000100110101111000, len: 58, ... } }</li>
+<li>SetBitStuffing { state: false }</li>
+<li>Send { stream: FastBitQueue { value: 0b1111111111111, len: 13, ... } }</li>
+<li>SetBitStuffing { state: true }</li>
+</ul>
+</li>
+</ol>
               
             </div>
           </div><footer>

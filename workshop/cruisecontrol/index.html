@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Get Started - evilDoggie</title>
+    <title>Cruise-Control Confusion - evilDoggie</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -13,8 +13,8 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Get Started";
-        var mkdocs_page_input_path = "workshop/get_started.md";
+        var mkdocs_page_name = "Cruise-Control Confusion";
+        var mkdocs_page_input_path = "workshop/cruisecontrol.md";
         var mkdocs_page_url = null;
       </script>
     
@@ -113,19 +113,39 @@
               <ul class="current">
                   <li class="toctree-l1"><a class="reference internal" href="../intro/">Introduction</a>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Get Started</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#how-does-this-workshop-work">How does this workshop work?</a>
-    </li>
-    </ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../get_started/">Get Started</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" >Challenges</a>
-    <ul>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Challenges</a>
+    <ul class="current">
                 <li class="toctree-l2"><a class="reference internal" href="../vin/">Getting the VIN Number</a>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../doors/">Open Sesame</a>
                 </li>
-                <li class="toctree-l2"><a class="reference internal" href="../cruisecontrol/">Cruise-Control Confusion</a>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Cruise-Control Confusion</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#hints">Hints</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#how-does-the-cruise-control-system-work">How does the Cruise Control system work?</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#attack-idea">Attack idea</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#solution">Solution</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#use-evil-mode">Use Evil mode</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#configure-the-spoofing-attack">Configure the spoofing attack</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#run-the-attack-multiple-times">Run the attack multiple times</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#observe-the-result">Observe the result</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#observe-the-result-in-the-logic-analyzer-optional">Observe the result in the logic analyzer (optional)</a>
+    </li>
+    </ul>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../doors2/">Open Sesame on the Highway</a>
                 </li>
@@ -155,7 +175,8 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
           <li class="breadcrumb-item">evilDoggie lab</li>
-      <li class="breadcrumb-item active">Get Started</li>
+          <li class="breadcrumb-item">Challenges</li>
+      <li class="breadcrumb-item active">Cruise-Control Confusion</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -164,83 +185,99 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="get-started">Get started</h1>
-<p>This workshop has several challenges of increasing difficulty. For the first two you have to use Doggie and for the rest evilDoggie. The last challenge requires the <a href="/software/evil_doggie/force">"Force"</a> feature and can only be solved using Faraday's board (<a href="/hardware/force">Force hardware implementation</a>).</p>
-<p>If you are using a custom board you'll have to flash the corresponding firmware for each challenge. Please check the specific section depending on your choice of microcontroller: <a href="/hardware/diy/esp32/">ESP32</a>, <a href="/hardware/diy/rp/">RP2040</a>, or <a href="/hardware/diy/bluepill/">STM32F1</a>.</p>
-<p>On the other hand, Faraday's board has the capability of booting two different firmwares. It should be already flashed, but if you need to re-flash it or update the firmwares, please refer to <a href="/hardware/faraday/">this section</a>. The switch labeled with <strong>"GOOD"</strong> and <strong>"EVIL"</strong> is used to select the mode in which the board will boot. GOOD for Doggie and EVIL for evilDoggie. Note that you will need to reboot the board after switching modes if it is already powered.</p>
-<figure align="center">
-    <img src="../../res/faraday_board.png" alt="Faraday Board">
-</figure>
-
-<p>Before doing this workshop you should follow the corresponding sections for getting started with <a href="/software/doggie/get_started/">Doggie</a> and <a href="/software/evil_doggie/get_started/">evilDoggie</a></p>
-<h2 id="how-does-this-workshop-work">How does this workshop work?</h2>
-<p>In this workshop, you’ll face CAN Bus challenges that recreate the essence of real-world scenarios. The challenges are implemented in a simulator we built to keep things practical, fun, and focused on CAN protocol security rather than complex car engineering.</p>
-<p>The simulator presents a simple fictional car with only one CAN Bus. While it’s far from a real car’s complexity, it was carefully designed to help you learn how attacks work on real automotive networks.</p>
-<p>The simulator emulates 7 ECUs (Electronic Control Units), each with its role, all communicating on the same CAN Bus:</p>
-<table>
-<thead>
-<tr>
-<th>ECU</th>
-<th>Function</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Central ECU</td>
-<td>Controls engine logic, status reporting, airbag liveness check, and other global functions.</td>
-</tr>
-<tr>
-<td>Instrument Cluster ECU</td>
-<td>Main user interface: displays car state and includes buttons to lock/unlock doors, start the engine, etc.</td>
-</tr>
-<tr>
-<td>Cruise Control ECU</td>
-<td>Manages speed setting, communicating with the Central ECU in a control loop.</td>
-</tr>
-<tr>
-<td>Doors ECU</td>
-<td>Locks/unlocks doors, and reports door status back to the Instrument Cluster ECU.</td>
-</tr>
-<tr>
-<td>ABS ECU</td>
-<td>Sends a liveness message when the ABS is working.</td>
-</tr>
-<tr>
-<td>Immo ECU</td>
-<td>Checks if the car can start the engine (e.g., simulates key inserted state).</td>
-</tr>
-<tr>
-<td>VIN ECU</td>
-<td>Speaks ISO-TP to provide the car’s VIN number, like a real OBD2 port.</td>
-</tr>
-</tbody>
-</table>
-<p>As an attacker, you will connect Doggie or EvilDoggie to the bus to complete the challenges:</p>
-<figure align="center">
-    <img src="../../res/workshop_bus.png" alt="Workshop CAN bus">
-</figure>
-
-<p>As the attacks covered by evilDoggie target physical bus characteristics, there needs to be a real CAN bus where an attacker can connect. The original setup uses two Doggies to expose the CAN messages sent by all the simulated ECUs:</p>
+                <h1 id="cruise-control-confusion">Cruise-Control Confusion</h1>
+<p>In this challenge, your goal is to confuse the Cruise Control ECU so that it applies full throttle, even when the car is already moving, by making it think the car’s speed is 0 km/h.</p>
+<p>Instead of just sniffing or sending normal messages, here you’ll need to use EvilDoggie, the offensive firmware variant of Doggie. You’ll apply a classic attack known as spoofing, where the attacker quickly injects fake messages to override real data on the bus.</p>
+<h2 id="hints">Hints</h2>
+<h3 id="how-does-the-cruise-control-system-work">How does the Cruise Control system work?</h3>
+<p>The Cruise-Control ECU (CC ECU) has its UI to let the driver enable, disable, or change the desired speed. To decide how much throttle to apply, the CC ECU needs to know the current car speed.</p>
+<p>The Central ECU sends this info periodically using a <em>SpeedStatusMessage</em>:</p>
 <ul>
-<li>
-<p>TX Doggie: Sends all simulator-generated CAN traffic onto the real bus</p>
-</li>
-<li>
-<p>RX Doggie: Receives those messages back into the simulator</p>
+<li>CAN ID: 0x100</li>
+<li>Data: [0x2, HIGH_DATA, LOW_DATA]<ul>
+<li>0x2 → type of the message</li>
+<li>HIGH_DATA and LOW_DATA → the actual speed (as a 16-bit value)</li>
+</ul>
 </li>
 </ul>
-<p>But you can also use any pair of can-utils compatible CAN adapters. This setup ensures that every ECU-to-ECU message travels on the physical CAN Bus without using a Doggie for each ECU! And then, as an attacker, you can connect your own evilDoggie and make an online attack, just like on a real car.</p>
+<p>The CC ECU uses this speed info and sends back a <em>CruiseControlMessage</em>:</p>
+<ul>
+<li>CAN ID: 0x104</li>
+<li>Data:<ul>
+<li>One byte with 0 if CC is disabled, otherwise enabled.</li>
+<li>A single byte (0–100) representing the throttle the CC wants to apply</li>
+</ul>
+</li>
+</ul>
+<p>The Central ECU reads this and adjusts the engine throttle to keep the car at the desired speed.</p>
+<h3 id="attack-idea">Attack idea</h3>
+<p>If we can fool the CC ECU into thinking the speed is lower than it is (ideally, 0 km/h), it will try to accelerate to reach the desired speed:</p>
+<ul>
+<li>The car is already moving (speed &gt; 0)</li>
+<li>CC ECU sees (wrongly) that speed = 0</li>
+<li>CC ECU sends a full-throttle CruiseControlMessage to the Central ECU</li>
+</ul>
+<p><strong>Why spoofing works?</strong></p>
+<p>The CC ECU processes the speed message in two steps:</p>
+<ul>
+<li>Receives the SpeedStatusMessage</li>
+<li>Reads and processes the most recent speed value</li>
+</ul>
+<p>If we:</p>
+<ul>
+<li>Wait for the real SpeedStatusMessage from the Central ECU</li>
+<li>Immediately send our own fake SpeedStatusMessage with speed = 0</li>
+</ul>
+<p>...then the CC ECU might read our spoofed value instead of the real one.</p>
+<p><strong>How does evilDoggie help?</strong></p>
+<p>EvilDoggie provides a special <strong>spoofing_attack</strong> command that waits for a message that matches specific conditions and quickly sends a fake message with the same ID to override it</p>
 <figure align="center">
-    <img src="../../res/workshop_bus_physical.png" alt="Workshop CAN bus physical implementation">
+    <img src="../../res/workshop_cruisecontrol_msgs.png" alt="Cruise-Control CAN messages">
 </figure>
 
-<p>For more instruction on how to setup and launch the workshop, please refer to <a href="https://github.com/infobyte/doggie_workshop">this repo</a></p>
+<h2 id="solution">Solution</h2>
+<h3 id="use-evil-mode">Use Evil mode</h3>
+<p>If you are using Faraday's board, set the switch to EVIL, reset the board or connect to it, and follow the Get Started for Evil Mode. If you are using a custom board, flash evilDoggie firmware.</p>
+<h3 id="configure-the-spoofing-attack">Configure the spoofing attack</h3>
+<p>We want to spoof:</p>
+<ul>
+<li>Message ID: 0x100 (<em>SpeedStatusMessage</em>)</li>
+<li>Only when the first byte (0x2) matches (this filters out other messages on the same ID)</li>
+<li>Send a fake message with speed = 0 (0x2, 0x0, 0x0)</li>
+</ul>
+<p>So, in the EvilDoggie terminal send:</p>
+<p><code>&gt; spoofing_attack 0x100 0x2,0x0,0x0 0x2</code></p>
+<ul>
+<li><em>0x100</em>: CAN ID</li>
+<li><em>0x2,0x0,0x0</em>: data to spoof</li>
+<li><em>0x2</em>: only trigger spoof when the first byte is 0x2</li>
+</ul>
+<h3 id="run-the-attack-multiple-times">Run the attack multiple times</h3>
+<p>We want to confuse the CC ECU repeatedly, so run:</p>
+<p><code>&gt; attack 20</code></p>
+<p>This means EvilDoggie will run the spoofing attack 20 times consecutively.</p>
+<h2 id="observe-the-result">Observe the result</h2>
+<p>While the attack is running:</p>
+<ul>
+<li>On the simulator UI, the Instrument Cluster will temporarily show a speed of 0 km/h</li>
+<li>The CC ECU, seeing 0 km/h and a desired speed &gt; 0, will send a full throttle request (0x104 message with data = 01 64). We will see the throttle at 100% but the speed gauge at 0 km/h.</li>
+<li>After the attack ends, the actual speed shoots up as we stop spoofing, and the throttle goes to 0% as the CC ECU now knows the actual speed.</li>
+</ul>
+<p>Congratulations! You’ve successfully used EvilDoggie’s spoofing attack to manipulate real-time CAN Bus traffic, fooling an ECU into making the car go full throttle.</p>
+<h2 id="observe-the-result-in-the-logic-analyzer-optional">Observe the result in the logic analyzer (optional)</h2>
+<p>Connect you logic analyzer to evilDoggie's CAN Tx and Rx pins (E TX and E RX), and to the Tx pins of the other two interfaces (G0 TX and G1  TX).</p>
+<p>You should observe one interface sending the real speed message and the other interface sending the ACK. The evilDoggie sees both the original message and the ACK, and right after sends the spoofed message, which is ACK’ed by the interfaces as shown below:</p>
+<figure align="center">
+    <img src="../../res/workshop_cruisecontrol_la.png" alt="Cruise-Control attack">
+</figure>
+
+<p>For information about CAN protocol and CAN message structure, you can check the Appendix at the end of this guide.</p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../intro/" class="btn btn-neutral float-left" title="Introduction"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../vin/" class="btn btn-neutral float-right" title="Getting the VIN Number">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../doors/" class="btn btn-neutral float-left" title="Open Sesame"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../doors2/" class="btn btn-neutral float-right" title="Open Sesame on the Highway">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -263,10 +300,10 @@
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../intro/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../doors/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../vin/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../doors2/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

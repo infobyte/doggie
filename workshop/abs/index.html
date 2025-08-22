@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Get Started - evilDoggie</title>
+    <title>ABS Disconection - evilDoggie</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -13,8 +13,8 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Get Started";
-        var mkdocs_page_input_path = "workshop/get_started.md";
+        var mkdocs_page_name = "ABS Disconection";
+        var mkdocs_page_input_path = "workshop/abs.md";
         var mkdocs_page_url = null;
       </script>
     
@@ -113,14 +113,10 @@
               <ul class="current">
                   <li class="toctree-l1"><a class="reference internal" href="../intro/">Introduction</a>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Get Started</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#how-does-this-workshop-work">How does this workshop work?</a>
-    </li>
-    </ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../get_started/">Get Started</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" >Challenges</a>
-    <ul>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Challenges</a>
+    <ul class="current">
                 <li class="toctree-l2"><a class="reference internal" href="../vin/">Getting the VIN Number</a>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../doors/">Open Sesame</a>
@@ -131,7 +127,21 @@
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../airbag/">Airbag Toggle Inversion</a>
                 </li>
-                <li class="toctree-l2"><a class="reference internal" href="../abs/">ABS Disconection</a>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">ABS Disconection</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#hints">Hints</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#why-does-the-bus-off-attack-work">Why does the Bus Off Attack work?</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#solution">Solution</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#observe-the-result-in-the-logic-analyzer-optional">Observe the result in the logic analyzer (optional)</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../key/">Starting the Car without the Key</a>
                 </li>
@@ -155,7 +165,8 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
           <li class="breadcrumb-item">evilDoggie lab</li>
-      <li class="breadcrumb-item active">Get Started</li>
+          <li class="breadcrumb-item">Challenges</li>
+      <li class="breadcrumb-item active">ABS Disconection</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -164,83 +175,73 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="get-started">Get started</h1>
-<p>This workshop has several challenges of increasing difficulty. For the first two you have to use Doggie and for the rest evilDoggie. The last challenge requires the <a href="/software/evil_doggie/force">"Force"</a> feature and can only be solved using Faraday's board (<a href="/hardware/force">Force hardware implementation</a>).</p>
-<p>If you are using a custom board you'll have to flash the corresponding firmware for each challenge. Please check the specific section depending on your choice of microcontroller: <a href="/hardware/diy/esp32/">ESP32</a>, <a href="/hardware/diy/rp/">RP2040</a>, or <a href="/hardware/diy/bluepill/">STM32F1</a>.</p>
-<p>On the other hand, Faraday's board has the capability of booting two different firmwares. It should be already flashed, but if you need to re-flash it or update the firmwares, please refer to <a href="/hardware/faraday/">this section</a>. The switch labeled with <strong>"GOOD"</strong> and <strong>"EVIL"</strong> is used to select the mode in which the board will boot. GOOD for Doggie and EVIL for evilDoggie. Note that you will need to reboot the board after switching modes if it is already powered.</p>
-<figure align="center">
-    <img src="../../res/faraday_board.png" alt="Faraday Board">
-</figure>
-
-<p>Before doing this workshop you should follow the corresponding sections for getting started with <a href="/software/doggie/get_started/">Doggie</a> and <a href="/software/evil_doggie/get_started/">evilDoggie</a></p>
-<h2 id="how-does-this-workshop-work">How does this workshop work?</h2>
-<p>In this workshop, you’ll face CAN Bus challenges that recreate the essence of real-world scenarios. The challenges are implemented in a simulator we built to keep things practical, fun, and focused on CAN protocol security rather than complex car engineering.</p>
-<p>The simulator presents a simple fictional car with only one CAN Bus. While it’s far from a real car’s complexity, it was carefully designed to help you learn how attacks work on real automotive networks.</p>
-<p>The simulator emulates 7 ECUs (Electronic Control Units), each with its role, all communicating on the same CAN Bus:</p>
-<table>
-<thead>
-<tr>
-<th>ECU</th>
-<th>Function</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Central ECU</td>
-<td>Controls engine logic, status reporting, airbag liveness check, and other global functions.</td>
-</tr>
-<tr>
-<td>Instrument Cluster ECU</td>
-<td>Main user interface: displays car state and includes buttons to lock/unlock doors, start the engine, etc.</td>
-</tr>
-<tr>
-<td>Cruise Control ECU</td>
-<td>Manages speed setting, communicating with the Central ECU in a control loop.</td>
-</tr>
-<tr>
-<td>Doors ECU</td>
-<td>Locks/unlocks doors, and reports door status back to the Instrument Cluster ECU.</td>
-</tr>
-<tr>
-<td>ABS ECU</td>
-<td>Sends a liveness message when the ABS is working.</td>
-</tr>
-<tr>
-<td>Immo ECU</td>
-<td>Checks if the car can start the engine (e.g., simulates key inserted state).</td>
-</tr>
-<tr>
-<td>VIN ECU</td>
-<td>Speaks ISO-TP to provide the car’s VIN number, like a real OBD2 port.</td>
-</tr>
-</tbody>
-</table>
-<p>As an attacker, you will connect Doggie or EvilDoggie to the bus to complete the challenges:</p>
-<figure align="center">
-    <img src="../../res/workshop_bus.png" alt="Workshop CAN bus">
-</figure>
-
-<p>As the attacks covered by evilDoggie target physical bus characteristics, there needs to be a real CAN bus where an attacker can connect. The original setup uses two Doggies to expose the CAN messages sent by all the simulated ECUs:</p>
+                <h1 id="abs-disconnection">ABS Disconnection</h1>
+<p>In this challenge, your goal is to disable the car’s ABS by attacking the ABS ECU. Instead of just spoofing or injecting new messages, you will force the ABS ECU into a fault state so it stops communicating. This will cause the Central ECU to think the ABS has failed, and as a result, the ABS will be deactivated, and the dashboard will show the ABS warning light.</p>
+<h2 id="hints">Hints</h2>
+<p>Let’s look how the ABS works in the simulator and what makes it vulnerable. Three ECUs participate in the ABS logic:</p>
 <ul>
-<li>
-<p>TX Doggie: Sends all simulator-generated CAN traffic onto the real bus</p>
+<li>The ABS ECU periodically sends an <em>AbsMessage</em>:<ul>
+<li>CAN ID: 0x105</li>
+<li>No data</li>
+<li>Sent twice per second</li>
+<li>This message is a liveness heartbeat to prove the ABS is active.</li>
+</ul>
 </li>
-<li>
-<p>RX Doggie: Receives those messages back into the simulator</p>
+<li>The Central ECU monitors these liveness messages:<ul>
+<li>If it doesn’t receive them within a timeout, it disables the ABS.</li>
+<li>It then informs the Instrument Cluster of the new ABS status.</li>
+<li>Sends an <em>AbsStateMessage</em>:<ul>
+<li>CAN ID: 0x100</li>
+<li>First byte: 0x4 (indicates it’s an ABS status message)</li>
+<li>Second byte: 0 if ABS is disabled; non-zero if enabled</li>
+</ul>
 </li>
 </ul>
-<p>But you can also use any pair of can-utils compatible CAN adapters. This setup ensures that every ECU-to-ECU message travels on the physical CAN Bus without using a Doggie for each ECU! And then, as an attacker, you can connect your own evilDoggie and make an online attack, just like on a real car.</p>
+</li>
+<li>The Instrument Cluster reads this message and lights the ABS warning lamp if needed.</li>
+</ul>
+<p>The security weakness here is that the system depends entirely on these periodic heartbeat messages to know if the ABS is present and active. If the ABS ECU stops sending them, even temporarily, the Central ECU concludes the ABS is broken and disables it.</p>
+<p>This creates an opportunity for an attacker: if we can prevent the ABS ECU’s messages from reaching the bus, either by delaying them or forcing the ECU into a bus off state, the system will disable ABS, putting the car into an unsafe state.</p>
+<h3 id="why-does-the-bus-off-attack-work">Why does the Bus Off Attack work?</h3>
+<p>The CAN protocol has built-in error detection and fault handling. When an ECU sends messages that keep failing to be acknowledged or keeps detecting errors, its transceiver’s error counters increase. After several consecutive errors, the ECU transitions into a bus off state, where it stops transmitting until it recovers.</p>
+<p>The Bus Off Attack exploits this by injecting error frames at exactly the right moment in the CAN frame, right before the sender believes the message was correctly sent. This results in:</p>
+<ul>
+<li>The ABS ECU thinking its messages are being rejected or corrupted.</li>
+<li>In consequence, the ABS ECU either delays sending new messages (retrying) or fully stops after entering bus off.</li>
+<li>Meanwhile, the Central ECU detects the missing heartbeat and disables the ABS.</li>
+</ul>
+<p>The Bus Off Attack’s timing is similar to the Double Receive Attack, but here we deliberately corrupt the message so the receiver doesn’t get it either. We effectively silence the target ECU for a while.</p>
+<h2 id="solution">Solution</h2>
+<p>Here’s how to do this attack using EvilDoggie. First, open EvilDoggie and enter the following command to configure the Bus Off Attack:</p>
+<p><code>&gt; bus_off_attack 0x105 50</code></p>
+<ul>
+<li><strong>0x105</strong> is the CAN ID of the AbsMessage sent periodically by the ABS ECU</li>
+<li><strong>50</strong> means send 50 consecutive error frames. This is usually enough to push the ECU into bus off or cause a significant delay.</li>
+</ul>
+<p>Next, launch the attack with:</p>
+<p><code>&gt; attack 5</code></p>
+<p>Here, 5 means the attack should succeed five times (delaying or breaking five consecutive messages). This increases the chance that the Central ECU’s heartbeat check will fail.</p>
+<p>During the attack, watch the dashboard:</p>
+<ul>
+<li>The ABS warning light on the Instrument Cluster will turn on.</li>
+<li>Internally, the Central ECU has disabled the ABS, believing the ABS ECU is disconnected or failed.</li>
+</ul>
+<p>If the attack is successful, the ABS ECU either enters bus off (stopping its messages entirely) or the messages are delayed long enough to break the heartbeat.</p>
+<p>This demonstrates how a physical-layer CAN attack can have real safety consequences, even without needing to spoof or know message data, by simply forcing an ECU offline.</p>
+<h3 id="observe-the-result-in-the-logic-analyzer-optional">Observe the result in the logic analyzer (optional)</h3>
+<p>Connect you logic analyzer to evilDoggie's CAN Tx and Rx pins (E TX and E RX), and to the Tx pins of the other two interfaces (G0 TX and G1  TX).</p>
+<p>You should the EvilDoggie injecting errors after the each ABS heartbeat message causing the ABS ECU to go silent for a period of time:</p>
 <figure align="center">
-    <img src="../../res/workshop_bus_physical.png" alt="Workshop CAN bus physical implementation">
+    <img src="../../res/workshop_abs_la.png" alt="ABS Disconnect attack">
 </figure>
 
-<p>For more instruction on how to setup and launch the workshop, please refer to <a href="https://github.com/infobyte/doggie_workshop">this repo</a></p>
+<p>For information about CAN protocol and CAN message structure, you can check the Appendix at the end of this guide.</p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../intro/" class="btn btn-neutral float-left" title="Introduction"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../vin/" class="btn btn-neutral float-right" title="Getting the VIN Number">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../airbag/" class="btn btn-neutral float-left" title="Airbag Toggle Inversion"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../key/" class="btn btn-neutral float-right" title="Starting the Car without the Key">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -263,10 +264,10 @@
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../intro/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../airbag/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../vin/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../key/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

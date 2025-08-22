@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../css/theme.css" />
     <link rel="stylesheet" href="../../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../../styles/fix_width.css" rel="stylesheet" />
     
       <script>
         // Current page data
@@ -59,6 +60,14 @@
     <ul class="current">
                 <li class="toctree-l2 current"><a class="reference internal current" href="#">Introduction</a>
     <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#key-features">Key features</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#force-feature">Force Feature</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#custom-attack-feature">Custom Attack Feature</a>
+    </li>
+        </ul>
+    </li>
     </ul>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../get_started/">Get Started</a>
@@ -116,7 +125,23 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../../workshop/get_started/">Get Started</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../../workshop/challenges/">Challenges</a>
+                  <li class="toctree-l1"><a class="reference internal" >Challenges</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../workshop/vin/">Getting the VIN Number</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../workshop/doors/">Open Sesame</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../workshop/cruisecontrol/">Cruise-Control Confusion</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../workshop/doors2/">Open Sesame on the Highway</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../workshop/airbag/">Airbag Toggle Inversion</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../workshop/abs/">ABS Disconection</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../workshop/key/">Starting the Car without the Key</a>
+                </li>
+    </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../../workshop/can_protocol/">CAN Protocol</a>
                   </li>
@@ -156,6 +181,11 @@
 <li>Custom attack scripting for targeted vulnerabilities.</li>
 </ul>
 <p>These features make evilDoggie a powerful tool for deeper research into how CAN networks can be broken and secured.</p>
+<h2 id="key-features">Key features</h2>
+<h3 id="force-feature">Force Feature</h3>
+<p>The Force feature is a physical-layer override mechanism that allows evilDoggie to assert dominant bits on the CAN Bus, bypassing standard arbitration and enabling attacks such as bus takeover or message alteration. By forcing recessive bits (logic 1) to dominant (logic 0), it ensures the attacker's frame prevails, even against higher-priority messages. For more details, refer to <a href="../force/">force (software)</a> and <a href="../../../hardware/force.md">force (hardware)</a> section</p>
+<h3 id="custom-attack-feature">Custom Attack Feature</h3>
+<p>The custom attack feature provides a modular framework for chaining low-level primitives (e.g., bit injection, error frames, and delays) to craft bespoke attacks with bit-level precision. This enables researchers to experiment, prototype, and deploy novel exploits tailored to specific vulnerabilities in CAN networks. evilDoggie facilitates in-depth research and the creation of new attacks. Since all attacks are performed via bitbanging—directly manipulating the signal timing without relying on a dedicated CAN controller—they can theoretically be ported to any compromised microcontroller in a vehicle ECU, provided it has access to the TX and RX pins on the CAN Bus. This makes the techniques adaptable for real-world red teaming in automotive environments.</p>
 <p>⚠ Important: evilDoggie is for research and training purposes only. Use it responsibly!</p>
 <p>Project repository: <a href="https://github.com/infobyte/doggie">https://github.com/infobyte/doggie</a></p>
               
