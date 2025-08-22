@@ -72,4 +72,33 @@ We can see that **G0** sends the message, **E** injects an error frame in time a
 
 ## Implementation
 
-**TODO**: High level commands that compose the attack
+Like all the attacks, the Double Receive Attack is built on top of attack primitives, but the primitives may change depending on the attack arguments used.
+Let's see the primitives involved in the example:
+
+1. First it disables the bit stuffing and waits (this is used as warmup):  
+    * SetBitStuffing { state: false }
+    * Wait { bits: 8 }
+    * SetBitStuffing { state: true }
+    * WaitBusFree { ... }
+2. After the warmup, it will wait for a Start Of Frame
+    * WaitForSof
+3. It skips the SoF bit
+    * Wait { bits: 1 }
+4. Then, match all the bits from the ID until the DLC (not included). It will abort if doesn't match.
+    * Match { stream: FastBitQueue { value: 0b10000001000000, len: 14, ... } }
+5. Now, it will read the DLC
+    * Read { len: 4 }
+6. Matches the only byte of data that we give as argument. It will abort if doesn't match.
+    * Match { stream: FastBitQueue { value: 0x02 , len: 8, ... } }
+7. Calculates how much bits has left in the DATA field and wait that amount of bits.
+    * SubBuffered { sub: 1 }
+    * MulBuffered { mult: 8 }
+    * WaitBuffered
+8. Skipes the CRC and ACK fields
+    * Wait { bits: 15 }
+9. It will now wait until the desired bit to change
+    * SetBitStuffing { state: false }
+    * Wait { bits: 9 }
+10. Sends the desired amount of error frames
+    * Send { stream: FastBitQueue { value: 0b11111111000000, len: 14, ... } }
+    * SetBitStuffing { state: true }

@@ -64,6 +64,7 @@ For example, if we want to attack the messages with ID `0x105` we will do the fo
 
 ```
 > bus_off_attack 0x105 50
+> attack
 ```
 
 And this will make a Bus Off Attack to a message with that id and inserting 50 error frames.
@@ -85,4 +86,43 @@ We can see that **G0** sends the message, **E** attacks.
 
 ## Implementation
 
-**TODO**: High level commands that compose the attack
+Like all the attacks, the Bus Off Attack is built on top of attack primitives, but the primitives may change depending on the attack arguments used.
+Let's see the primitives involved in the example:
+
+
+1. First we do the warm up to avoid delays in other bits
+    * SetBitStuffing { state: false }
+    * Wait { bits: 8 }
+    * SetBitStuffing { state: true }
+    * WaitBusFree { ... }
+2. After the warmup, it will wait for a Start Of Frame
+    * WaitForSof"
+3. It skips the SoF bit
+    * Wait { bits: 1 }
+4. Then, match all the bits from the ID until the DLC (not included). It will abort if doesn't match.
+    * Match { stream: FastBitQueue { value: 0b10000010100000, len: 14, ... } }
+5. Now, it will read the DLC
+    * Read { len: 4 }
+7. Calculates how much bits has left in the DATA field and wait that amount of bits.
+    * MulBuffered { mult: 8 }
+    * WaitBuffered
+8. Skipes the CRC and ACK fields
+    * Wait { bits: 15 }
+9. It will now wait until the desired bit to change
+    * SetBitStuffing { state: false }
+    * Wait { bits: 8 }
+10. Sends the desired amount of error frames
+    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
+    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
+    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
+    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
+    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
+    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
+    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
+    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
+    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
+    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
+    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
+    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
+    * Send { stream: FastBitQueue { value: 0b1111111100000011111111000000, len: 28, ... } }
+    * SetBitStuffing { state: true }
