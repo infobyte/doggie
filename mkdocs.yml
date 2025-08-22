@@ -30,7 +30,9 @@ nav:
   - evilDoggie lab:
       - Introduction: workshop/intro.md
       - Get Started: workshop/get_started.md
-      - Challenges: workshop/challenges.md
+      - Challenges:
+          - Getting the VIN Number: workshop/vin.md
+          - Open Sesame: workshop/doors.md
       - CAN Protocol: workshop/can_protocol.md
 
 theme:
