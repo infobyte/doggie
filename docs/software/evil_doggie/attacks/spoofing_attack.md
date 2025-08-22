@@ -33,6 +33,11 @@ PARAMETERS:
 
   --extended
     Use if the target ID is an extended 29‑bit ID. Defaults to standard 11‑bit IDs. 
+
+DESCRIPTION:
+Push to the plan a spoofing attack to injecting a forged message on the bus immediately after seeing a specific real message.
+
+This works by monitoring the bus in real‑time and, when a matching message is detected (using <id> and optional <match_data>), EvilDoggie quickly sends your crafted <spoofed_data> message.
 ```
 
 ## How It Works
@@ -65,3 +70,8 @@ Here, we have 3 devices involved, and the channels are:
 * **G1 TX**: Doggie 1 TX
 
 We can see that **G0** sends the message, and just after the End of Frame, **E** sends the new message.
+
+
+## Implementation
+
+**TODO**: High level commands that compose the attack

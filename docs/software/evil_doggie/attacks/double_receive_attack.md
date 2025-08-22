@@ -13,6 +13,63 @@ The `double_receive_attack` exploits CAN error handling by injecting timed error
 3. Check the plan with `list`, then execute with `attack` (e.g., `attack 1` for one attempt).
 4. See `help double_receive_attack` for parameter specifics.
 
+## Help
+
+```
+> help double_receive_attack
+
+SUMMARY:
+  double_receive_attack <id> <errors> [ <match_data> ] [ --extended ]
+
+PARAMETERS:
+  <id>
+    CAN ID to match, in hex (e.g., 0x123, 0x12345678).
+
+  <errors>
+    Number of consecutive error frames to inject.
+
+  <match_data>
+    Match only after seeing a real message on the bus with the same ID and whose first data bytes match these comma‑separated hex values. Useful to target specific messages when multiple messages share the same ID.
+
+  --extended
+    Use if the target ID is an extended 29‑bit ID. Defaults to standard 11‑bit IDs.
+
+
+
+DESCRIPTION:
+Configure a double receive attack that injects error frames with precise timing to cause the sender to retransmit a frame while the receiver still accepts the first one.
+
+This results in the receiver processing the same message twice, which can confuse state machines or logic relying on single delivery.
+```
+
 ## How it works
 
-`TODO`
+This technique takes advantage of the fact that the sender and receiver rely on slightly different points of the CAN frame to confirm that the message was successfully sent. After the 6th bit of the EOF field in the CAN frame, the receiver already thinks the frame is valid and accepts it, but the sender waits until after the 7th bit to confirm transmission.
+
+If you inject an error frame at exactly the right moment, the receiver will have already accepted the message, but the sender will think there was an error and resend it. The effect is that the receiver sees the same message twice, while the sender believes it has only sent it once.
+
+![Double Receive Timin](../../../res/double_receive_attack_timing.png)
+
+For example, if we want to attack a message with id `0x102` and the first byte with `0x2` inserting only one error, we use the following command:
+
+```
+> double_receive_attack 0x102 1 0x2
+> attack
+```
+
+If we see that in the logic analyzer we will see the following:
+
+![Double Receive Logic Analyzer](../../../res/double_receive_attack_la.png)
+
+Here, we have 3 devices involved, and the channels are:
+
+* **E TX**: evilDoggie TX
+* **E RX**: evilDoggie RX
+* **G0 TX**: Doggie 0 TX 
+* **G1 TX**: Doggie 1 TX
+
+We can see that **G0** sends the message, **E** injects an error frame in time and **G0** sends the message again. Notice that **G1** ACKs both messages.
+
+## Implementation
+
+**TODO**: High level commands that compose the attack
