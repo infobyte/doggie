@@ -33,6 +33,7 @@ nav:
       - Challenges:
           - Getting the VIN Number: workshop/vin.md
           - Open Sesame: workshop/doors.md
+          - Cruise-Control Confusion: workshop/cruisecontrol.md
       - CAN Protocol: workshop/can_protocol.md
 
 theme:
