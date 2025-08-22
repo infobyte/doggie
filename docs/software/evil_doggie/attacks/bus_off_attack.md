@@ -112,17 +112,5 @@ Let's see the primitives involved in the example:
     * SetBitStuffing { state: false }
     * Wait { bits: 8 }
 10. Sends the desired amount of error frames
-    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
-    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
-    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
-    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
-    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
-    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
-    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
-    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
-    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
-    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
-    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
-    * Send { stream: FastBitQueue { value: 0b1111111100000000000000000000000000000000001111111100, len: 56, ... } }
-    * Send { stream: FastBitQueue { value: 0b1111111100000011111111000000, len: 28, ... } }
+    * Send { stream: FastBitQueue { value: 0b11111111000000111111110000001111111100000011111111000000, len: 56, ... } }
     * SetBitStuffing { state: true }
