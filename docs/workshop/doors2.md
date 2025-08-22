@@ -91,3 +91,5 @@ And a successful one looks like this:
 <figure align="center">
     <img src="../../res/workshop_doors2_la2.png" alt="Successful attack">
 </figure>
+
+For information about CAN protocol and CAN message structure, you can check the Appendix at the end of this guide.

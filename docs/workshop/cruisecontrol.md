@@ -100,3 +100,5 @@ You should observe one interface sending the real speed message and the other in
 <figure align="center">
     <img src="../../res/workshop_cruisecontrol_la.png" alt="Cruise-Control attack">
 </figure>
+
+For information about CAN protocol and CAN message structure, you can check the Appendix at the end of this guide.
