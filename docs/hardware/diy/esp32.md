@@ -13,9 +13,9 @@ The ESP32 implementation supports the following configurations.
 As the ESP32 doesn't have 5v tolerant GPIOs, we should modify the MCP2515 or use a logic level shifter in order to make it compatible. Read [MCP2515 module compatibility note](mcp.md) for more information.
 
 1. **USB, UART0 or BLE, and MCP2515 (SPI to CAN)**
-   - The **USB** port, the **UART0** port and the BLE of the ESP32 can be used for communication with the host system.
-   - The **MCP2515** (SPI to CAN) module is used for CAN Bus communication.
-   - This configuration allows the device to interface with a CAN network while communicating with the host via USB or BLE.
+    - The **USB** port, the **UART0** port and the BLE of the ESP32 can be used for communication with the host system.
+    - The **MCP2515** (SPI to CAN) module is used for CAN Bus communication.
+    - This configuration allows the device to interface with a CAN network while communicating with the host via USB or BLE.
 
     __Connections__ (MCP2515 mod):
     
@@ -46,9 +46,9 @@ As the ESP32 doesn't have 5v tolerant GPIOs, we should modify the MCP2515 or use
 
 
 2. **USB, UART0 or BLE, and TWAI (Internal controller)**
-   - The **USB** port, the **UART0** port and the BLE of the ESP32 can be used for communication with the host system.
-   - The TWAI controller is used for CAN Bus communication.
-   - This configuration allows the device to interface with a CAN network using only a transceiver while communicating with the host via USB or BLE.
+    - The **USB** port, the **UART0** port and the BLE of the ESP32 can be used for communication with the host system.
+    - The TWAI controller is used for CAN Bus communication.
+    - This configuration allows the device to interface with a CAN network using only a transceiver while communicating with the host via USB or BLE.
 
     ![alt text](../../res/esp32_twai.png)
 

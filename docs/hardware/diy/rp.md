@@ -13,9 +13,9 @@ The Raspberry Pico implementation supports the following configurations.
 As the RP2040 doesn't have 5v tolerant GPIOs, we shoud modify the MCP2515 or use a logic level shifter in order to make it compatible. Read [MCP2515 module compatibility note](mcp.md) for more information.
 
 1. **USB and MCP2515 (SPI to CAN)**  
-   - The **USB** port of the Pico is used for communication with the host system.  
-   - The **MCP2515** (SPI to CAN) module is used for CAN Bus communication.  
-   - This configuration allows the device to interface with a CAN network while communicating with the host via USB.
+    - The **USB** port of the Pico is used for communication with the host system.  
+    - The **MCP2515** (SPI to CAN) module is used for CAN Bus communication.  
+    - This configuration allows the device to interface with a CAN network while communicating with the host via USB.
 
     __Connections__ (MCP2515 mod):  
     
@@ -45,9 +45,9 @@ As the RP2040 doesn't have 5v tolerant GPIOs, we shoud modify the MCP2515 or use
     ![alt text](../../res/pico_mcp_ls.png)
 
 2. **UART and MCP2515 (SPI to CAN)**  
-   - The **UART** port of the Pico is used to communicate with the host system.  
-   - The **MCP2515** (SPI to CAN) module is used for CAN Bus communication.  
-   - This configuration is useful when the USB port is unavailable or when using a serial connection instead of USB.
+    - The **UART** port of the Pico is used to communicate with the host system.  
+    - The **MCP2515** (SPI to CAN) module is used for CAN Bus communication.  
+    - This configuration is useful when the USB port is unavailable or when using a serial connection instead of USB.
 
     __Connections__ (MCP2515 mod):
     

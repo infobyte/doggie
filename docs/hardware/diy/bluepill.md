@@ -12,9 +12,9 @@ This implementation provides a **CAN Bus to USB adapter** using the **STM32F103C
 The Bluepill implementation supports the following configurations:
 
 1. **USB and MCP2515 (SPI to CAN)**  
-   - The **USB** port of the Bluepill is used for communication with the host system.  
-   - The **MCP2515** (SPI to CAN) module is used for CAN Bus communication.  
-   - This configuration allows the device to interface with a CAN network while communicating with the host via USB.
+    - The **USB** port of the Bluepill is used for communication with the host system.  
+    - The **MCP2515** (SPI to CAN) module is used for CAN Bus communication.  
+    - This configuration allows the device to interface with a CAN network while communicating with the host via USB.
 
     __Connections__:  
 
@@ -30,9 +30,9 @@ The Bluepill implementation supports the following configurations:
     ![alt text](../../res/bluepill_usb_mcp.png)
 
 2. **UART and MCP2515 (SPI to CAN)**  
-   - The **UART** port of the Bluepill is used to communicate with the host system.  
-   - The **MCP2515** (SPI to CAN) module is used for CAN Bus communication.  
-   - This configuration is useful when the USB port is unavailable or when using a serial connection instead of USB.
+    - The **UART** port of the Bluepill is used to communicate with the host system.  
+    - The **MCP2515** (SPI to CAN) module is used for CAN Bus communication.  
+    - This configuration is useful when the USB port is unavailable or when using a serial connection instead of USB.
 
     __Connections__:  
 
@@ -50,9 +50,9 @@ The Bluepill implementation supports the following configurations:
     ![alt text](../../res/bluepill_uart_mcp.png)
 
 3. **UART and Internal CAN Controller**  
-   - The **UART** port of the Bluepill is used to communicate with the host system.  
-   - The internal **CAN controller** of the STM32F103C8 microcontroller is used for CAN Bus communication and one tranceiver (MCP2551 in this case).  
-   - **Note:** The Bluepill's **USB port** and **internal CAN controller** cannot be used simultaneously. If the internal CAN controller is selected, the only available communication interface with the host is **UART**.
+    - The **UART** port of the Bluepill is used to communicate with the host system.  
+    - The internal **CAN controller** of the STM32F103C8 microcontroller is used for CAN Bus communication and one tranceiver (MCP2551 in this case).  
+    - **Note:** The Bluepill's **USB port** and **internal CAN controller** cannot be used simultaneously. If the internal CAN controller is selected, the only available communication interface with the host is **UART**.
 
     __Connections__:  
 
