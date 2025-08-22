@@ -98,5 +98,5 @@ Connect you logic analyzer to evilDoggie's CAN Tx and Rx pins (E TX and E RX), a
 You should observe one interface sending the real speed message and the other interface sending the ACK. The evilDoggie sees both the original message and the ACK, and right after sends the spoofed message, which is ACK’ed by the interfaces as shown below:
 
 <figure align="center">
-    <img src="../../res/workshop_cruisecontrol_la.png" alt="Cruise-Control CAN messages">
+    <img src="../../res/workshop_cruisecontrol_la.png" alt="Cruise-Control attack">
 </figure>

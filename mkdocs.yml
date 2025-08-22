@@ -34,6 +34,7 @@ nav:
           - Getting the VIN Number: workshop/vin.md
           - Open Sesame: workshop/doors.md
           - Cruise-Control Confusion: workshop/cruisecontrol.md
+          - Open Sesame on the Highway: workshop/doors2.md
       - CAN Protocol: workshop/can_protocol.md
 
 extra_css: [styles/fix_width.css]
