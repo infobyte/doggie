@@ -17,3 +17,17 @@ Developed by Faraday Security, the project was presented at Black Hat Arsenal on
 
 For detailed introductions, see the sub-sections for [Doggie](/software/doggie/intro) and [evilDoggie](/software/evil_doggie/intro).
 
+
+## Disclaimer  
+This project is a **work in progress**, and contributions are highly encouraged! While it is functional, some features may still be under development.  
+If you encounter issues or have suggestions for improvements, please feel free to open an issue or submit a pull request.  
+
+*⚠ Doggie and EvilDoggie tools are provided for educational and research purposes only.
+By participating, you acknowledge that any testing, experimentation, or use of these tools on real vehicles or
+production systems is solely your responsibility. The authors and organizers do not accept any liability for damage,
+malfunction, legal consequences, or safety issues that may result from misuse, incorrect configuration, or applying
+these techniques outside of a controlled environment.
+Please use responsibly, and always test only on systems you own or have explicit permission to test.*
+
+## License  
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/infobyte/doggie/blob/main/LICENSE) file for details.

@@ -32,11 +32,3 @@ Each hardware configuration is detailed in its respective subdirectory under `ha
 Faraday Doggie is the official, professionally manufactured hardware version of the Doggie project, released by Faraday Security in 2025. It serves as a modular, flexible, open-source adapter that bridges a computer to a CAN Bus network via USB, with support for BLE and UART extensions.
 
 More information at [Faraday Doggie page](/hardware/faraday)
-
-## Disclaimer  
-This project is a **work in progress**, and contributions are highly encouraged! While it is functional, some features may still be under development.  
-
-If you encounter issues or have suggestions for improvements, please feel free to open an issue or submit a pull request.  
-
-### License  
-This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
