@@ -37,6 +37,7 @@ nav:
           - Open Sesame on the Highway: workshop/doors2.md
           - Airbag Toggle Inversion: workshop/airbag.md
           - ABS Disconection: workshop/abs.md
+          - Starting the Car without the Key: workshop/key.md
       - CAN Protocol: workshop/can_protocol.md
 
 extra_css: [styles/fix_width.css]
