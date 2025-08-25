@@ -20,9 +20,18 @@ nav:
       - DIY:
           - Introduction: hardware/diy/intro.md
           - Microcontrollers:
-              - ESP32: hardware/diy/esp32.md
-              - RP2040 (Raspberry Pico): hardware/diy/rp.md
-              - STM32F1 (bluepill): hardware/diy/bluepill.md
+              - ESP32:
+                    - Introduction: hardware/diy/esp32/intro.md
+                    - Doggie: hardware/diy/esp32/doggie.md
+                    - evilDoggie: hardware/diy/esp32/evil_doggie.md
+              - STM32F1:
+                    - Introduction: hardware/diy/bluepill/intro.md
+                    - Doggie: hardware/diy/bluepill/doggie.md
+                    - evilDoggie: hardware/diy/bluepill/evil_doggie.md
+              - RP2040:
+                    - Introduction: hardware/diy/rp/intro.md
+                    - Doggie: hardware/diy/rp/doggie.md
+                    - evilDoggie: hardware/diy/rp/evil_doggie.md
           - MCP2515 Notes: hardware/diy/mcp.md
       - Force: hardware/force.md
   - Notes:
