@@ -23,9 +23,21 @@ For a detailed documentation refer to the [evilDoggie on ESP32 documentation](./
 
 ## **Notes on debugging**
 
-The UART-USB or SerialJtagUsb bridge of the esp32 is usually used to flash, write logs and debugging, but as we will be using it as a serial interface for CAN Bus, we need another way to log and debug. For that we set up another UART interface that will print logs. In the "Connections Variants" table we could find the corresponding UART TX pins as **LOGS**.
+The UART-USB or SerialJtagUsb bridge of the esp32 is usually used to flash, write logs and debugging, but as we will be using it as a serial interface for CAN Bus, we need another way to log and debug. For that we set up another UART interface that will print logs. In the "Connections Variants" table we could find the corresponding UART TX pins as **LOGS**. For the ESP32 the GPIO is `D10` and for the ESP32C3 the `3`.
 
-TODO: monitor
+### How to see logs
+
+First we need to connect the UART TX GPIO to a UART-USB bridge.
+
+```
+$ ./monitor.sh { LOGs UART } { ELF FILE }
+```
+
+ Suppose the bridge has the /dev/ttyUSB0 interface and we want the logs from evilDoggie on ESP32 (xtensa), we will run the following command:
+
+```
+$ ./monitor.sh /dev/ttyUSB0 target/xtensa-esp32-none-elf/release/evil_doggie
+```
 
 
 ## **How to Flash a Release**
