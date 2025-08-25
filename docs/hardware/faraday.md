@@ -46,7 +46,7 @@ Power Source Selection:
 
 Dominant Override Circuit:
 
-- Powers force-based attacks
+- Allows to force messages and custom states
 - Custom fast-switching transistor implementation
 - Essential for advanced security testing scenarios
 - Electronically controlled via firmware commands
