@@ -49,7 +49,7 @@ A second, more hardware-oriented solution involves physically modifying the MCP2
 - **Add a Separate 5V Supply**: Solder a small wire from the TJA1050’s VCC pin to an external 5V power source, ensuring the transceiver receives the required voltage.
 - **Power the MCP2515 at 3.3V**: Connect the module’s VCC pin (now powering only the MCP2515 controller) to a 3.3V supply. This configures the MCP2515’s SPI pins to output 3.3V logic levels, making it directly compatible with 3.3V microcontrollers.
 
-![alt text](mcp_mod.jpg)
+![alt text](../../../res/mcp_mod.jpg)
 
 **Advantages**:
 - Eliminates the need for an external logic level shifter, reducing component count.
