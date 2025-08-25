@@ -27,7 +27,6 @@ nav:
               - STM32F1:
                     - Introduction: hardware/diy/bluepill/intro.md
                     - Doggie: hardware/diy/bluepill/doggie.md
-                    - evilDoggie: hardware/diy/bluepill/evil_doggie.md
               - RP2040:
                     - Introduction: hardware/diy/rp/intro.md
                     - Doggie: hardware/diy/rp/doggie.md
