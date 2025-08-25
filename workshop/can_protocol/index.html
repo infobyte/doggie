@@ -109,11 +109,11 @@
                 </li>
                 <li class="toctree-l3"><a class="reference internal" >RP2040</a>
     <ul>
-                <li class="toctree-l4"><a class="" href="../../hardware/diy/rp/intro.md">Introduction</a>
+                <li class="toctree-l4"><a class="reference internal" href="../../hardware/diy/rp/intro/">Introduction</a>
                 </li>
-                <li class="toctree-l4"><a class="" href="../../hardware/diy/rp/doggie.md">Doggie</a>
+                <li class="toctree-l4"><a class="reference internal" href="../../hardware/diy/rp/doggie/">Doggie</a>
                 </li>
-                <li class="toctree-l4"><a class="" href="../../hardware/diy/rp/evil_doggie.md">evilDoggie</a>
+                <li class="toctree-l4"><a class="reference internal" href="../../hardware/diy/rp/evil_doggie/">evilDoggie</a>
                 </li>
     </ul>
                 </li>
@@ -157,6 +157,14 @@
                   </li>
                   <li class="toctree-l1 current"><a class="reference internal current" href="#">CAN Protocol</a>
     <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#can-frame-format">CAN Frame Format</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#bitstuffing">Bitstuffing</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#the-physical-layer">The physical layer</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#conclusions">Conclusions</a>
+    </li>
     </ul>
                   </li>
               </ul>
@@ -185,7 +193,34 @@
             <div class="section" itemprop="articleBody">
               
                 <h1 id="appendix-can-protocol">Appendix: CAN Protocol</h1>
-<p>The CAN protocol is always evolving. You can build your own DIY Doggie by combining parts you already have! For more information on this, check the appendix on CAN protocol at the end of this guide. And that’s exactly why we’ll use tools like Doggie and evilDoggie to see how these protocol details can be turned into practical attacks.</p>
+<p>The Controller Area Network (CAN) was created by Bosch in the mid-1980s, first released in 1986. At that time, car manufacturers needed a communication protocol that could survive noisy environments, guarantee real-time data delivery, and keep costs low. CAN Bus solved these challenges and quickly became the de facto standard for connecting electronic control units (ECUs) inside vehicles: engine control modules, airbags, dashboards, door modules, and many others. Today, it’s still the backbone of most modern cars and also finds applications in robotics, industrial machinery, medical equipment, and even satellites.</p>
+<p>At its core, CAN is a broadcast protocol where every node connected to the bus sees every message sent. Instead of using addresses like classic networking, CAN uses IDs: each message has an identifier that also defines its priority on the bus, lower numbers mean higher priority. The protocol is fast, simple, and extremely robust. Classic CAN carries up to 8 bytes of data per message, which is enough for most automotive control signals.</p>
+<h2 id="can-frame-format">CAN Frame Format</h2>
+<p>A CAN frame is more than an ID and data. It’s built from several parts that make it reliable on noisy hardware:</p>
+<ul>
+<li><strong>Start of Frame (SOF)</strong>: Always dominant, signals the start.</li>
+<li><strong>Identifier (ID)</strong>: 11 bits (standard) or 29 bits (extended); defines the message and its priority.</li>
+<li><strong>Control</strong>: Includes the Data Length Code (DLC) that says how many bytes of data follow.</li>
+<li><strong>Data</strong>: 0–8 bytes of payload in classic CAN.</li>
+<li><strong>CRC</strong>: A cyclic redundancy check to detect errors.</li>
+<li><strong>ACK</strong>: Receivers confirm they got the message.</li>
+<li><strong>End of Frame (EOF)</strong>: Marks completion of the message.</li>
+</ul>
+<figure align="center">
+    <img src="../../res/appendix_can_frame.png" alt="CAN Frame">
+</figure>
+
+<h2 id="bitstuffing">Bitstuffing</h2>
+<p>One of the elegant features of CAN is bit stuffing. To keep all devices on the bus synchronized, the transmitter automatically inserts a bit of the opposite polarity every time it sends five identical bits in a row. The receiver knows to remove these extra bits. This mechanism ensures there are enough electrical transitions to keep everyone in sync, even if the actual data stays the same for a while.</p>
+<h2 id="the-physical-layer">The physical layer</h2>
+<p>Physically, CAN Bus uses two wires: CAN High and CAN Low. When both wires carry the same voltage, that’s a recessive bit (1). When there’s a voltage difference between them, that’s a dominant bit (0). Dominant bits override recessive ones: this is what allows multiple nodes to try sending at the same time, and the highest-priority message to “win” on the bus.</p>
+<figure align="center">
+    <img src="../../res/appendix_physical_layer.png" alt="CAN Physical Layer">
+</figure>
+
+<h2 id="conclusions">Conclusions</h2>
+<p>Because CAN Bus was designed to be simple, fast, and robust, it doesn’t include built-in security features like encryption or authentication. Every message is trusted by default, and any node on the bus can send messages. That makes it a perfect environment to explore and learn about real-world automotive vulnerabilities.</p>
+<p>Understanding these fundamentals, how frames are built, how bit stuffing keeps the bus synchronized, and how the physical layer prioritizes dominant bits, is essential before diving into offensive techniques. And that’s exactly why we’ll use tools like Doggie and EvilDoggie to see how these protocol details can be turned into practical attacks.</p>
               
             </div>
           </div><footer>

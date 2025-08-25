@@ -109,11 +109,11 @@
                 </li>
                 <li class="toctree-l3"><a class="reference internal" >RP2040</a>
     <ul>
-                <li class="toctree-l4"><a class="" href="../../rp/intro.md">Introduction</a>
+                <li class="toctree-l4"><a class="reference internal" href="../../rp/intro/">Introduction</a>
                 </li>
-                <li class="toctree-l4"><a class="" href="../../rp/doggie.md">Doggie</a>
+                <li class="toctree-l4"><a class="reference internal" href="../../rp/doggie/">Doggie</a>
                 </li>
-                <li class="toctree-l4"><a class="" href="../../rp/evil_doggie.md">evilDoggie</a>
+                <li class="toctree-l4"><a class="reference internal" href="../../rp/evil_doggie/">evilDoggie</a>
                 </li>
     </ul>
                 </li>
@@ -194,7 +194,7 @@ DEFMT_LOG=off cargo esp32c3 --bin evil_doggie
 # evilDoggie on ESP32 without BLE
 DEFMT_LOG=off cargo esp32 --bin evil_doggie --disable-default-features
 </code></pre>
-<h1 id="supported-configurations"><strong>Supported Configurations</strong></h1>
+<h2 id="supported-configurations"><strong>Supported Configurations</strong></h2>
 <p>The ESP32 implementation supports only one configuration where the GPIOs are connected directly to a standard CAN Bus driver or the <a href="../../force.md">evilDoggie custom driver</a>.</p>
 <p>To connect a standard driver we will only need two GPIOs (CAN TX, CAN RX), but for the custom driver, we will need one more GPIO (CAN FORCE).</p>
 <p><img alt="alt text" src="../../../../res/esp32_twai.png" /></p>

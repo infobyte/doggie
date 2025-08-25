@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="shortcut icon" href="../../../../img/favicon.ico" />
-    <title>Doggie - evilDoggie</title>
+    <title>Introduction - evilDoggie</title>
     <link rel="stylesheet" href="../../../../css/theme.css" />
     <link rel="stylesheet" href="../../../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -13,8 +13,8 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Doggie";
-        var mkdocs_page_input_path = "hardware/diy/esp32/doggie.md";
+        var mkdocs_page_name = "Introduction";
+        var mkdocs_page_input_path = "hardware/diy/rp/intro.md";
         var mkdocs_page_url = null;
       </script>
     
@@ -89,13 +89,13 @@
                 </li>
                 <li class="toctree-l2 current"><a class="reference internal current" >Microcontrollers</a>
     <ul class="current">
-                <li class="toctree-l3 current"><a class="reference internal current" >ESP32</a>
-    <ul class="current">
-                <li class="toctree-l4"><a class="reference internal" href="../intro/">Introduction</a>
+                <li class="toctree-l3"><a class="reference internal" >ESP32</a>
+    <ul>
+                <li class="toctree-l4"><a class="reference internal" href="../../esp32/intro/">Introduction</a>
                 </li>
-                <li class="toctree-l4 current"><a class="reference internal current" href="#">Doggie</a>
+                <li class="toctree-l4"><a class="reference internal" href="../../esp32/doggie/">Doggie</a>
                 </li>
-                <li class="toctree-l4"><a class="reference internal" href="../evil_doggie/">evilDoggie</a>
+                <li class="toctree-l4"><a class="reference internal" href="../../esp32/evil_doggie/">evilDoggie</a>
                 </li>
     </ul>
                 </li>
@@ -107,13 +107,13 @@
                 </li>
     </ul>
                 </li>
-                <li class="toctree-l3"><a class="reference internal" >RP2040</a>
-    <ul>
-                <li class="toctree-l4"><a class="reference internal" href="../../rp/intro/">Introduction</a>
+                <li class="toctree-l3 current"><a class="reference internal current" >RP2040</a>
+    <ul class="current">
+                <li class="toctree-l4 current"><a class="reference internal current" href="#">Introduction</a>
                 </li>
-                <li class="toctree-l4"><a class="reference internal" href="../../rp/doggie/">Doggie</a>
+                <li class="toctree-l4"><a class="reference internal" href="../doggie/">Doggie</a>
                 </li>
-                <li class="toctree-l4"><a class="reference internal" href="../../rp/evil_doggie/">evilDoggie</a>
+                <li class="toctree-l4"><a class="reference internal" href="../evil_doggie/">evilDoggie</a>
                 </li>
     </ul>
                 </li>
@@ -175,8 +175,8 @@
           <li class="breadcrumb-item">Hardware</li>
           <li class="breadcrumb-item">DIY</li>
           <li class="breadcrumb-item">Microcontrollers</li>
-          <li class="breadcrumb-item">ESP32</li>
-      <li class="breadcrumb-item active">Doggie</li>
+          <li class="breadcrumb-item">RP2040</li>
+      <li class="breadcrumb-item active">Introduction</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -185,222 +185,149 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="features">Features</h1>
-<p>Doggie supports the following features:</p>
-<ul>
-<li><code>twai</code>: Enable the internal CAN controller (TWAI)</li>
-<li><code>mcp</code>: Enable the MCP2515 SPI interface as CAN controller</li>
-<li><code>ble</code>: Enable BLE interface</li>
-</ul>
-<p>By default <code>twai</code> and <code>ble</code> are enabled.</p>
-<p>For example:</p>
-<pre><code># Doggie on ESP32c3 with TWAI and BLE
-DEFMT_LOG=off cargo esp32c3 --bin doggie
-
-# Doggie on ESP32 with MCP2515 and BLE
-DEFMT_LOG=off cargo esp32 --bin doggie --disable-default-features --features mcp,ble
-</code></pre>
+                <h1 id="doggie-rp2040"><strong>Doggie RP2040</strong></h1>
+<h2 id="description"><strong>Description</strong></h2>
+<p>This implementation provides the hardware abstraction for <strong>Doggie</strong> and <strong>evilDoggie</strong> to run in the Raspberry Pi Pico RP2040 microcontroller family.</p>
 <h2 id="supported-configurations"><strong>Supported Configurations</strong></h2>
-<p>The ESP32 implementation supports the following configurations.</p>
-<p>As the ESP32 doesn't have 5v tolerant GPIOs, we should modify the MCP2515 or use a logic level shifter in order to make it compatible. Read <a href="../../mcp/">MCP2515 module compatibility note</a> for more information.</p>
+<h3 id="doggie">Doggie</h3>
+<p>The RP2040 implementation supports the following configurations.</p>
 <ol>
-<li>
-<p><strong>USB, UART0 or BLE, and MCP2515 (SPI to CAN)</strong></p>
+<li><strong>USB and MCP2515 (SPI to CAN)</strong></li>
+<li><strong>UART and MCP2515 (SPI to CAN)</strong></li>
+</ol>
+<p>For a detailed documentation refer to the <a href="../doggie/">Doggie on RP2040 documentation</a></p>
+<h3 id="evildoggie">evilDoggie</h3>
+<p>The ESP32 implementation supports only one configuration.</p>
+<p>For a detailed documentation refer to the <a href="../evil_doggie/">evilDoggie on RP2040 documentation</a></p>
+<h2 id="how-to-flash-a-release"><strong>How to Flash a Release</strong></h2>
 <ul>
-<li>The <strong>USB</strong> port, the <strong>UART0</strong> port and the BLE of the ESP32 can be used for communication with the host system.</li>
-<li>The <strong>MCP2515</strong> (SPI to CAN) module is used for CAN Bus communication.</li>
-<li>This configuration allows the device to interface with a CAN network while communicating with the host via USB or BLE.</li>
-</ul>
-<p><strong>Connections</strong> (MCP2515 mod):</p>
-<table>
-<thead>
-<tr>
-<th align="center">Function</th>
-<th align="center">MCP2515</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td align="center">Vcc 3.3</td>
-<td align="center">VCC</td>
-</tr>
-<tr>
-<td align="center">Vcc 5v</td>
-<td align="center">Tranceiver Vcc</td>
-</tr>
-<tr>
-<td align="center">GND</td>
-<td align="center">GND</td>
-</tr>
-<tr>
-<td align="center">MOSI</td>
-<td align="center">SI</td>
-</tr>
-<tr>
-<td align="center">MISO</td>
-<td align="center">SO</td>
-</tr>
-<tr>
-<td align="center">Clock</td>
-<td align="center">SCK</td>
-</tr>
-<tr>
-<td align="center">CS</td>
-<td align="center">CS</td>
-</tr>
-</tbody>
-</table>
-<p><img alt="alt text" src="../../../../res/esp32_mcp_mod.png" /></p>
-<p><strong>Connections</strong> (MCP2515 with level shifter):</p>
-<table>
-<thead>
-<tr>
-<th align="center">Function</th>
-<th align="center">Level Shifter</th>
-<th align="center">MCP2515</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td align="center">Vcc</td>
-<td align="center">-</td>
-<td align="center">5v</td>
-</tr>
-<tr>
-<td align="center">GND</td>
-<td align="center">-</td>
-<td align="center">GND</td>
-</tr>
-<tr>
-<td align="center">MOSI</td>
-<td align="center">&lt;-----------&gt;</td>
-<td align="center">SI</td>
-</tr>
-<tr>
-<td align="center">MISO</td>
-<td align="center">&lt;-----------&gt;</td>
-<td align="center">SO</td>
-</tr>
-<tr>
-<td align="center">Clock</td>
-<td align="center">&lt;-----------&gt;</td>
-<td align="center">SCK</td>
-</tr>
-<tr>
-<td align="center">CS</td>
-<td align="center">&lt;-----------&gt;</td>
-<td align="center">CS</td>
-</tr>
-</tbody>
-</table>
-<p><img alt="alt text" src="../../../../res/esp32_mcp_ls.png" /></p>
+<li>
+<p>USB and MCP2515:</p>
+<ol>
+<li>Download the release <code>doggie_pico_usb_mcp.uf2</code>.</li>
+<li>Connect the Pico in bootloader mode and copy the release.</li>
+</ol>
 </li>
 <li>
-<p><strong>USB, UART0 or BLE, and TWAI (Internal controller)</strong></p>
-<ul>
-<li>The <strong>USB</strong> port, the <strong>UART0</strong> port and the BLE of the ESP32 can be used for communication with the host system.</li>
-<li>The TWAI controller is used for CAN Bus communication.</li>
-<li>This configuration allows the device to interface with a CAN network using only a transceiver while communicating with the host via USB or BLE.</li>
+<p>UART and MCP2515:</p>
+<ol>
+<li>Download the release <code>doggie_pico_uart_mcp.uf2</code>.</li>
+<li>Connect the Pico in bootloader mode and copy the release.</li>
+</ol>
+</li>
 </ul>
-<p><img alt="alt text" src="../../../../res/esp32_twai.png" /></p>
+<h2 id="how-to-compile-and-flash"><strong>How to Compile and Flash</strong></h2>
+<h3 id="prerequisites"><strong>Prerequisites</strong></h3>
+<ol>
+<li>
+<p>Install <strong>Rust</strong> and <strong>cargo</strong> with support for ARM architecture.
+    Follow the installation instructions from the official <a href="https://www.rust-lang.org/tools/install">Rust website</a>.</p>
+</li>
+<li>
+<p>Add the target architecture:</p>
+<p><code>rustup target add thumbv6m-none-eabi</code></p>
+</li>
+<li>
+<p>To program a Pico, you can put it in bootloader mode and copy the firmware or use another Pico as a probe.</p>
+<ul>
+<li>
+<p>If you want to program your Pico by copying the firmware, install <code>elf2uf2-rs</code>:</p>
+<p><code>cargo install elf2uf2-rs</code></p>
+</li>
+<li>
+<p>If you want to program your Pico using another Pico as a probe, install <code>probe-rs</code>:</p>
+<p><code>curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-tools-installer.sh | sh</code></p>
+</li>
+</ul>
+</li>
+</ol>
+<p>Additionally, you have to modify <code>doggie_pico/.cargo/config.toml</code>:</p>
+<pre><code>[target.'cfg(all(target_arch = &quot;arm&quot;, target_os = &quot;none&quot;))']
+# runner = &quot;elf2uf2-rs -d&quot;               # Program by copying firmware
+runner = &quot;probe-rs run --chip RP2040&quot;  # Program with another Pico
+
+[build]
+target = &quot;thumbv6m-none-eabi&quot;          # Cortex-M0 and Cortex-M0+
+
+[env]
+DEFMT_LOG = &quot;trace&quot;
+</code></pre>
+<p>And setup a Pico as a probe by cloning the <a href="https://github.com/raspberrypi/debugprobe">RPI debug probe repo</a>, building it for the pico:</p>
+<pre><code>git clone https://github.com/raspberrypi/debugprobe.git
+cd debugprobe
+mkdir build
+cd build
+cmake -DDEBUG_ON_PICO=ON ..
+make
+</code></pre>
+<p>Copying the resulting <code>.uf2</code> image to the probe Pico, and connecting it to the target Pico.</p>
 <p><strong>Connections</strong>:</p>
 <table>
 <thead>
 <tr>
 <th align="center">Function</th>
-<th align="center">Tranceiver</th>
+<th align="center">Pico Probe</th>
+<th align="center">Target Probe</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td align="center">Vcc</td>
-<td align="center">VCC</td>
+<td align="center">VBUS</td>
+<td align="center">VBUS</td>
 </tr>
 <tr>
 <td align="center">GND</td>
 <td align="center">GND</td>
+<td align="center">GND</td>
 </tr>
 <tr>
-<td align="center">CAN TX</td>
-<td align="center">TX</td>
+<td align="center">SWCLK</td>
+<td align="center">GP2</td>
+<td align="center">SWCLK</td>
 </tr>
 <tr>
-<td align="center">CAN RX</td>
-<td align="center">RX</td>
+<td align="center">SWDIO</td>
+<td align="center">GP3</td>
+<td align="center">SWDIO</td>
+</tr>
+<tr>
+<td align="center">UART -&gt;</td>
+<td align="center">GP4</td>
+<td align="center">GP1</td>
+</tr>
+<tr>
+<td align="center">UART &lt;-</td>
+<td align="center">GP5</td>
+<td align="center">GP0</td>
 </tr>
 </tbody>
 </table>
-<p>For each esp32 varian we will use different pins that are defined but they could be easily changed in the code. Some variants are not implemented but are compatible and will be implemented on demand.</p>
-<p><strong>Connections variants</strong>:</p>
-<table>
-<thead>
-<tr>
-<th align="center">Function</th>
-<th align="center">ESP32</th>
-<th align="center">ESP32c3</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td align="center">Vcc 3.3</td>
-<td align="center">3v3</td>
-<td align="center">3.3</td>
-</tr>
-<tr>
-<td align="center">Vcc 5v</td>
-<td align="center">VIN/5v</td>
-<td align="center">5v</td>
-</tr>
-<tr>
-<td align="center">GND</td>
-<td align="center">GND</td>
-<td align="center">G</td>
-</tr>
-<tr>
-<td align="center">MOSI</td>
-<td align="center">D13</td>
-<td align="center">6</td>
-</tr>
-<tr>
-<td align="center">MISO</td>
-<td align="center">D12</td>
-<td align="center">5</td>
-</tr>
-<tr>
-<td align="center">Clock</td>
-<td align="center">D14</td>
-<td align="center">9</td>
-</tr>
-<tr>
-<td align="center">CS</td>
-<td align="center">D15</td>
-<td align="center">7</td>
-</tr>
-<tr>
-<td align="center">CAN TX</td>
-<td align="center">D4</td>
-<td align="center">10</td>
-</tr>
-<tr>
-<td align="center">CAN RX</td>
-<td align="center">D3</td>
-<td align="center">9</td>
-</tr>
-<tr>
-<td align="center">LOGS (UART)</td>
-<td align="center">D10</td>
-<td align="center">3</td>
-</tr>
-</tbody>
-</table>
+<p><img alt="alt text" src="../../../../res/pico_probe.png" /></p>
+<h3 id="compile-and-flash-the-firmware"><strong>Compile and Flash the Firmware:</strong></h3>
+<ol>
+<li>
+<p>Connect the target Pico to the PC in bootloader mode or to the probe as shown before.</p>
+</li>
+<li>
+<p>Then we need to select the desired project with the <code>--bin</code> flag:</p>
+<ul>
+<li><code>doggie</code></li>
+<li><code>evil_doggie</code></li>
+</ul>
+</li>
+<li>
+<p>And then we flash with:</p>
 </li>
 </ol>
+<pre><code>DEFMT_LOG=off cargo run --release --bin {BIN} --disable-default-features --features {FEATURES}
+</code></pre>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../intro/" class="btn btn-neutral float-left" title="Introduction"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../evil_doggie/" class="btn btn-neutral float-right" title="evilDoggie">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../../bluepill/doggie/" class="btn btn-neutral float-left" title="Doggie"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../doggie/" class="btn btn-neutral float-right" title="Doggie">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -423,10 +350,10 @@ DEFMT_LOG=off cargo esp32 --bin doggie --disable-default-features --features mcp
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../intro/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../../bluepill/doggie/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../evil_doggie/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../doggie/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>
