@@ -7,43 +7,16 @@ DEFMT_LOG=off cargo run --release --bin evil_doggie --no-default-features --feat
 ```
 
 ## **Supported Configurations**
-The Raspberry Pico implementation supports the following configuration.
+The RP2040 implementation supports only one configuration where the GPIOs are connected directly to a standard CAN Bus driver or the [evilDoggie custom driver](../../force.md).
 
-As the RP2040 doesn't have 5v tolerant GPIOs, you shoud modify the MCP2515 or use a logic level shifter in order to make it compatible. Read [MCP2515 module compatibility note](../mcp.md) for more information.
+To connect a standard driver we will only need two GPIOs (CAN TX, CAN RX), but for the custom driver, we will need one more GPIO (CAN FORCE).
 
-1. **UART and MCP2515 (SPI to CAN)**
-    - The **UART** port of the Pico is used to communicate with the host system.
-    - The **MCP2515** (SPI to CAN) module is used for CAN Bus communication.
-    - This configuration is useful when the USB port is unavailable or when using a serial connection instead of USB.
+__Connections__:
 
-    __Connections__ (MCP2515 mod):
-
-    | Function |   Pico   |    MCP2515     | USB-UART |
-    | :------: | :------: | :------------: | :------: |
-    |   Vcc    |   3.3    |       VCC      |    -     |
-    |   Vcc 5v |   VBUS   | Tranceiver VCC |    5v    |
-    |   MOSI   |   GP19   |       SI       |    -     |
-    |   MISO   |   GP16   |       SO       |    -     |
-    |   Clock  |   GP18   |       SCK      |    -     |
-    |   CS     |   GP17   |       CS       |    -     |
-    |   TX     |   GP0    |        -       |    RX    |
-    |   RX     |   GP1    |        -       |    TX    |
-
-    ![alt text](../../../res/pico_mcp_mod_uart.png)
-
-
-    __Connections__ (MCP2515 with level shifter):
-
-    | Function |   Pico   | Level Shifter | MCP2515 | USB-UART |
-    | :------: | :------: | :-----------: | :-----: | :------: |
-    |   Vcc    |   VBUS   |               |    VCC  |   GND    |
-    |   GND    |   GND    |               |    GND  |    -     |
-    |   MOSI   |   GP19   | <-----------> |    SI   |    -     |
-    |   MISO   |   GP16   | <-----------> |    SO   |    -     |
-    |   Clock  |   GP18   | <-----------> |    SCK  |    -     |
-    |   CS     |   GP17   | <-----------> |    CS   |    -     |
-    |   TX     |   GP0    |               |    -    |    RX    |
-    |   RX     |   GP1    |               |    -    |    TX    |
-
-
-    ![alt text](../../../res/pico_mcp_ls_uart.png)
+| Function  | RP2040 |   Driver   | Custom Driver |
+| :-------: | :----: |:--------: | :-----------: |
+| Vcc       |  3v3   |    VCC     |      VCC      |
+| GND       |  GND   |    GND     |      GND      |
+| CAN TX    |   20   |    TX      |      TX       |
+| CAN RX    |   21   |    RX      |      RX       |
+| CAN FORCE |   22   |    -       |     FORCE     |
