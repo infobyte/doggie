@@ -101,11 +101,33 @@
                 </li>
                 <li class="toctree-l2"><a class="reference internal" >Microcontrollers</a>
     <ul>
-                <li class="toctree-l3"><a class="reference internal" href="../../../../hardware/diy/esp32/">ESP32</a>
+                <li class="toctree-l3"><a class="reference internal" >ESP32</a>
+    <ul>
+                <li class="toctree-l4"><a class="reference internal" href="../../../../hardware/diy/esp32/intro/">Introduction</a>
                 </li>
-                <li class="toctree-l3"><a class="reference internal" href="../../../../hardware/diy/rp/">RP2040 (Raspberry Pico)</a>
+                <li class="toctree-l4"><a class="reference internal" href="../../../../hardware/diy/esp32/doggie/">Doggie</a>
                 </li>
-                <li class="toctree-l3"><a class="reference internal" href="../../../../hardware/diy/bluepill/">STM32F1 (bluepill)</a>
+                <li class="toctree-l4"><a class="reference internal" href="../../../../hardware/diy/esp32/evil_doggie/">evilDoggie</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" >STM32F1</a>
+    <ul>
+                <li class="toctree-l4"><a class="reference internal" href="../../../../hardware/diy/bluepill/intro/">Introduction</a>
+                </li>
+                <li class="toctree-l4"><a class="reference internal" href="../../../../hardware/diy/bluepill/doggie/">Doggie</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" >RP2040</a>
+    <ul>
+                <li class="toctree-l4"><a class="" href="../../../../hardware/diy/rp/intro.md">Introduction</a>
+                </li>
+                <li class="toctree-l4"><a class="" href="../../../../hardware/diy/rp/doggie.md">Doggie</a>
+                </li>
+                <li class="toctree-l4"><a class="" href="../../../../hardware/diy/rp/evil_doggie.md">evilDoggie</a>
+                </li>
+    </ul>
                 </li>
     </ul>
                 </li>
@@ -241,50 +263,39 @@ We do so with the following commands:</p>
 <p>Like all the attacks, the Spoofing Attack is built on top of attack primitives, but the primitives may change depending on the attack arguments used.
 Let's see the primitives involved in the example:</p>
 <ol>
-<li>First it disables the bit stuffing and waits (this is used as warmup):  <ul>
-<li>SetBitStuffing { state: false }</li>
-<li>Wait { bits: 8 }</li>
-<li>SetBitStuffing { state: true }</li>
-<li>WaitBusFree { ... }</li>
+<li>First warm up the attack machine<ul>
+<li><strong>WarmUp</strong></li>
 </ul>
 </li>
-<li>After the warmup, it will wait for a Start Of Frame<ul>
-<li>WaitForSof</li>
+<li>Then try to match the id 0x100<ul>
+<li><strong>MatchId</strong><ul>
+<li>id: Standard(StandardId(0x100))</li>
+<li>rtr: false</li>
 </ul>
 </li>
-<li>It skips the SoF bit<ul>
-<li>Wait { bits: 1 }</li>
 </ul>
 </li>
-<li>Then, match all the bits from the ID until the DLC (not included). It will abort if doesn't match.<ul>
-<li>Match { stream: FastBitQueue { value: 0b10000000000000, len: 14, ... } }</li>
+<li>If it matches, try to match the data with 0x02<ul>
+<li><strong>MatchData</strong><ul>
+<li>data: [2, 0, 0, 0, 0, 0, 0, 0]</li>
+<li>match_size: 1</li>
 </ul>
 </li>
-<li>Now, it will read the DLC<ul>
-<li>Read { len: 4 }</li>
-</ul>
-</li>
-<li>Matches the only byte of data that we give as argument. It will abort if doesn't match.<ul>
-<li>Match { stream: FastBitQueue { value: 0x02 , len: 8, ... } }</li>
-</ul>
-</li>
-<li>Calculates how much bits has left in the DATA field and wait that amount of bits.<ul>
-<li>SubBuffered { sub: 1 }</li>
-<li>MulBuffered { mult: 8 }</li>
-<li>WaitBuffered</li>
 </ul>
 </li>
 <li>Waits until the bus if free (until the End Of Frame)<ul>
-<li>SetBitStuffing { state: false }</li>
-<li>WaitBusFree { ... }</li>
-<li>SetBitStuffing { state: true }</li>
+<li><strong>WaitBusFree</strong></li>
 </ul>
 </li>
-<li>Finally it sends the spoofed message<ul>
-<li>Send { stream: FastBitQueue { value: 0b1000000000000011000000100000000000000000000100110101111000, len: 58, ... } }</li>
-<li>SetBitStuffing { state: false }</li>
-<li>Send { stream: FastBitQueue { value: 0b1111111111111, len: 13, ... } }</li>
-<li>SetBitStuffing { state: true }</li>
+<li>Send the spoofed message<ul>
+<li><strong>SendMsg</strong><ul>
+<li>id: Standard(StandardId(256))</li>
+<li>data: Some([2, 0, 0, 0, 0, 0, 0, 0])</li>
+<li>data_len: 3</li>
+<li>rtr: false</li>
+<li>force: false</li>
+</ul>
+</li>
 </ul>
 </li>
 </ol>

@@ -86,14 +86,38 @@
                   <li class="toctree-l1 current"><a class="reference internal current" >DIY</a>
     <ul class="current">
                 <li class="toctree-l2 current"><a class="reference internal current" href="#">Introduction</a>
+    <ul class="current">
+    </ul>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" >Microcontrollers</a>
     <ul>
-                <li class="toctree-l3"><a class="reference internal" href="../esp32/">ESP32</a>
+                <li class="toctree-l3"><a class="reference internal" >ESP32</a>
+    <ul>
+                <li class="toctree-l4"><a class="reference internal" href="../esp32/intro/">Introduction</a>
                 </li>
-                <li class="toctree-l3"><a class="reference internal" href="../rp/">RP2040 (Raspberry Pico)</a>
+                <li class="toctree-l4"><a class="reference internal" href="../esp32/doggie/">Doggie</a>
                 </li>
-                <li class="toctree-l3"><a class="reference internal" href="../bluepill/">STM32F1 (bluepill)</a>
+                <li class="toctree-l4"><a class="reference internal" href="../esp32/evil_doggie/">evilDoggie</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" >STM32F1</a>
+    <ul>
+                <li class="toctree-l4"><a class="reference internal" href="../bluepill/intro/">Introduction</a>
+                </li>
+                <li class="toctree-l4"><a class="reference internal" href="../bluepill/doggie/">Doggie</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" >RP2040</a>
+    <ul>
+                <li class="toctree-l4"><a class="" href="../rp/intro.md">Introduction</a>
+                </li>
+                <li class="toctree-l4"><a class="" href="../rp/doggie.md">Doggie</a>
+                </li>
+                <li class="toctree-l4"><a class="" href="../rp/evil_doggie.md">evilDoggie</a>
+                </li>
+    </ul>
                 </li>
     </ul>
                 </li>
@@ -161,13 +185,22 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                
+                <h2 id="diy-introduction">DIY Introduction</h2>
+<p>The Doggie and evilDoggie project offers an exciting opportunity for DIY enthusiasts to build their own CAN Bus to serial adapters, supporting a variety of microcontrollers for maximum flexibility. You can choose an ESP32, RP2040 (Raspberry Pi Pico), or STM32F1 (Bluepill).  </p>
+<p>However, implementing a new hardware setup is straightforward thanks to the project's modular design and comprehensive abstraction layers. New microcontrollers can be adapted with minimal effort.</p>
+<p>For specific guidance, refer to the detailed documentation for each supported microcontroller:</p>
+<ul>
+<li><a href="https://infobyte.github.io/doggie/hardware/diy/esp32/">ESP32</a></li>
+<li><a href="https://infobyte.github.io/doggie/hardware/diy/rp/">RP2040</a></li>
+<li><a href="https://infobyte.github.io/doggie/hardware/diy/bluepill/">STM32F1</a></li>
+</ul>
+<p>If you want to use the <strong>MCP2515</strong> module, please refer to the <a href="../mcp/">compatibility notes</a>. </p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
         <a href="../../faraday/" class="btn btn-neutral float-left" title="Faraday"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../esp32/" class="btn btn-neutral float-right" title="ESP32">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../esp32/intro/" class="btn btn-neutral float-right" title="Introduction">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -193,7 +226,7 @@
       <span><a href="../../faraday/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../esp32/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../esp32/intro/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

@@ -89,11 +89,33 @@
                 </li>
                 <li class="toctree-l2"><a class="reference internal" >Microcontrollers</a>
     <ul>
-                <li class="toctree-l3"><a class="reference internal" href="../esp32/">ESP32</a>
+                <li class="toctree-l3"><a class="reference internal" >ESP32</a>
+    <ul>
+                <li class="toctree-l4"><a class="reference internal" href="../esp32/intro/">Introduction</a>
                 </li>
-                <li class="toctree-l3"><a class="reference internal" href="../rp/">RP2040 (Raspberry Pico)</a>
+                <li class="toctree-l4"><a class="reference internal" href="../esp32/doggie/">Doggie</a>
                 </li>
-                <li class="toctree-l3"><a class="reference internal" href="../bluepill/">STM32F1 (bluepill)</a>
+                <li class="toctree-l4"><a class="reference internal" href="../esp32/evil_doggie/">evilDoggie</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" >STM32F1</a>
+    <ul>
+                <li class="toctree-l4"><a class="reference internal" href="../bluepill/intro/">Introduction</a>
+                </li>
+                <li class="toctree-l4"><a class="reference internal" href="../bluepill/doggie/">Doggie</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" >RP2040</a>
+    <ul>
+                <li class="toctree-l4"><a class="" href="../rp/intro.md">Introduction</a>
+                </li>
+                <li class="toctree-l4"><a class="" href="../rp/doggie.md">Doggie</a>
+                </li>
+                <li class="toctree-l4"><a class="" href="../rp/evil_doggie.md">evilDoggie</a>
+                </li>
+    </ul>
                 </li>
     </ul>
                 </li>
@@ -211,7 +233,7 @@
 - <strong>Desolder the TJA1050 VCC Pin</strong>: On the MCP2515 module, locate the TJA1050 transceiver’s VCC pin (typically connected to the module’s shared VCC line). Carefully desolder this pin to disconnect it from the module’s power rail.
 - <strong>Add a Separate 5V Supply</strong>: Solder a small wire from the TJA1050’s VCC pin to an external 5V power source, ensuring the transceiver receives the required voltage.
 - <strong>Power the MCP2515 at 3.3V</strong>: Connect the module’s VCC pin (now powering only the MCP2515 controller) to a 3.3V supply. This configures the MCP2515’s SPI pins to output 3.3V logic levels, making it directly compatible with 3.3V microcontrollers.</p>
-<p><img alt="alt text" src="mcp_mod.jpg" /></p>
+<p><img alt="alt text" src="../../../res/mcp_mod.jpg" /></p>
 <p><strong>Advantages</strong>:
 - Eliminates the need for an external logic level shifter, reducing component count.
 - Provides a clean, direct 3.3V interface with the microcontroller.</p>
@@ -233,7 +255,7 @@
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../bluepill/" class="btn btn-neutral float-left" title="STM32F1 (bluepill)"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../bluepill/doggie/" class="btn btn-neutral float-left" title="Doggie"><span class="icon icon-circle-arrow-left"></span> Previous</a>
         <a href="../../../software/ble/" class="btn btn-neutral float-right" title="BLE">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
@@ -257,7 +279,7 @@
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../bluepill/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../bluepill/doggie/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
       <span><a href="../../../software/ble/" style="color: #fcfcfc">Next &raquo;</a></span>

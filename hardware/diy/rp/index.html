@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="shortcut icon" href="../../../img/favicon.ico" />
-    <title>RP2040 (Raspberry Pico) - evilDoggie</title>
+    <title>Doggie Pico - evilDoggie</title>
     <link rel="stylesheet" href="../../../css/theme.css" />
     <link rel="stylesheet" href="../../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -13,7 +13,7 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "RP2040 (Raspberry Pico)";
+        var mkdocs_page_name = "Doggie Pico";
         var mkdocs_page_input_path = "hardware/diy/rp.md";
         var mkdocs_page_url = null;
       </script>
@@ -80,30 +80,42 @@
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Hardware</span></p>
-              <ul class="current">
+              <ul>
                   <li class="toctree-l1"><a class="reference internal" href="../../faraday/">Faraday</a>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" >DIY</a>
-    <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" >DIY</a>
+    <ul>
                 <li class="toctree-l2"><a class="reference internal" href="../intro/">Introduction</a>
                 </li>
-                <li class="toctree-l2 current"><a class="reference internal current" >Microcontrollers</a>
-    <ul class="current">
-                <li class="toctree-l3"><a class="reference internal" href="../esp32/">ESP32</a>
+                <li class="toctree-l2"><a class="reference internal" >Microcontrollers</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" >ESP32</a>
+    <ul>
+                <li class="toctree-l4"><a class="reference internal" href="../esp32/intro/">Introduction</a>
                 </li>
-                <li class="toctree-l3 current"><a class="reference internal current" href="#">RP2040 (Raspberry Pico)</a>
-    <ul class="current">
-    <li class="toctree-l4"><a class="reference internal" href="#description">Description</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#supported-configurations">Supported Configurations</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#how-to-flash-a-release">How to Flash a Release</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#how-to-compile-and-flash">How to Compile and Flash</a>
-    </li>
+                <li class="toctree-l4"><a class="reference internal" href="../esp32/doggie/">Doggie</a>
+                </li>
+                <li class="toctree-l4"><a class="reference internal" href="../esp32/evil_doggie/">evilDoggie</a>
+                </li>
     </ul>
                 </li>
-                <li class="toctree-l3"><a class="reference internal" href="../bluepill/">STM32F1 (bluepill)</a>
+                <li class="toctree-l3"><a class="reference internal" >STM32F1</a>
+    <ul>
+                <li class="toctree-l4"><a class="reference internal" href="../bluepill/intro/">Introduction</a>
+                </li>
+                <li class="toctree-l4"><a class="reference internal" href="../bluepill/doggie/">Doggie</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" >RP2040</a>
+    <ul>
+                <li class="toctree-l4"><a class="" href="intro.md">Introduction</a>
+                </li>
+                <li class="toctree-l4"><a class="" href="doggie.md">Doggie</a>
+                </li>
+                <li class="toctree-l4"><a class="" href="evil_doggie.md">evilDoggie</a>
+                </li>
+    </ul>
                 </li>
     </ul>
                 </li>
@@ -160,10 +172,7 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
-          <li class="breadcrumb-item">Hardware</li>
-          <li class="breadcrumb-item">DIY</li>
-          <li class="breadcrumb-item">Microcontrollers</li>
-      <li class="breadcrumb-item active">RP2040 (Raspberry Pico)</li>
+      <li class="breadcrumb-item active">Doggie Pico</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -565,10 +574,6 @@ make
               
             </div>
           </div><footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../esp32/" class="btn btn-neutral float-left" title="ESP32"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../bluepill/" class="btn btn-neutral float-right" title="STM32F1 (bluepill)">Next <span class="icon icon-circle-arrow-right"></span></a>
-    </div>
 
   <hr/>
 
@@ -590,10 +595,6 @@ make
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../esp32/" style="color: #fcfcfc">&laquo; Previous</a></span>
-    
-    
-      <span><a href="../bluepill/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>
