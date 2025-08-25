@@ -11,7 +11,7 @@ DEFMT_LOG=off cargo esp32c3 --bin evil_doggie
 DEFMT_LOG=off cargo esp32 --bin evil_doggie --disable-default-features
 ```
 
-# **Supported Configurations**
+## **Supported Configurations**
 
 The ESP32 implementation supports only one configuration where the GPIOs are connected directly to a standard CAN Bus driver or the [evilDoggie custom driver](../../force.md).
 

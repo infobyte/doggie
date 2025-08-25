@@ -18,7 +18,7 @@ DEFMT_LOG=off cargo esp32 --bin doggie --disable-default-features --features mcp
 ```
 
 
-# **Supported Configurations**
+## **Supported Configurations**
 
 The ESP32 implementation supports the following configurations.
 
@@ -30,7 +30,7 @@ As the ESP32 doesn't have 5v tolerant GPIOs, we should modify the MCP2515 or use
     - This configuration allows the device to interface with a CAN network while communicating with the host via USB or BLE.
 
     __Connections__ (MCP2515 mod):
-    
+
     | Function |    MCP2515     |
     | :------: | :------------: |
     |   Vcc 3.3|       VCC      |
@@ -65,7 +65,7 @@ As the ESP32 doesn't have 5v tolerant GPIOs, we should modify the MCP2515 or use
     ![alt text](../../../res/esp32_twai.png)
 
     __Connections__:
-    
+
     | Function |   Tranceiver   |
     | :------: |:-------------: |
     |   Vcc    |       VCC      |
@@ -77,7 +77,7 @@ As the ESP32 doesn't have 5v tolerant GPIOs, we should modify the MCP2515 or use
     For each esp32 varian we will use different pins that are defined but they could be easily changed in the code. Some variants are not implemented but are compatible and will be implemented on demand.
 
     __Connections variants__:
-  
+
     | Function    |   ESP32  | ESP32c3  |
     | :---------: | :------: | :------: |
     |    Vcc 3.3  |   3v3    |    3.3   |
