@@ -1,7 +1,7 @@
 # Doggie/evilDoggie Board - Faraday Edition
 
 ## Introduction
-The **Faraday Doggie & evilDoggie Board** is a professional-grade, dual-purpose CAN Bus adapter and research tool. This board offers a readymade, plug-and-play solution for CAN Bus analysis and security research. The board's design allows it to function as both a standard **Doggie** CAN Bus adapter and an **evilDoggie** research and testing tool, switching between modes via a hardware toggle.
+The **Faraday Doggie & evilDoggie Board** is a professional-grade, dual-purpose CAN Bus adapter and research tool designed by [Faraday](https://faradaysec.com) in collaboration with [Kalpa](https://kalpa.com.ar). This board offers a readymade, plug-and-play solution for CAN Bus analysis and security research. The board's design allows it to function as both a standard **Doggie** CAN Bus adapter and an **evilDoggie** research and testing tool, switching between modes via a hardware toggle.
 
 <figure align="center">
     <img src="../../res/faraday_board.png" alt="Faraday Board">
