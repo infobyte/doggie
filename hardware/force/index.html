@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Faraday - evilDoggie</title>
+    <title>Force - evilDoggie</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -13,8 +13,8 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Faraday";
-        var mkdocs_page_input_path = "hardware/faraday.md";
+        var mkdocs_page_name = "Force";
+        var mkdocs_page_input_path = "hardware/force.md";
         var mkdocs_page_url = null;
       </script>
     
@@ -81,25 +81,7 @@
               </ul>
               <p class="caption"><span class="caption-text">Hardware</span></p>
               <ul class="current">
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Faraday</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#hardware">Hardware</a>
-        <ul>
-    <li class="toctree-l3"><a class="reference internal" href="#can-bus-interface">CAN Bus Interface</a>
-    </li>
-    <li class="toctree-l3"><a class="reference internal" href="#connectivity-options">Connectivity Options</a>
-    </li>
-    <li class="toctree-l3"><a class="reference internal" href="#power-management-system">Power Management System</a>
-    </li>
-    <li class="toctree-l3"><a class="reference internal" href="#advanced-features">Advanced Features</a>
-    </li>
-        </ul>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#how-to-flash-it">How to flash it</a>
-    </li>
-    </ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../faraday/">Faraday</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" >DIY</a>
     <ul>
@@ -141,7 +123,9 @@
                 </li>
     </ul>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../force/">Force</a>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Force</a>
+    <ul class="current">
+    </ul>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Notes</span></p>
@@ -191,7 +175,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
           <li class="breadcrumb-item">Hardware</li>
-      <li class="breadcrumb-item active">Faraday</li>
+      <li class="breadcrumb-item active">Force</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -200,78 +184,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="doggieevildoggie-board-faraday-edition">Doggie/evilDoggie Board - Faraday Edition</h1>
-<h2 id="introduction">Introduction</h2>
-<p>The <strong>Faraday Doggie &amp; evilDoggie Board</strong> is a professional-grade, dual-purpose CAN Bus adapter and research tool designed by <a href="https://faradaysec.com">Faraday</a> in collaboration with <a href="https://kalpa.com.ar">Kalpa</a>. This board offers a readymade, plug-and-play solution for CAN Bus analysis and security research. The board's design allows it to function as both a standard <strong>Doggie</strong> CAN Bus adapter and an <strong>evilDoggie</strong> research and testing tool, switching between modes via a hardware toggle.</p>
-<figure align="center">
-    <img src="../../res/faraday_board.png" alt="Faraday Board">
-</figure>
-
-<h2 id="hardware">Hardware</h2>
-<p>The board uses a ESP32-WROOM-32D microcontroler with 8 Mb of flash, allowing it to store both Doggie and evilDoggie firmwares simultaneously. The switch labelled Evil/Good can be used to switch betweeen the firmware images. The eye color provides visual confirmation of the selected firmware image (red for evil and blue for good).</p>
-<h3 id="can-bus-interface">CAN Bus Interface</h3>
-<p>The CAN communication stack comprises two critical components:</p>
-<ul>
-<li>ESP32 internal CAN-compatible controller (TWAI - Two-Wire Automotive Interface)</li>
-<li>External CAN tranceiver:<ul>
-<li>ISO1042DWVR Isolated CAN Transceiver</li>
-<li>Galvanic isolation up to 2.5 kV for electrical protection</li>
-<li>Enhanced ESD protection (±12 kV contact discharge)</li>
-<li>Wide common-mode range (-12V to +12V) for automotive environments</li>
-<li>Thermal shutdown protection and short-circuit immunity</li>
-<li>Low electromagnetic emissions compliant with automotive EMC standards</li>
-</ul>
-</li>
-</ul>
-<h3 id="connectivity-options">Connectivity Options</h3>
-<p>CAN Network Connection:</p>
-<ul>
-<li>Screw terminal blocks for internal bus connection or permanent installation</li>
-<li>DB9 connector for standard automotive/industrial applications</li>
-<li>DB9-to-OBD2 adapter compatibility for direct vehicle connection</li>
-<li>Jumper-selectable 120Ω termination resistor</li>
-</ul>
-<p>Host Connection:</p>
-<ul>
-<li>USB-C connector with integrated USB-to-Serial bridge</li>
-</ul>
-<h3 id="power-management-system">Power Management System</h3>
-<p>Power Source Selection:
-- USB-C 5V Bus Power (Jumper in Vusb position)
-- Automotive 12V Rail (via OBD2 or terminal block. Jumper not in Vusb position)
-- External DC Supply (6V-24V via terminal block. Jumper not in Vusb position)</p>
-<h3 id="advanced-features">Advanced Features</h3>
-<p>Dominant Override Circuit:</p>
-<ul>
-<li>Allows to force messages and custom states</li>
-<li>Custom fast-switching transistor implementation</li>
-<li>Essential for advanced security testing scenarios</li>
-<li>Electronically controlled via firmware commands</li>
-</ul>
-<figure align="center">
-    <img src="../../res/faraday_board2.png" alt="Faraday Board Hardware">
-</figure>
-
-<p>The hardware bill of materials and schematics are available in the repo's hardware directory.</p>
-<h2 id="how-to-flash-it">How to flash it</h2>
-<p>In order to flash the board we need to follow the ESP32 Doggie and evilDoggie <a href="../diy/esp32/intro/">instructions</a> to install the ESP32 and Rust dependencies.</p>
-<p>After installing the dependencies, we need to build two binaries with the board <strong>disconnected</strong>:</p>
-<pre><code>$ DEFMT_LOG=off cargo esp32 --bin evil_doggie --no-default-features --features twai,faraday
-
-$ DEFMT_LOG=off cargo esp32 --bin doggie --no-default-features --features twai,faraday
-</code></pre>
-<p>This commands are going to fail with <code>Error: espflash::no_serial</code> and thats ok, we want to build the binaries and not flash them.</p>
-<p>Now that the binaries are builded, it's time to flash them together on the board:</p>
-<pre><code>$ espflash flash --flash-size 8mb --partition-table bootloader/partitions.csv --bootloader bootloader/bootloader.bin --target-app-partition test target/xtensa-esp32-none-elf/release/doggie
-$ espflash flash --flash-size 8mb --partition-table bootloader/partitions.csv --bootloader bootloader/bootloader.bin --target-app-partition factory target/xtensa-esp32-none-elf/release/evil_doggie
-</code></pre>
-<p>And you are ready to use the Faraday Doggie &amp; evilDoggie board!</p>
+                <h1 id="coming-soon">Coming Soon</h1>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../../software/evil_doggie/force/" class="btn btn-neutral float-left" title="Force"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../diy/intro/" class="btn btn-neutral float-right" title="Introduction">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../diy/mcp/" class="btn btn-neutral float-left" title="MCP2515 Notes"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../software/ble/" class="btn btn-neutral float-right" title="BLE">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -294,10 +213,10 @@ $ espflash flash --flash-size 8mb --partition-table bootloader/partitions.csv --
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../../software/evil_doggie/force/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../diy/mcp/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../diy/intro/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../../software/ble/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>
