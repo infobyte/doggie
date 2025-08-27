@@ -56,3 +56,26 @@ Dominant Override Circuit:
 </figure>
 
 The hardware bill of materials and schematics are available in the repo's hardware directory.
+
+
+## How to flash it ##
+
+In order to flash the board we need to follow the ESP32 Doggie and evilDoggie [instructions](./diy/esp32/intro.md) to install the ESP32 and Rust dependencies.
+
+After installing the dependencies, we need to build two binaries with the board **disconnected**:
+
+```
+$ DEFMT_LOG=off cargo esp32 --bin evil_doggie --no-default-features --features twai,faraday
+
+$ DEFMT_LOG=off cargo esp32 --bin doggie --no-default-features --features twai,faraday
+```
+
+This commands are going to fail with `Error: espflash::no_serial` and thats ok, we want to build the binaries and not flash them.
+
+Now that the binaries are builded, it's time to flash them together on the board:
+```
+$ espflash flash --flash-size 8mb --partition-table bootloader/partitions.csv --bootloader bootloader/bootloader.bin --target-app-partition test target/xtensa-esp32-none-elf/release/doggie
+$ espflash flash --flash-size 8mb --partition-table bootloader/partitions.csv --bootloader bootloader/bootloader.bin --target-app-partition factory target/xtensa-esp32-none-elf/release/evil_doggie
+```
+
+And you are ready to use the Faraday Doggie & evilDoggie board!
