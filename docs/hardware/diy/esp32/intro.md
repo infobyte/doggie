@@ -78,7 +78,7 @@ $ ./monitor.sh /dev/ttyUSB0 target/xtensa-esp32-none-elf/release/evil_doggie
 2. Then we need to select the desired project with the `--bin` flag:
 
     * `doggie`
-    * `evil_doggie` 
+    * `evil_doggie`
 
 3. We also need to select the feature for the specific board, for now only two are supported:
 
@@ -87,5 +87,5 @@ $ ./monitor.sh /dev/ttyUSB0 target/xtensa-esp32-none-elf/release/evil_doggie
 
 4. And then we flash with:
 ```
-DEFMT_LOG=off cargo {BOARD} --bin doggie --disable-default-features --features {FEATURES}
+DEFMT_LOG=off cargo {BOARD} --bin doggie --no-default-features --features {FEATURES}
 ```

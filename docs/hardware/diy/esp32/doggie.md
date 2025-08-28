@@ -14,7 +14,7 @@ For example:
 DEFMT_LOG=off cargo esp32c3 --bin doggie
 
 # Doggie on ESP32 with MCP2515 and BLE
-DEFMT_LOG=off cargo esp32 --bin doggie --disable-default-features --features mcp,ble
+DEFMT_LOG=off cargo esp32 --bin doggie --no-default-features --features mcp,ble
 ```
 
 

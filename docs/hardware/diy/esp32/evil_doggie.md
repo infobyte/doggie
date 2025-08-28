@@ -8,7 +8,7 @@ For example:
 DEFMT_LOG=off cargo esp32c3 --bin evil_doggie
 
 # evilDoggie on ESP32 without BLE
-DEFMT_LOG=off cargo esp32 --bin evil_doggie --disable-default-features
+DEFMT_LOG=off cargo esp32 --bin evil_doggie --no-default-features
 ```
 
 ## **Supported Configurations**
@@ -31,7 +31,7 @@ __Connections__:
 | CAN FORCE |    -       |     FORCE     |
 
 
-For each esp32 varian we will use different pins that are defined but they could be easily changed in the code. Some variants are not implemented but are compatible and will be implemented on demand.
+For each esp32 variant we will use different pins that are defined but they could be easily changed in the code. Some variants are not implemented but are compatible and will be implemented on demand.
 
 __Connections variants__:
 
