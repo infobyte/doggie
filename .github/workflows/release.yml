@@ -112,43 +112,43 @@ jobs:
         ldproxy: true
 
     - name: Create output directory
-      run: mkdir ./doggie_esp32/bin
+      run: mkdir -p ./doggie_esp32/out_bin
 
     - name: Build Doggie esp32 twai,ble
       working-directory: ./doggie_esp32
-      run: cargo build --release --features=esp32 --target=xtensa-esp32-none-elf --bin doggie && cp ./target/xtensa-esp32-none-elf/release/doggie ./bin/doggie_esp32_twai_ble
+      run: cargo build --release --features=esp32 --target=xtensa-esp32-none-elf --bin doggie && cp ./target/xtensa-esp32-none-elf/release/doggie ./out_bin/doggie_esp32_twai_ble
 
     - name: Build Doggie for Faraday board
       working-directory: ./doggie_esp32
-      run: cargo build --release --no-default-features --features=esp32,faraday,twai --target=xtensa-esp32-none-elf --bin doggie && cp ./target/xtensa-esp32-none-elf/release/doggie ./bin/doggie_faraday
+      run: cargo build --release --no-default-features --features=esp32,faraday,twai --target=xtensa-esp32-none-elf --bin doggie && cp ./target/xtensa-esp32-none-elf/release/doggie ./out_bin/doggie_faraday
 
     - name: Build Doggie esp32c3 twai,ble
       working-directory: ./doggie_esp32
-      run: cargo build --release --features=esp32c3 --target=riscv32imc-unknown-none-elf --bin doggie && cp ./target/riscv32imc-unknown-none-elf/release/doggie ./bin/doggie_esp32c3_twai_ble 
+      run: cargo build --release --features=esp32c3 --target=riscv32imc-unknown-none-elf --bin doggie && cp ./target/riscv32imc-unknown-none-elf/release/doggie ./out_bin/doggie_esp32c3_twai_ble 
 
     - name: Build evilDoggie esp32c3 ble
       working-directory: ./doggie_esp32
-      run: cargo build --release --features=esp32c3 --target=riscv32imc-unknown-none-elf --bin evil_doggie && cp ./target/riscv32imc-unknown-none-elf/release/evil_doggie ./bin/evil_doggie_esp32c3_ble
+      run: cargo build --release --features=esp32c3 --target=riscv32imc-unknown-none-elf --bin evil_doggie && cp ./target/riscv32imc-unknown-none-elf/release/evil_doggie ./out_bin/evil_doggie_esp32c3_ble
 
     - name: Build evilDoggie esp32 ble
       working-directory: ./doggie_esp32
-      run: cargo build --release --features=esp32 --target=xtensa-esp32-none-elf --bin evil_doggie && cp ./target/xtensa-esp32-none-elf/release/evil_doggie ./bin/evil_doggie_esp32_ble
+      run: cargo build --release --features=esp32 --target=xtensa-esp32-none-elf --bin evil_doggie && cp ./target/xtensa-esp32-none-elf/release/evil_doggie ./out_bin/evil_doggie_esp32_ble
 
     - name: Build Doggie for Faraday board
       working-directory: ./doggie_esp32
-      run: cargo build --release --no-default-features --features=esp32 --target=xtensa-esp32-none-elf --bin evil_doggie && cp ./target/xtensa-esp32-none-elf/release/evil_doggie ./bin/evil_doggie_faraday
+      run: cargo build --release --no-default-features --features=esp32 --target=xtensa-esp32-none-elf --bin evil_doggie && cp ./target/xtensa-esp32-none-elf/release/evil_doggie ./out_bin/evil_doggie_faraday
 
     - name: Upload binaries
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4u
       with:
         name: doggie-esp32-binaries
         path: |
-          ./doggie_esp32/bin/doggie_esp32_twai_ble
-          ./doggie_esp32/bin/evil_doggie_esp32_ble
-          ./doggie_esp32/bin/doggie_esp32c3_twai_ble
-          ./doggie_esp32/bin/evil_doggie_esp32c3_ble
-          ./doggie_esp32/bin/doggie_faraday
-          ./doggie_esp32/bin/evil_doggie_faraday
+          ./doggie_esp32/out_bin/doggie_esp32_twai_ble
+          ./doggie_esp32/out_bin/evil_doggie_esp32_ble
+          ./doggie_esp32/out_bin/doggie_esp32c3_twai_ble
+          ./doggie_esp32/out_bin/evil_doggie_esp32c3_ble
+          ./doggie_esp32/out_bin/doggie_faraday
+          ./doggie_esp32/out_bin/evil_doggie_faraday
 
   release:
     runs-on: ubuntu-latest
