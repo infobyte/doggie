@@ -74,9 +74,13 @@ jobs:
       working-directory: ./doggie_pico
       run: DEFMT_LOG=off cargo build --release --bin evil_doggie --no-default-features --features=uart && cp ./target/thumbv6m-none-eabi/release/evil_doggie ./bin/evil_doggie_pico_uart
 
-    - name: Convert to uf2
+    - name: Convert Doggie to uf2
       working-directory: ./doggie_pico/bin/
-      run: elf2uf2-rs -v doggie_pico_usb_ble doggie_pico_usb_ble.uf2 && elf2uf2-rs -v evil_doggie_pico_uart evil_doggie_pico_uart.uf2
+      run: elf2uf2-rs -v doggie_pico_usb_ble doggie_pico_usb_ble.uf2
+
+    - name: Convert evilDoggie to uf2
+      working-directory: ./doggie_pico/bin/
+      run: elf2uf2-rs -v evil_doggie_pico_uart evil_doggie_pico_uart.uf2
 
     - name: Upload binaries
       uses: actions/upload-artifact@v4
@@ -102,7 +106,7 @@ jobs:
         override: true
 
     - name: Set up toolchain
-      run: cargo install ldproxy && cargo install espup --version 0.14.1 && espup install --toolchain-version 1.88.0
+      run: cargo install ldproxy && rustup toolchain install nightly --component rust-src && rustup target add riscv32imc-unknown-none-elf && cargo install espup --version 0.14.1 && espup install --toolchain-version 1.88.0
 
     - name: Create output directory
       run: mkdir ./doggie_esp32/bin
