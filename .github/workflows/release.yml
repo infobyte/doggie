@@ -18,10 +18,7 @@ jobs:
       with:
         toolchain: stable
         override: true
-
-    - name: Add rust target
-      working-directory: ./doggie_bluepill
-      run: rustup target add thumbv7m-none-eabi
+        target: thumbv7m-none-eabi
 
     - name: Create output directory
       run: mkdir ./doggie_bluepill/bin
@@ -54,10 +51,7 @@ jobs:
       with:
         toolchain: stable
         override: true
-
-    - name: Add rust target
-      working-directory: ./doggie_pico
-      run: rustup target add thumbv6m-none-eabi
+        target: thumbv6m-none-eabi
 
     - name: Install elf2uf2-rs
       working-directory: ./doggie_pico
@@ -74,13 +68,13 @@ jobs:
       working-directory: ./doggie_pico
       run: DEFMT_LOG=off cargo build --release --bin evil_doggie --no-default-features --features=uart && cp ./target/thumbv6m-none-eabi/release/evil_doggie ./bin/evil_doggie_pico_uart
 
-    # - name: Convert Doggie to uf2
-    #   working-directory: ./doggie_pico/bin/
-    #   run: elf2uf2-rs -v doggie_pico_usb_ble doggie_pico_usb_ble.uf2
+    - name: Convert Doggie to uf2
+      working-directory: ./doggie_pico/bin/
+      run: elf2uf2-rs -v doggie_pico_usb_ble doggie_pico_usb_ble.uf2
 
-    # - name: Convert evilDoggie to uf2
-    #   working-directory: ./doggie_pico/bin/
-    #   run: elf2uf2-rs -v evil_doggie_pico_uart evil_doggie_pico_uart.uf2
+    - name: Convert evilDoggie to uf2
+      working-directory: ./doggie_pico/bin/
+      run: elf2uf2-rs -v evil_doggie_pico_uart evil_doggie_pico_uart.uf2
 
     - name: Upload binaries
       uses: actions/upload-artifact@v4
@@ -88,7 +82,9 @@ jobs:
         name: doggie-pico-binaries
         path: |
           ./doggie_pico/bin/evil_doggie_pico_uart
+          ./doggie_pico/bin/evil_doggie_pico_uart.uf2
           ./doggie_pico/bin/doggie_pico_usb_ble
+          ./doggie_pico/bin/doggie_pico_usb_ble.uf2
 
   build_esp32:
     runs-on: ubuntu-latest
@@ -100,13 +96,17 @@ jobs:
     - name: Set up Rust
       uses: actions-rs/toolchain@v1
       with:
+        profile: minimal
         toolchain: nightly
         override: true
         components: rust-src
         target: riscv32imc-unknown-none-elf
 
-    - name: Set up toolchain
-      run: cargo install ldproxy && cargo install espup && espup install
+    - name: Set up espup
+      uses: esp-rs/xtensa-toolchain@v1.5
+      with:
+        default: true
+        ldproxy: true
 
     - name: Create output directory
       run: mkdir ./doggie_esp32/bin
