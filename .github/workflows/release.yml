@@ -52,7 +52,7 @@ jobs:
     - name: Set up Rust
       uses: actions-rs/toolchain@v1
       with:
-        toolchain: stable
+        toolchain: 1.88.0
         override: true
         target: thumbv6m-none-eabi
 
@@ -128,7 +128,7 @@ jobs:
 
     - name: Build evilDoggie esp32c3 ble
       working-directory: ./doggie_esp32
-      run: cargo buila d--release --features=esp32c3 --target=riscv32imc-unknown-none-elf --bin evil_doggie && cp ./target/riscv32imc-unknown-none-elf/release/evil_doggie ./bin/evil_doggie_esp32c3_ble
+      run: cargo build --release --features=esp32c3 --target=riscv32imc-unknown-none-elf --bin evil_doggie && cp ./target/riscv32imc-unknown-none-elf/release/evil_doggie ./bin/evil_doggie_esp32c3_ble
 
     - name: Build evilDoggie esp32 ble
       working-directory: ./doggie_esp32
