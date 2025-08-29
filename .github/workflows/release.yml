@@ -23,18 +23,24 @@ jobs:
       working-directory: ./doggie_bluepill
       run: rustup target add thumbv7m-none-eabi
 
-    - name: Build doggie bluepill
+    - name: Create output directory
+      run: mkdir ./doggie_bluepill/bin
+
+    - name: Build doggie bluepill UART and CAN Controller
       working-directory: ./doggie_bluepill
-      run: cargo build --release --all
+      run: cargo build --bin doggie --release --no-default-features --features uart,int && mv ./target/thumbv7m-none-eabi/release/doggie ./bin/doggie_bluepill_uart_int
+
+    - name: Build doggie bluepill USB and MCP2515
+      working-directory: ./doggie_bluepill
+      run: cargo build --bin doggie --release --no-default-features --features usb,mcp && mv ./target/thumbv7m-none-eabi/release/doggie ./bin/doggie_bluepill_usb_mcp
 
     - name: Upload binaries
       uses: actions/upload-artifact@v4
       with:
         name: doggie-bluepill-binaries
         path: |
-          ./doggie_bluepill/target/thumbv7m-none-eabi/release/doggie_bluepill_usb_mcp
-          ./doggie_bluepill/target/thumbv7m-none-eabi/release/doggie_bluepill_uart_mcp
-          ./doggie_bluepill/target/thumbv7m-none-eabi/release/doggie_bluepill_uart_int
+          ./doggie_bluepill/bin/doggie_bluepill_usb_mcp
+          ./doggie_bluepill/bin/doggie_bluepill_uart_int
 
   build_pico:
     runs-on: ubuntu-latest
@@ -57,23 +63,30 @@ jobs:
       working-directory: ./doggie_pico
       run: sudo apt update && sudo apt install libudev-dev && cargo install elf2uf2-rs
 
-    - name: Build doggie_pico
+    - name: Create output directory
+      run: mkdir ./doggie_pico/bin
+
+    - name: Build Doggie for Pico with USB and BLE
       working-directory: ./doggie_pico
-      run: cargo build --release --all
+      run: DEFMT_LOG=off cargo build --release --bin doggie && cp ./target/thumbv6m-none-eabi/release/doggie ./bin/doggie_pico_usb_ble
+
+    - name: Build evilDoggie for Pico with uart only
+      working-directory: ./doggie_pico
+      run: DEFMT_LOG=off cargo build --release --bin evil_doggie --no-default-features --features=uart && cp ./target/thumbv6m-none-eabi/release/evil_doggie ./bin/evil_doggie_pico_uart
 
     - name: Convert to uf2
-      working-directory: ./doggie_pico/target/thumbv6m-none-eabi/release/
-      run: elf2uf2-rs doggie_pico_usb_mcp doggie_pico_usb_mcp.uf2 && elf2uf2-rs doggie_pico_uart_mcp doggie_pico_uart_mcp.uf2
+      working-directory: ./doggie_pico/bin/
+      run: elf2uf2-rs doggie_pico_usb_ble doggie_pico_usb_ble.uf2 && elf2uf2-rs evil_doggie_pico_uart evil_doggie_pico_uart.uf2
 
     - name: Upload binaries
       uses: actions/upload-artifact@v4
       with:
         name: doggie-pico-binaries
         path: |
-          ./doggie_pico/target/thumbv6m-none-eabi/release/doggie_pico_uart_mcp
-          ./doggie_pico/target/thumbv6m-none-eabi/release/doggie_pico_uart_mcp.uf2
-          ./doggie_pico/target/thumbv6m-none-eabi/release/doggie_pico_usb_mcp
-          ./doggie_pico/target/thumbv6m-none-eabi/release/doggie_pico_usb_mcp.uf2
+          ./doggie_pico/bin/evil_doggie_pico_uart
+          ./doggie_pico/bin/evil_doggie_pico_uart.uf2
+          ./doggie_pico/bin/doggie_pico_usb_ble
+          ./doggie_pico/bin/doggie_pico_usb_ble.uf2
 
   build_esp32:
     runs-on: ubuntu-latest
@@ -89,18 +102,34 @@ jobs:
         override: true
 
     - name: Set up toolchain
-      run: cargo install ldproxy && cargo install espup && espup install --toolchain-version 1.82.0.1
+      run: cargo install ldproxy && cargo install espup --version 0.13.0 && espup install --toolchain-version 1.84.0
 
-    - name: Build doggie_esp32
+    - name: Create output directory
+      run: mkdir ./doggie_esp32/bin
+
+    - name: Build Doggie esp32 twai,ble
       working-directory: ./doggie_esp32
-      run: . $HOME/export-esp.sh && DEFMT_LOG=off cargo build --release
+      run: . $HOME/export-esp.sh && DEFMT_LOG=off cargo build --release --features=esp32 --target=xtensa-esp32-none-elf --bin doggie && cp ./target/xtensa-esp32-none-elf/release/doggie ./bin/doggie_esp32_twai_ble
 
+    - name: Build Doggie esp32c3 twai,ble
+      working-directory: ./doggie_esp32
+      run: . $HOME/export-esp.sh && DEFMT_LOG=off cargo build --release --features=esp32c3 --target=riscv32imc-unknown-none-elf --bin doggie && cp ./target/riscv32imc-unknown-none-elf/release/doggie ./bin/doggie_esp32c3_twai_ble 
+
+    - name: Build evilDoggie esp32c3 ble
+      working-directory: ./doggie_esp32
+      run: . $HOME/export-esp.sh && DEFMT_LOG=off cargo buila d--release --features=esp32c3 --target=riscv32imc-unknown-none-elf --bin evil_doggie && cp ./target/riscv32imc-unknown-none-elf/release/evil_doggie ./bin/evil_doggie_esp32c3_ble
+    - name: Build evilDoggie esp32 ble
+      working-directory: ./doggie_esp32
+      run: . $HOME/export-esp.sh && DEFMT_LOG=off cargo build --release --features=esp32 --target=xtensa-esp32-none-elf --bin evil_doggie && cp ./target/xtensa-esp32-none-elf/release/evil_doggie ./bin/evil_doggie_esp32_ble
     - name: Upload binaries
       uses: actions/upload-artifact@v4
       with:
         name: doggie-esp32-binaries
         path: |
-          ./doggie_esp32/target/xtensa-esp32-none-elf/release/doggie_esp32
+          ./doggie_esp32/bin/doggie_esp32_twai_ble
+          ./doggie_esp32/bin/evil_doggie_esp32_ble
+          ./doggie_esp32/bin/doggie_esp32c3_twai_ble
+          ./doggie_esp32/bin/evil_doggie_esp32c3_ble
 
   release:
     runs-on: ubuntu-latest
