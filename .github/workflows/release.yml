@@ -19,7 +19,7 @@ jobs:
     - name: Set up Rust
       uses: actions-rs/toolchain@v1
       with:
-        toolchain: 1.91.0
+        toolchain: stable
         override: true
         target: thumbv7m-none-eabi
 
@@ -52,7 +52,6 @@ jobs:
     - name: Set up Rust
       uses: actions-rs/toolchain@v1
       with:
-        toolchain: 1.88.0
         override: true
         target: thumbv6m-none-eabi
 
@@ -100,7 +99,7 @@ jobs:
       uses: actions-rs/toolchain@v1
       with:
         profile: minimal
-        toolchain: 1.91.0-nightly
+        toolchain: nightly
         override: true
         components: rust-src
         target: riscv32imc-unknown-none-elf
@@ -108,7 +107,6 @@ jobs:
     - name: Set up espup
       uses: esp-rs/xtensa-toolchain@v1.5
       with:
-        toolchain: 1.91.0-nightly
         default: true
         ldproxy: true
 
