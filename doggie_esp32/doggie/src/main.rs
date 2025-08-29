@@ -91,9 +91,6 @@ async fn main(spawner: Spawner) {
         spawner.spawn(blink_task(led)).unwrap();
     }
 
-    // EvilDoggie unshort bus
-    let evil_pin = Output::new(peripherals.GPIO27, Level::High);
-
     // Serial logging initialization
     esp_serial::init_dbg!(peripherals);
 
