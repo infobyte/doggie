@@ -5,6 +5,9 @@ on:
     tags:
       - "v*" # Trigger on tags starting with 'v' (e.g., v1.0.0)
 
+env:
+  DEFMT_LOG: off
+
 jobs:
   build_bluepill:
     runs-on: ubuntu-latest
@@ -25,11 +28,11 @@ jobs:
 
     - name: Build doggie bluepill UART and CAN Controller
       working-directory: ./doggie_bluepill
-      run: DEFMT=off cargo build --bin doggie --release --no-default-features --features uart,int && mv ./target/thumbv7m-none-eabi/release/doggie ./bin/doggie_bluepill_uart_int
+      run: cargo build --bin doggie --release --no-default-features --features uart,int && mv ./target/thumbv7m-none-eabi/release/doggie ./bin/doggie_bluepill_uart_int
 
     - name: Build doggie bluepill USB and MCP2515
       working-directory: ./doggie_bluepill
-      run: DEFMT=off cargo build --bin doggie --release --no-default-features --features usb,mcp && mv ./target/thumbv7m-none-eabi/release/doggie ./bin/doggie_bluepill_usb_mcp
+      run: cargo build --bin doggie --release --no-default-features --features usb,mcp && mv ./target/thumbv7m-none-eabi/release/doggie ./bin/doggie_bluepiloff
 
     - name: Upload binaries
       uses: actions/upload-artifact@v4
@@ -62,11 +65,11 @@ jobs:
 
     - name: Build Doggie for Pico with USB and BLE
       working-directory: ./doggie_pico
-      run: DEFMT_LOG=off cargo build --release --bin doggie && cp ./target/thumbv6m-none-eabi/release/doggie ./bin/doggie_pico_usb_ble
+      run: cargo build --release --bin doggie && cp ./target/thumbv6m-none-eabi/release/doggie ./bin/doggie_pico_usb_ble
 
     - name: Build evilDoggie for Pico with uart only
       working-directory: ./doggie_pico
-      run: DEFMT_LOG=off cargo build --release --bin evil_doggie --no-default-features --features=uart && cp ./target/thumbv6m-none-eabi/release/evil_doggie ./bin/evil_doggie_pico_uart
+      run: cargo build --release --bin evil_doggie --no-default-features --features=uart && cp ./target/thumbv6m-none-eabi/release/evil_doggie ./bin/evil_doggie_pico_uart
 
     - name: Convert Doggie to uf2
       working-directory: ./doggie_pico/bin/
@@ -113,27 +116,27 @@ jobs:
 
     - name: Build Doggie esp32 twai,ble
       working-directory: ./doggie_esp32
-      run: . $HOME/export-esp.sh && DEFMT_LOG=off cargo build --release --features=esp32 --target=xtensa-esp32-none-elf --bin doggie && cp ./target/xtensa-esp32-none-elf/release/doggie ./bin/doggie_esp32_twai_ble
+      run: cargo build --release --features=esp32 --target=xtensa-esp32-none-elf --bin doggie && cp ./target/xtensa-esp32-none-elf/release/doggie ./bin/doggie_esp32_twai_ble
 
     - name: Build Doggie for Faraday board
       working-directory: ./doggie_esp32
-      run: . $HOME/export-esp.sh && DEFMT_LOG=off cargo build --release --no-default-features --features=esp32,faraday,twai --target=xtensa-esp32-none-elf --bin doggie && cp ./target/xtensa-esp32-none-elf/release/doggie ./bin/doggie_faraday
+      run: cargo build --release --no-default-features --features=esp32,faraday,twai --target=xtensa-esp32-none-elf --bin doggie && cp ./target/xtensa-esp32-none-elf/release/doggie ./bin/doggie_faraday
 
     - name: Build Doggie esp32c3 twai,ble
       working-directory: ./doggie_esp32
-      run: . $HOME/export-esp.sh && DEFMT_LOG=off cargo build --release --features=esp32c3 --target=riscv32imc-unknown-none-elf --bin doggie && cp ./target/riscv32imc-unknown-none-elf/release/doggie ./bin/doggie_esp32c3_twai_ble 
+      run: cargo build --release --features=esp32c3 --target=riscv32imc-unknown-none-elf --bin doggie && cp ./target/riscv32imc-unknown-none-elf/release/doggie ./bin/doggie_esp32c3_twai_ble 
 
     - name: Build evilDoggie esp32c3 ble
       working-directory: ./doggie_esp32
-      run: . $HOME/export-esp.sh && DEFMT_LOG=off cargo buila d--release --features=esp32c3 --target=riscv32imc-unknown-none-elf --bin evil_doggie && cp ./target/riscv32imc-unknown-none-elf/release/evil_doggie ./bin/evil_doggie_esp32c3_ble
+      run: cargo buila d--release --features=esp32c3 --target=riscv32imc-unknown-none-elf --bin evil_doggie && cp ./target/riscv32imc-unknown-none-elf/release/evil_doggie ./bin/evil_doggie_esp32c3_ble
 
     - name: Build evilDoggie esp32 ble
       working-directory: ./doggie_esp32
-      run: . $HOME/export-esp.sh && DEFMT_LOG=off cargo build --release --features=esp32 --target=xtensa-esp32-none-elf --bin evil_doggie && cp ./target/xtensa-esp32-none-elf/release/evil_doggie ./bin/evil_doggie_esp32_ble
+      run: cargo build --release --features=esp32 --target=xtensa-esp32-none-elf --bin evil_doggie && cp ./target/xtensa-esp32-none-elf/release/evil_doggie ./bin/evil_doggie_esp32_ble
 
     - name: Build Doggie for Faraday board
       working-directory: ./doggie_esp32
-      run: . $HOME/export-esp.sh && DEFMT_LOG=off cargo build --release --no-default-features --features=esp32 --target=xtensa-esp32-none-elf --bin evil_doggie && cp ./target/xtensa-esp32-none-elf/release/evil_doggie ./bin/evil_doggie_faraday
+      run: cargo build --release --no-default-features --features=esp32 --target=xtensa-esp32-none-elf --bin evil_doggie && cp ./target/xtensa-esp32-none-elf/release/evil_doggie ./bin/evil_doggie_faraday
 
     - name: Upload binaries
       uses: actions/upload-artifact@v4
