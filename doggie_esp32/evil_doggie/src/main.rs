@@ -24,7 +24,7 @@ use evil_core::{
     EvilCore, EvilMenu,
 };
 
-#[cfg(feature = "esp32c3")]
+#[cfg(all(feature = "esp32c3", not(feature = "ble")))]
 use esp_hal::timer::timg::TimerGroup;
 
 esp_serial::init_globals!();
