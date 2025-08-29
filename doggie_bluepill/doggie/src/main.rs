@@ -76,7 +76,7 @@ async fn blink_task(mut led: Output<'static>) {
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
-    let p = bluepill::board::init();
+    let mut p = bluepill::board::init();
 
     let led = Output::new(p.PC13, Level::High, Speed::Low);
 
