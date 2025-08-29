@@ -76,7 +76,7 @@ jobs:
 
     - name: Convert to uf2
       working-directory: ./doggie_pico/bin/
-      run: elf2uf2-rs doggie_pico_usb_ble doggie_pico_usb_ble.uf2 && elf2uf2-rs evil_doggie_pico_uart evil_doggie_pico_uart.uf2
+      run: elf2uf2-rs -v doggie_pico_usb_ble doggie_pico_usb_ble.uf2 && elf2uf2-rs -v evil_doggie_pico_uart evil_doggie_pico_uart.uf2
 
     - name: Upload binaries
       uses: actions/upload-artifact@v4
@@ -102,7 +102,7 @@ jobs:
         override: true
 
     - name: Set up toolchain
-      run: cargo install ldproxy && cargo install espup --version 0.13.0 && espup install --toolchain-version 1.84.0
+      run: cargo install ldproxy && cargo install espup --version 0.14.1 && espup install --toolchain-version 1.88.0
 
     - name: Create output directory
       run: mkdir ./doggie_esp32/bin
