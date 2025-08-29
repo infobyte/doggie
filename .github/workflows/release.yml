@@ -52,6 +52,7 @@ jobs:
     - name: Set up Rust
       uses: actions-rs/toolchain@v1
       with:
+        toolchain: stable
         override: true
         target: thumbv6m-none-eabi
 
