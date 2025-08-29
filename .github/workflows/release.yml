@@ -32,7 +32,7 @@ jobs:
 
     - name: Build doggie bluepill USB and MCP2515
       working-directory: ./doggie_bluepill
-      run: cargo build --bin doggie --release --no-default-features --features usb,mcp && mv ./target/thumbv7m-none-eabi/release/doggie ./bin/doggie_bluepiloff
+      run: cargo build --bin doggie --release --no-default-features --features usb,mcp && mv ./target/thumbv7m-none-eabi/release/doggie ./bin/doggie_bluepill_usb_mcp
 
     - name: Upload binaries
       uses: actions/upload-artifact@v4
@@ -166,7 +166,7 @@ jobs:
     - name: Create GitHub Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: doggie_bluepill_usb_mcp, doggie_bluepill_uart_int, doggie_pico_usb_ble, doggie_pico_ble.uf2, evil_doggie_pico_uart, evil_doggie_pico_uart.uf2, doggie_esp32_twai_ble, doggie_esp32c3_twai_ble, evil_doggie_esp32_ble, evil_doggie_esp32c3_ble, doggie_faraday, evil_doggie_faraday
+        artifacts: doggie_bluepill_usb_mcp, doggie_bluepill_uart_int, doggie_pico_usb_ble, doggie_pico_usb_ble.uf2, evil_doggie_pico_uart, evil_doggie_pico_uart.uf2, doggie_esp32_twai_ble, doggie_esp32c3_twai_ble, evil_doggie_esp32_ble, evil_doggie_esp32c3_ble, doggie_faraday, evil_doggie_faraday
         token: ${{ secrets.GITHUB_TOKEN }}
         tag: ${{ github.ref_name }}
         name: "Doggie Release ${{ github.ref_name }}"
