@@ -198,7 +198,7 @@
 DEFMT_LOG=off cargo esp32c3 --bin doggie
 
 # Doggie on ESP32 with MCP2515 and BLE
-DEFMT_LOG=off cargo esp32 --bin doggie --disable-default-features --features mcp,ble
+DEFMT_LOG=off cargo esp32 --bin doggie --no-default-features --features mcp,ble
 </code></pre>
 <h2 id="supported-configurations"><strong>Supported Configurations</strong></h2>
 <p>The ESP32 implementation supports the following configurations.</p>
@@ -215,38 +215,38 @@ DEFMT_LOG=off cargo esp32 --bin doggie --disable-default-features --features mcp
 <table>
 <thead>
 <tr>
-<th align="center">Function</th>
-<th align="center">MCP2515</th>
+<th style="text-align: center;">Function</th>
+<th style="text-align: center;">MCP2515</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td align="center">Vcc 3.3</td>
-<td align="center">VCC</td>
+<td style="text-align: center;">Vcc 3.3</td>
+<td style="text-align: center;">VCC</td>
 </tr>
 <tr>
-<td align="center">Vcc 5v</td>
-<td align="center">Tranceiver Vcc</td>
+<td style="text-align: center;">Vcc 5v</td>
+<td style="text-align: center;">Tranceiver Vcc</td>
 </tr>
 <tr>
-<td align="center">GND</td>
-<td align="center">GND</td>
+<td style="text-align: center;">GND</td>
+<td style="text-align: center;">GND</td>
 </tr>
 <tr>
-<td align="center">MOSI</td>
-<td align="center">SI</td>
+<td style="text-align: center;">MOSI</td>
+<td style="text-align: center;">SI</td>
 </tr>
 <tr>
-<td align="center">MISO</td>
-<td align="center">SO</td>
+<td style="text-align: center;">MISO</td>
+<td style="text-align: center;">SO</td>
 </tr>
 <tr>
-<td align="center">Clock</td>
-<td align="center">SCK</td>
+<td style="text-align: center;">Clock</td>
+<td style="text-align: center;">SCK</td>
 </tr>
 <tr>
-<td align="center">CS</td>
-<td align="center">CS</td>
+<td style="text-align: center;">CS</td>
+<td style="text-align: center;">CS</td>
 </tr>
 </tbody>
 </table>
@@ -255,41 +255,41 @@ DEFMT_LOG=off cargo esp32 --bin doggie --disable-default-features --features mcp
 <table>
 <thead>
 <tr>
-<th align="center">Function</th>
-<th align="center">Level Shifter</th>
-<th align="center">MCP2515</th>
+<th style="text-align: center;">Function</th>
+<th style="text-align: center;">Level Shifter</th>
+<th style="text-align: center;">MCP2515</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td align="center">Vcc</td>
-<td align="center">-</td>
-<td align="center">5v</td>
+<td style="text-align: center;">Vcc</td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;">5v</td>
 </tr>
 <tr>
-<td align="center">GND</td>
-<td align="center">-</td>
-<td align="center">GND</td>
+<td style="text-align: center;">GND</td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;">GND</td>
 </tr>
 <tr>
-<td align="center">MOSI</td>
-<td align="center">&lt;-----------&gt;</td>
-<td align="center">SI</td>
+<td style="text-align: center;">MOSI</td>
+<td style="text-align: center;">&lt;-----------&gt;</td>
+<td style="text-align: center;">SI</td>
 </tr>
 <tr>
-<td align="center">MISO</td>
-<td align="center">&lt;-----------&gt;</td>
-<td align="center">SO</td>
+<td style="text-align: center;">MISO</td>
+<td style="text-align: center;">&lt;-----------&gt;</td>
+<td style="text-align: center;">SO</td>
 </tr>
 <tr>
-<td align="center">Clock</td>
-<td align="center">&lt;-----------&gt;</td>
-<td align="center">SCK</td>
+<td style="text-align: center;">Clock</td>
+<td style="text-align: center;">&lt;-----------&gt;</td>
+<td style="text-align: center;">SCK</td>
 </tr>
 <tr>
-<td align="center">CS</td>
-<td align="center">&lt;-----------&gt;</td>
-<td align="center">CS</td>
+<td style="text-align: center;">CS</td>
+<td style="text-align: center;">&lt;-----------&gt;</td>
+<td style="text-align: center;">CS</td>
 </tr>
 </tbody>
 </table>
@@ -307,26 +307,26 @@ DEFMT_LOG=off cargo esp32 --bin doggie --disable-default-features --features mcp
 <table>
 <thead>
 <tr>
-<th align="center">Function</th>
-<th align="center">Tranceiver</th>
+<th style="text-align: center;">Function</th>
+<th style="text-align: center;">Tranceiver</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td align="center">Vcc</td>
-<td align="center">VCC</td>
+<td style="text-align: center;">Vcc</td>
+<td style="text-align: center;">VCC</td>
 </tr>
 <tr>
-<td align="center">GND</td>
-<td align="center">GND</td>
+<td style="text-align: center;">GND</td>
+<td style="text-align: center;">GND</td>
 </tr>
 <tr>
-<td align="center">CAN TX</td>
-<td align="center">TX</td>
+<td style="text-align: center;">CAN TX</td>
+<td style="text-align: center;">TX</td>
 </tr>
 <tr>
-<td align="center">CAN RX</td>
-<td align="center">RX</td>
+<td style="text-align: center;">CAN RX</td>
+<td style="text-align: center;">RX</td>
 </tr>
 </tbody>
 </table>
@@ -335,61 +335,61 @@ DEFMT_LOG=off cargo esp32 --bin doggie --disable-default-features --features mcp
 <table>
 <thead>
 <tr>
-<th align="center">Function</th>
-<th align="center">ESP32</th>
-<th align="center">ESP32c3</th>
+<th style="text-align: center;">Function</th>
+<th style="text-align: center;">ESP32</th>
+<th style="text-align: center;">ESP32c3</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td align="center">Vcc 3.3</td>
-<td align="center">3v3</td>
-<td align="center">3.3</td>
+<td style="text-align: center;">Vcc 3.3</td>
+<td style="text-align: center;">3v3</td>
+<td style="text-align: center;">3.3</td>
 </tr>
 <tr>
-<td align="center">Vcc 5v</td>
-<td align="center">VIN/5v</td>
-<td align="center">5v</td>
+<td style="text-align: center;">Vcc 5v</td>
+<td style="text-align: center;">VIN/5v</td>
+<td style="text-align: center;">5v</td>
 </tr>
 <tr>
-<td align="center">GND</td>
-<td align="center">GND</td>
-<td align="center">G</td>
+<td style="text-align: center;">GND</td>
+<td style="text-align: center;">GND</td>
+<td style="text-align: center;">G</td>
 </tr>
 <tr>
-<td align="center">MOSI</td>
-<td align="center">D13</td>
-<td align="center">6</td>
+<td style="text-align: center;">MOSI</td>
+<td style="text-align: center;">D13</td>
+<td style="text-align: center;">6</td>
 </tr>
 <tr>
-<td align="center">MISO</td>
-<td align="center">D12</td>
-<td align="center">5</td>
+<td style="text-align: center;">MISO</td>
+<td style="text-align: center;">D12</td>
+<td style="text-align: center;">5</td>
 </tr>
 <tr>
-<td align="center">Clock</td>
-<td align="center">D14</td>
-<td align="center">9</td>
+<td style="text-align: center;">Clock</td>
+<td style="text-align: center;">D14</td>
+<td style="text-align: center;">9</td>
 </tr>
 <tr>
-<td align="center">CS</td>
-<td align="center">D15</td>
-<td align="center">7</td>
+<td style="text-align: center;">CS</td>
+<td style="text-align: center;">D15</td>
+<td style="text-align: center;">7</td>
 </tr>
 <tr>
-<td align="center">CAN TX</td>
-<td align="center">D4</td>
-<td align="center">10</td>
+<td style="text-align: center;">CAN TX</td>
+<td style="text-align: center;">D4</td>
+<td style="text-align: center;">10</td>
 </tr>
 <tr>
-<td align="center">CAN RX</td>
-<td align="center">D3</td>
-<td align="center">9</td>
+<td style="text-align: center;">CAN RX</td>
+<td style="text-align: center;">D3</td>
+<td style="text-align: center;">9</td>
 </tr>
 <tr>
-<td align="center">LOGS (UART)</td>
-<td align="center">D10</td>
-<td align="center">3</td>
+<td style="text-align: center;">LOGS (UART)</td>
+<td style="text-align: center;">D10</td>
+<td style="text-align: center;">3</td>
 </tr>
 </tbody>
 </table>

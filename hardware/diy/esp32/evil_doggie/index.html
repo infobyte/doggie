@@ -192,7 +192,7 @@
 DEFMT_LOG=off cargo esp32c3 --bin evil_doggie
 
 # evilDoggie on ESP32 without BLE
-DEFMT_LOG=off cargo esp32 --bin evil_doggie --disable-default-features
+DEFMT_LOG=off cargo esp32 --bin evil_doggie --no-default-features
 </code></pre>
 <h2 id="supported-configurations"><strong>Supported Configurations</strong></h2>
 <p>The ESP32 implementation supports only one configuration where the GPIOs are connected directly to a standard CAN Bus driver or the <a href="../../../force/">evilDoggie custom driver</a>.</p>
@@ -202,84 +202,84 @@ DEFMT_LOG=off cargo esp32 --bin evil_doggie --disable-default-features
 <table>
 <thead>
 <tr>
-<th align="center">Function</th>
-<th align="center">Driver</th>
-<th align="center">Custom Driver</th>
+<th style="text-align: center;">Function</th>
+<th style="text-align: center;">Driver</th>
+<th style="text-align: center;">Custom Driver</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td align="center">Vcc</td>
-<td align="center">VCC</td>
-<td align="center">VCC</td>
+<td style="text-align: center;">Vcc</td>
+<td style="text-align: center;">VCC</td>
+<td style="text-align: center;">VCC</td>
 </tr>
 <tr>
-<td align="center">GND</td>
-<td align="center">GND</td>
-<td align="center">GND</td>
+<td style="text-align: center;">GND</td>
+<td style="text-align: center;">GND</td>
+<td style="text-align: center;">GND</td>
 </tr>
 <tr>
-<td align="center">CAN TX</td>
-<td align="center">TX</td>
-<td align="center">TX</td>
+<td style="text-align: center;">CAN TX</td>
+<td style="text-align: center;">TX</td>
+<td style="text-align: center;">TX</td>
 </tr>
 <tr>
-<td align="center">CAN RX</td>
-<td align="center">RX</td>
-<td align="center">RX</td>
+<td style="text-align: center;">CAN RX</td>
+<td style="text-align: center;">RX</td>
+<td style="text-align: center;">RX</td>
 </tr>
 <tr>
-<td align="center">CAN FORCE</td>
-<td align="center">-</td>
-<td align="center">FORCE</td>
+<td style="text-align: center;">CAN FORCE</td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;">FORCE</td>
 </tr>
 </tbody>
 </table>
-<p>For each esp32 varian we will use different pins that are defined but they could be easily changed in the code. Some variants are not implemented but are compatible and will be implemented on demand.</p>
+<p>For each esp32 variant we will use different pins that are defined but they could be easily changed in the code. Some variants are not implemented but are compatible and will be implemented on demand.</p>
 <p><strong>Connections variants</strong>:</p>
 <table>
 <thead>
 <tr>
-<th align="center">Function</th>
-<th align="center">ESP32</th>
-<th align="center">ESP32c3</th>
+<th style="text-align: center;">Function</th>
+<th style="text-align: center;">ESP32</th>
+<th style="text-align: center;">ESP32c3</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td align="center">Vcc 3.3</td>
-<td align="center">3v3</td>
-<td align="center">3.3</td>
+<td style="text-align: center;">Vcc 3.3</td>
+<td style="text-align: center;">3v3</td>
+<td style="text-align: center;">3.3</td>
 </tr>
 <tr>
-<td align="center">Vcc 5v</td>
-<td align="center">VIN/5v</td>
-<td align="center">5v</td>
+<td style="text-align: center;">Vcc 5v</td>
+<td style="text-align: center;">VIN/5v</td>
+<td style="text-align: center;">5v</td>
 </tr>
 <tr>
-<td align="center">GND</td>
-<td align="center">GND</td>
-<td align="center">G</td>
+<td style="text-align: center;">GND</td>
+<td style="text-align: center;">GND</td>
+<td style="text-align: center;">G</td>
 </tr>
 <tr>
-<td align="center">CAN TX</td>
-<td align="center">26</td>
-<td align="center">1</td>
+<td style="text-align: center;">CAN TX</td>
+<td style="text-align: center;">26</td>
+<td style="text-align: center;">1</td>
 </tr>
 <tr>
-<td align="center">CAN RX</td>
-<td align="center">25</td>
-<td align="center">0</td>
+<td style="text-align: center;">CAN RX</td>
+<td style="text-align: center;">25</td>
+<td style="text-align: center;">0</td>
 </tr>
 <tr>
-<td align="center">CAN FORCE</td>
-<td align="center">27</td>
-<td align="center">10</td>
+<td style="text-align: center;">CAN FORCE</td>
+<td style="text-align: center;">27</td>
+<td style="text-align: center;">10</td>
 </tr>
 <tr>
-<td align="center">LOGS (UART)</td>
-<td align="center">17</td>
-<td align="center">3</td>
+<td style="text-align: center;">LOGS (UART)</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">3</td>
 </tr>
 </tbody>
 </table>

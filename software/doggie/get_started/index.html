@@ -228,20 +228,20 @@ sudo apt-get install can-utils
 </ul>
 <p>The <code>-S{baudrate}</code> determines the serial interface baudrate (Not necessary on most USB implementations)</p>
 <pre><code class="language-bash"># Start the slcan daemon:
-sudo slcand -s5 -S115200 /dev/ttyUSB0 can0
+sudo slcand -o -s5 -S115200 /dev/ttyUSB0 doggie0
 
 # Set the interface UP
-sudo ifconfig can0 up
+sudo ifconfig doggie0 up txqueuelen 500
 </code></pre>
 <h3 id="3-sendreceive-can-messages">3. Send/Receive CAN Messages</h3>
 <ul>
 <li>
 <p><strong>Send a CAN message:</strong><br />
-<code>cansend can0 123#11223344</code></p>
+<code>cansend doggie0 123#11223344</code></p>
 </li>
 <li>
 <p><strong>Receive CAN messages:</strong><br />
-<code>candump can0</code></p>
+<code>candump doggie0</code></p>
 </li>
 </ul>
 <p>For more advanced commands, refer to the <a href="https://www.kernel.org/doc/Documentation/networking/can.txt">SocketCAN documentation</a>.</p>
