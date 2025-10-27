@@ -16,7 +16,7 @@ pub fn create_uart<'d>(
     dma2: peripherals::DMA1_CH6,
 ) -> UartWrapper<'d> {
     let mut uart_config = usart::Config::default();
-    uart_config.baudrate = 921_600;
+    uart_config.baudrate = 115_200;
 
     // Initialize UART
     UartWrapper::new(Uart::new(uart, rx, tx, UartIrqs, dma1, dma2, uart_config).unwrap())

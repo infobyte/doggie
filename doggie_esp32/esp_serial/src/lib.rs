@@ -87,7 +87,7 @@ macro_rules! create_wired_serial {
         #[cfg(not(feature = "esp32c3"))]
         let wired_serial = {
             let (tx_pin, rx_pin) = ($p.GPIO1, $p.GPIO3);
-            let config = esp_hal::uart::Config::default().with_baudrate(921600);
+            let config = esp_hal::uart::Config::default().with_baudrate(115200);
 
             Uart::new($p.UART0, config)
                 .unwrap()
