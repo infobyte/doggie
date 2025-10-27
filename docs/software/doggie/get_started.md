@@ -39,21 +39,21 @@ The `-S{baudrate}` determines the serial interface baudrate (Not necessary on mo
 
 ```bash
 # Start the slcan daemon:
-sudo slcand -s5 -S115200 /dev/ttyUSB0 can0
+sudo slcand -o -s5 -S115200 /dev/ttyUSB0 doggie0
 
 # Set the interface UP
-sudo ifconfig can0 up
+sudo ifconfig doggie0 up txqueuelen 500
 ```
 
 ### 3. Send/Receive CAN Messages  
 - **Send a CAN message:**  
   ```
-  cansend can0 123#11223344
+  cansend doggie0 123#11223344
   ```
 
 - **Receive CAN messages:**  
   ```
-  candump can0
+  candump doggie0
   ```
 
 For more advanced commands, refer to the [SocketCAN documentation](https://www.kernel.org/doc/Documentation/networking/can.txt).
