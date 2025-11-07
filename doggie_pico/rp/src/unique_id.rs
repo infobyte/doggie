@@ -1,11 +1,12 @@
 use embassy_rp::{
     flash::Async,
     peripherals::{DMA_CH0, FLASH},
+    Peri,
 };
 
 const FLASH_SIZE: usize = 2 * 1024 * 1024;
 
-fn get_serial_number(flash: FLASH, dma: DMA_CH0) -> u64 {
+fn get_serial_number(flash: Peri<FLASH>, dma: Peri<DMA_CH0>) -> u64 {
     let mut flash = embassy_rp::flash::Flash::<_, Async, FLASH_SIZE>::new(flash, dma);
     // Get unique id
     let mut uid = [0; 8];
@@ -43,7 +44,7 @@ fn u64_to_str(mut raw_number: u64) -> &'static str {
     unsafe { core::str::from_utf8_unchecked(&BUF[0..pos]) }
 }
 
-pub fn serial_number(flash: FLASH, dma: DMA_CH0) -> &'static str {
+pub fn serial_number(flash: Peri<FLASH>, dma: Peri<DMA_CH0>) -> &'static str {
     let raw_serial_number = get_serial_number(flash, dma);
     u64_to_str(raw_serial_number)
 }

@@ -4,37 +4,37 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-esp-hal = { version = "0.23.1", features = ["unstable"] }
-esp-backtrace = { version = "0.15.0", features = [
-    "exception-handler",
+esp-alloc = { version = "0.9.0"}
+esp-bootloader-esp-idf = "0.4.0"
+esp-hal = { version = "1.0.0", features = ["unstable"] }
+esp-backtrace = { version = "0.18.1", features = [
     "panic-handler",
     "defmt",
 ] }
-esp-hal-embassy = { version = "0.6.0", features = ["defmt"] }
+esp-rtos = { version = "0.2", features = ["defmt", "embassy", "esp-radio"] }
 
-embassy-time = { version = "0.4.0" }
-embassy-executor = { version = "0.7.0", features = ["task-arena-size-32768"] }
-embassy-sync = { version = "0.6.0" }
-embassy-futures = "0.1.0"
+embassy-time = { version = "0.5.0" }
+embassy-executor = { version = "0.9.1" }
+embassy-sync = { version = "0.7.2" }
+embassy-futures = "0.1.2"
 
 embedded-io-async = "0.6.1"
 embedded-hal = "1.0.0"
 embedded-can = "0.4.1"
 
 # BLE
-esp-wifi = { version = "0.12.0", features = ["ble"], optional = true }
-esp-alloc = { version = "0.6.0", optional = true }
-static_cell = { version = "2.1.0", optional = true }
-bt-hci = { version = "0.2", optional = true }
+esp-radio = { version = "0.17.0", features = ["ble", "unstable"], optional = true }
+static_cell = { version = "2.1.1", optional = true }
+bt-hci = { version = "0.6", optional = true }
 doggie_ble = { version = "0.1.0", path = "../../doggie_ble", optional = true }
 
-log = { version = "0.4.22" }
-defmt = { version = "0.3.8", features = ["encoding-raw"] }
+log = { version = "0.4.28" }
+defmt = { version = "1.0.1", features = ["encoding-rzcobs"] }
 nb = "1.1.0"
-cfg-if = "1.0.0"
+cfg-if = "1.0.4"
 
-xtensa-lx = { version = "0.10.0", optional = true }
-riscv = { version = "0.10.1", optional = true }
+xtensa-lx = { version = "0.13.0", optional = true }
+riscv = { version = "0.15.0", optional = true }
 
 evil_core = { version = "0.1.0", path = "../../evil_core" }
 esp_serial = { version = "0.1.0", path = "../esp_serial" }
@@ -42,14 +42,14 @@ esp_serial = { version = "0.1.0", path = "../esp_serial" }
 
 [features]
 faraday = []
-ble = ["dep:doggie_ble", "dep:esp-wifi", "dep:bt-hci", "dep:esp-alloc", "dep:static_cell"]
-esp32   = ["esp-hal/esp32",   "esp-backtrace/esp32",   "esp-hal-embassy/esp32",   "esp-wifi/esp32",   "esp_serial/esp32",   "dep:xtensa-lx"]
-esp32c3 = ["esp-hal/esp32c3", "esp-backtrace/esp32c3", "esp-hal-embassy/esp32c3", "esp-wifi/esp32c3", "esp_serial/esp32c3", "dep:riscv"]
-esp32c2 = ["esp-hal/esp32c2", "esp-backtrace/esp32c2", "esp-hal-embassy/esp32c2", "esp-wifi/esp32c2", "esp_serial/esp32c2"]
-esp32c6 = ["esp-hal/esp32c6", "esp-backtrace/esp32c6", "esp-hal-embassy/esp32c6", "esp-wifi/esp32c6", "esp_serial/esp32c6"]
-esp32h2 = ["esp-hal/esp32h2", "esp-backtrace/esp32h2", "esp-hal-embassy/esp32h2", "esp-wifi/esp32h2", "esp_serial/esp32h2"]
-esp32s2 = ["esp-hal/esp32s2", "esp-backtrace/esp32s2", "esp-hal-embassy/esp32s2", "esp-wifi/esp32s2", "esp_serial/esp32s2"]
-esp32s3 = ["esp-hal/esp32s3", "esp-backtrace/esp32s3", "esp-hal-embassy/esp32s3", "esp-wifi/esp32s3", "esp_serial/esp32s3"]
+ble = ["dep:doggie_ble", "dep:esp-radio", "dep:bt-hci", "dep:static_cell"]
+esp32   = ["esp-hal/esp32",   "esp-backtrace/esp32",   "esp-rtos/esp32",   "esp-radio/esp32",   "esp-bootloader-esp-idf/esp32", "esp_serial/esp32",   "dep:xtensa-lx"]
+esp32c3 = ["esp-hal/esp32c3", "esp-backtrace/esp32c3", "esp-rtos/esp32c3", "esp-radio/esp32c3", "esp-bootloader-esp-idf/esp32c3", "esp_serial/esp32c3", "dep:riscv"]
+esp32c2 = ["esp-hal/esp32c2", "esp-backtrace/esp32c2", "esp-rtos/esp32c2", "esp-radio/esp32c2", "esp-bootloader-esp-idf/esp32c2", "esp_serial/esp32c2"]
+esp32c6 = ["esp-hal/esp32c6", "esp-backtrace/esp32c6", "esp-rtos/esp32c6", "esp-radio/esp32c6", "esp-bootloader-esp-idf/esp32c6", "esp_serial/esp32c6"]
+esp32h2 = ["esp-hal/esp32h2", "esp-backtrace/esp32h2", "esp-rtos/esp32h2", "esp-radio/esp32h2", "esp-bootloader-esp-idf/esp32h2", "esp_serial/esp32h2"]
+esp32s2 = ["esp-hal/esp32s2", "esp-backtrace/esp32s2", "esp-rtos/esp32s2", "esp-radio/esp32s2", "esp-bootloader-esp-idf/esp32s2", "esp_serial/esp32s2"]
+esp32s3 = ["esp-hal/esp32s3", "esp-backtrace/esp32s3", "esp-rtos/esp32s3", "esp-radio/esp32s3", "esp-bootloader-esp-idf/esp32s3", "esp_serial/esp32s3"]
 default = ["ble"]
 
 [profile.dev]

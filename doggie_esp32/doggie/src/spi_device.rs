@@ -1,13 +1,9 @@
-use esp_hal::{
-    DriverMode as Mode,
-    spi::master::Spi,
-    spi::Error
-};
+use esp_hal::{spi::master::Spi, spi::Error, DriverMode as Mode};
 
-use embedded_hal::spi::{ErrorType, Operation, SpiDevice, SpiBus};
+use embedded_hal::spi::{ErrorType, Operation, SpiBus, SpiDevice};
 
 pub struct CustomSpiDevice<'d, MODE: Mode> {
-    spi: Spi<'d, MODE>
+    spi: Spi<'d, MODE>,
 }
 
 impl<'d, MODE: Mode> CustomSpiDevice<'d, MODE> {

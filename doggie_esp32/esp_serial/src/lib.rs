@@ -18,8 +18,8 @@ macro_rules! init_globals {
             defmt::error,
             doggie_ble::{create_ble_pipe, BleSerial, BleServer, SerialMux},
             esp_alloc as _,
-            esp_wifi::ble::controller::BleConnector,
-            esp_wifi::EspWifiController,
+            esp_radio::ble::controller::BleConnector,
+            esp_radio::Controller as EspWifiController,
             static_cell::StaticCell,
         };
 
@@ -103,6 +103,10 @@ macro_rules! create_wired_serial {
 #[macro_export]
 macro_rules! create_serial {
     ($p:expr, $s:expr) => {{
+
+        // Heap initialization
+        esp_alloc::heap_allocator!(size: 72 * 1024);
+
         let wired_serial = esp_serial::create_wired_serial!($p);
 
         #[cfg(feature = "ble")]
@@ -110,16 +114,13 @@ macro_rules! create_serial {
             // BLE initialization
             info!("BLE init");
 
-            // Heap initialization needed by the BLE
-            esp_alloc::heap_allocator!(72 * 1024);
-
             let timg0 = TimerGroup::new($p.TIMG0);
 
             let init = BLE_CONT_AUX.init(
-                esp_wifi::init(timg0.timer0, esp_hal::rng::Rng::new($p.RNG), $p.RADIO_CLK).unwrap(),
+                esp_radio::init().unwrap(),
             );
 
-            let connector = BleConnector::new(init, $p.BT);
+            let connector = BleConnector::new(init, $p.BT, Default::default()).unwrap();
             let controller: ExternalController<BleConnector<'static>, 20> =
                 ExternalController::new(connector);
 

@@ -170,7 +170,7 @@ async fn main(spawner: Spawner) {
     info!("BSP created");
 
     // Create and run the Doggie core
-    let mut core = EvilCore::new(bsp, CanBitrates::Kbps500, 850, rp_attack);
+    let core = EvilCore::new(bsp, CanBitrates::Kbps500, 850, rp_attack);
 
     info!("Core created");
 

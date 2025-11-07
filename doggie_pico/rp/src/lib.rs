@@ -84,11 +84,11 @@ macro_rules! init_globals {
         #[cfg(all(feature = "ble", feature = "usb"))]
         type InnerSerialType = SerialMux<UsbWrapper<'static>, BleSerial>;
         #[cfg(all(feature = "ble", feature = "uart"))]
-        type InnerSerialType = SerialMux<BufferedUart<'static, UART0>, BleSerial>;
+        type InnerSerialType = SerialMux<BufferedUart, BleSerial>;
         #[cfg(all(not(feature = "ble"), feature = "usb"))]
         type InnerSerialType = UsbWrapper<'static>;
         #[cfg(all(not(feature = "ble"), feature = "uart"))]
-        type InnerSerialType = BufferedUart<'static, UART0>;
+        type InnerSerialType = BufferedUart;
     }
 }
 
@@ -217,7 +217,7 @@ macro_rules! create_serial {
 
             static RX_BUF: StaticCell<[u8; 16]> = StaticCell::new();
             let rx_buf = &mut RX_BUF.init([0; 16])[..];
-            let serial = BufferedUart::new(uart_no, Irqs, tx_pin, rx_pin, tx_buf, rx_buf, uart_config);
+            let serial = BufferedUart::new(uart_no, tx_pin, rx_pin, Irqs, tx_buf, rx_buf, uart_config);
 
             info!("UART init ok");
 

@@ -52,8 +52,12 @@ impl BleServer {
     where
         C: Controller,
     {
-        let mut resources: HostResources<CONNECTIONS_MAX, L2CAP_CHANNELS_MAX, L2CAP_MTU> =
-            HostResources::new();
+        let mut resources: HostResources<
+            DefaultPacketPool,
+            CONNECTIONS_MAX,
+            L2CAP_CHANNELS_MAX,
+            L2CAP_MTU,
+        > = HostResources::new();
         let stack = trouble_host::new(controller, &mut resources);
         let Host {
             mut peripheral,
@@ -77,8 +81,13 @@ impl BleServer {
                 match Self::advertise("Doggie BLE", &mut peripheral, &server).await {
                     Ok(conn) => {
                         // set up tasks when the connection is established to a central, so they don't run when no one is connected.
-                        let a = Self::gatt_events_task(&server, &conn, &mut writer);
-                        let b = Self::custom_task::<C>(&server, &conn, &mut reader);
+                        let a = Self::gatt_events_task::<DefaultPacketPool>(
+                            &server,
+                            &conn,
+                            &mut writer,
+                        );
+                        let b =
+                            Self::custom_task::<C, DefaultPacketPool>(&server, &conn, &mut reader);
                         // run until any task ends (usually because the connection has been closed),
                         // then return to advertising state.
                         select(a, b).await;
@@ -94,7 +103,7 @@ impl BleServer {
     }
 
     /// This is a background task that is required to run forever alongside any other BLE tasks.
-    async fn ble_task<C: Controller>(mut runner: Runner<'_, C>) {
+    async fn ble_task<C: Controller, P: PacketPool>(mut runner: Runner<'_, C, P>) {
         loop {
             if let Err(e) = runner.run().await {
                 let e = defmt::Debug2Format(&e);
@@ -104,9 +113,9 @@ impl BleServer {
         }
     }
 
-    async fn gatt_events_task(
+    async fn gatt_events_task<P: PacketPool>(
         server: &Server<'_>,
-        conn: &GattConnection<'_, '_>,
+        conn: &GattConnection<'_, '_, P>,
         writer: &mut BlePipeWriter,
     ) -> Result<(), Error> {
         let rx_char = &server.nus_service.rx;
@@ -118,41 +127,41 @@ impl BleServer {
                     info!("[BLE | gatt] disconnected: {:?}", reason);
                     break;
                 }
-                GattConnectionEvent::Gatt { event } => match event {
-                    Ok(event) => {
-                        match &event {
-                            GattEvent::Read(event) => {
-                                if event.handle() == tx_char.handle {
-                                    warn!("[BLE | nus] Read request on TX characteristic");
-                                } else if event.handle() == rx_char.handle {
-                                    warn!("[BLE | nus] Read request on RX characteristic");
-                                }
+                GattConnectionEvent::Gatt { event } => {
+                    match &event {
+                        GattEvent::Read(event) => {
+                            if event.handle() == tx_char.handle {
+                                warn!("[BLE | nus] Read request on TX characteristic");
+                            } else if event.handle() == rx_char.handle {
+                                warn!("[BLE | nus] Read request on RX characteristic");
                             }
-                            GattEvent::Write(event) => {
-                                if event.handle() == rx_char.handle {
-                                    let data = event.data();
-                                    debug!("[BLE | nus] Received data: {:?}", data);
+                        }
+                        GattEvent::Write(event) => {
+                            if event.handle() == rx_char.handle {
+                                let data = event.data();
+                                debug!("[BLE | nus] Received data: {:?}", data);
 
-                                    match writer.write_all(data).await {
-                                        Ok(_) => {}
-                                        Err(e) => {
-                                            error!("[BLE] tx_task: Error writing: {}", e);
-                                        }
+                                match writer.write_all(data).await {
+                                    Ok(_) => {}
+                                    Err(e) => {
+                                        error!("[BLE] tx_task: Error writing: {}", e);
                                     }
                                 }
                             }
                         }
-
-                        // Send reply
-                        match event.accept() {
-                            Ok(reply) => {
-                                reply.send().await;
-                            }
-                            Err(e) => warn!("[BLE | gatt] error sending response: {:?}", e),
+                        GattEvent::Other(_event) => {
+                            warn!("[BLE | gatt] other event");
                         }
                     }
-                    Err(e) => warn!("[BLE | gatt] error processing event: {:?}", e),
-                },
+
+                    // Send reply
+                    match event.accept() {
+                        Ok(reply) => {
+                            reply.send().await;
+                        }
+                        Err(e) => warn!("[BLE | gatt] error sending response: {:?}", e),
+                    }
+                }
                 _ => {}
             }
         }
@@ -163,9 +172,9 @@ impl BleServer {
     /// Create an advertiser to use to connect to a BLE Central, and wait for it to connect.
     async fn advertise<'a, 'b, C: Controller>(
         name: &'a str,
-        peripheral: &mut Peripheral<'a, C>,
+        peripheral: &mut Peripheral<'a, C, DefaultPacketPool>,
         server: &'b Server<'_>,
-    ) -> Result<GattConnection<'a, 'b>, BleHostError<C::Error>> {
+    ) -> Result<GattConnection<'a, 'b, DefaultPacketPool>, BleHostError<C::Error>> {
         let mut advertiser_data = [0; 31];
         AdStructure::encode_slice(
             &[
@@ -185,7 +194,10 @@ impl BleServer {
             )
             .await?;
         info!("[adv] advertising");
-        let conn = advertiser.accept().await?.with_attribute_server(server)?;
+        let conn = advertiser
+            .accept()
+            .await?
+            .with_attribute_server(&**server)?;
         info!("[adv] connection established");
         Ok(conn)
     }
@@ -194,9 +206,9 @@ impl BleServer {
     /// This task will notify the connected central of a counter value every 2 seconds.
     /// It will also read the RSSI value every 2 seconds.
     /// and will stop when the connection is closed by the central or an error occurs.
-    async fn custom_task<C: Controller>(
+    async fn custom_task<C: Controller, P: PacketPool>(
         server: &Server<'_>,
-        conn: &GattConnection<'_, '_>,
+        conn: &GattConnection<'_, '_, P>,
         reader: &mut BlePipeReader,
     ) {
         let tx_char = &server.nus_service.tx;

@@ -54,6 +54,8 @@ macro_rules! create_serial {
         #[cfg(feature = "uart")]
         let uart_serial = bluepill::create_default_uart!($p);
 
+        let mut pa12 = $p.PA12;
+
         #[cfg(feature = "usb")]
         let usb_serial = {
             {
@@ -61,12 +63,14 @@ macro_rules! create_serial {
                 // Pull the D+ pin down to send a RESET condition to the USB bus.
                 // This forced reset is needed only for development, without it host
                 // will not reset your device when you upload new firmware.
-                let _dp = Output::new(&mut $p.PA12, Level::Low, Speed::Low);
+                let _dp = Output::new(pa12, Level::Low, Speed::Low);
                 Timer::after_millis(10).await;
+                drop(_dp);
+                pa12 = unsafe { embassy_stm32::peripherals::PA12::steal() };
             }
 
             // Create the driver, from the HAL.
-            let driver = Driver::new($p.USB, UsbIrqs, $p.PA12, $p.PA11);
+            let driver = Driver::new($p.USB, UsbIrqs, pa12, $p.PA11);
 
             // Create embassy-usb Config
             let config = {

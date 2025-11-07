@@ -1,14 +1,14 @@
 use crate::spi_device::CustomSpiDevice;
 use embassy_rp::gpio::{Level, Output};
-use embassy_rp::peripherals;
 use embassy_rp::spi::{Blocking, Config, Spi};
+use embassy_rp::{peripherals, Peri};
 
 pub fn create_spi<'d>(
-    spi: peripherals::SPI0,
-    clk: peripherals::PIN_18,
-    mosi: peripherals::PIN_19,
-    miso: peripherals::PIN_16,
-    cs: peripherals::PIN_17,
+    spi: Peri<'d, peripherals::SPI0>,
+    clk: Peri<'d, peripherals::PIN_18>,
+    mosi: Peri<'d, peripherals::PIN_19>,
+    miso: Peri<'d, peripherals::PIN_16>,
+    cs: Peri<'d, peripherals::PIN_17>,
 ) -> CustomSpiDevice<'d, peripherals::SPI0, Blocking> {
     // Setup SPI
     let mut spi_config = Config::default();
