@@ -1,6 +1,6 @@
 use embassy_rp::{
     gpio::Output,
-    spi::{Error as SpiError, Spi, Mode, Instance},
+    spi::{Error as SpiError, Instance, Mode, Spi},
 };
 use embedded_hal::spi::{ErrorType, Operation, SpiDevice};
 

@@ -59,7 +59,7 @@ where
     CLK: TicksClock,
     TR: Tranceiver,
 {
-    pub fn new(serial: SERIAL, mut core: EvilCore<CLK, TR>) -> Self {
+    pub fn new(serial: SERIAL, core: EvilCore<CLK, TR>) -> Self {
         let menu = Menu {
             label: "root",
             items: &[

@@ -1,16 +1,12 @@
 use defmt::{info, println};
-use esp_hal::{
-    clock::Clocks,   
-    timer::Timer,
-    timer::timg::Timer as TimerX,
-};
+use esp_hal::{clock::Clocks, timer::timg::Timer as TimerX, timer::Timer};
 use evil_core::bsp::TicksClock;
 
 #[cfg(feature = "esp32")]
 use core::arch::asm;
 
 pub struct TimerBasedClock {
-    _timer: esp_hal::timer::timg::Timer,
+    _timer: esp_hal::timer::timg::Timer<'static>,
 }
 
 impl TimerBasedClock {
@@ -26,14 +22,12 @@ impl TimerBasedClock {
     const TIMG1_UPDATE: *mut u32 = (Self::TIMG1_BASE + Self::TIMG1_UPDATE_OFFSET) as *mut u32;
     const TIMG1_LO: *mut u32 = (Self::TIMG1_BASE + Self::TIMG1_LO_OFFSET) as *mut u32;
 
-    pub fn new(
-        timer: TimerX
-    ) -> Self {
+    pub fn new(timer: TimerX<'static>) -> Self {
         timer.enable_auto_reload(true);
         timer.start();
         // self.set_alarm_active(true);
-        
-        let apb_freq = Clocks::get().apb_clock.to_Hz();
+
+        let apb_freq = Clocks::get().apb_clock;
         // let divider = timer.divider();
 
         info!("TIMG1 initialization");

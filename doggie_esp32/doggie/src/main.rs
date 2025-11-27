@@ -22,7 +22,15 @@ mod spi_device;
 use embassy_executor::Spawner;
 use embassy_time::Timer;
 use esp_backtrace as _;
-use esp_hal::{clock::CpuClock, gpio::Level, gpio::Output, uart::Uart, Async};
+#[cfg(target_arch = "riscv32")]
+use esp_hal::interrupt::software::SoftwareInterruptControl;
+use esp_hal::{
+    clock::CpuClock,
+    gpio::Level,
+    gpio::{Output, OutputConfig},
+    uart::Uart,
+    Async,
+};
 use esp_serial;
 
 use defmt::info;
@@ -46,6 +54,8 @@ use {
     spi_device::CustomSpiDevice,
 };
 
+esp_bootloader_esp_idf::esp_app_desc!();
+
 #[cfg(feature = "esp32c3")]
 #[embassy_executor::task]
 async fn blink_task(mut led: Output<'static>) {
@@ -60,13 +70,13 @@ async fn blink_task(mut led: Output<'static>) {
 
 esp_serial::init_globals!();
 
-#[esp_hal_embassy::main]
+#[esp_rtos::main]
 async fn main(spawner: Spawner) {
     // info!("Device initialization started");
     // Board initialization
     let peripherals = esp_hal::init({
         let mut config = esp_hal::Config::default();
-        config.cpu_clock = CpuClock::max();
+        config = config.with_cpu_clock(CpuClock::max());
         config
     });
 
@@ -74,12 +84,19 @@ async fn main(spawner: Spawner) {
     cfg_if::cfg_if! {
      if #[cfg(feature = "esp32")] {
             let timg1 = TimerGroup::new(peripherals.TIMG1);
-            esp_hal_embassy::init(timg1.timer0);
+            esp_rtos::start(timg1.timer0);
         } else {
             use esp_hal::timer::systimer::SystemTimer;
 
+            #[cfg(target_arch = "riscv32")]
+            let sw_int = SoftwareInterruptControl::new(peripherals.SW_INTERRUPT);
+
             let systimer = SystemTimer::new(peripherals.SYSTIMER);
-            esp_hal_embassy::init(systimer.alarm0);
+            esp_rtos::start(
+                systimer.alarm0,
+                #[cfg(target_arch = "riscv32")]
+                sw_int.software_interrupt0,
+            );
         }
     }
 
@@ -87,7 +104,7 @@ async fn main(spawner: Spawner) {
     #[cfg(feature = "esp32c3")]
     {
         use esp_hal::gpio::Level;
-        let led = Output::new(peripherals.GPIO8, Level::Low);
+        let led = Output::new(peripherals.GPIO8, Level::Low, OutputConfig::default());
         spawner.spawn(blink_task(led)).unwrap();
     }
 

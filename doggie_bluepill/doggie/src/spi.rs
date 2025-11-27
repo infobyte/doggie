@@ -1,4 +1,5 @@
 use embassy_stm32::peripherals;
+use embassy_stm32::Peri;
 use embassy_stm32::{gpio::Pull, mode, spi, spi::MODE_0};
 use embassy_stm32::{
     gpio::{Level, Output, Speed},
@@ -8,11 +9,11 @@ use embassy_stm32::{
 use crate::spi_device::CustomSpiDevice;
 
 pub fn create_spi<'d>(
-    spi: peripherals::SPI2,
-    miso: peripherals::PB14,
-    mosi: peripherals::PB15,
-    clk: peripherals::PB13,
-    cs: peripherals::PB12,
+    spi: Peri<'d, peripherals::SPI2>,
+    miso: Peri<'d, peripherals::PB14>,
+    mosi: Peri<'d, peripherals::PB15>,
+    clk: Peri<'d, peripherals::PB13>,
+    cs: Peri<'d, peripherals::PB12>,
 ) -> CustomSpiDevice<'d, mode::Blocking> {
     // Setup SPI
     let mut spi_config = spi::Config::default();

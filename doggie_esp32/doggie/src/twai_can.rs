@@ -1,8 +1,11 @@
 use defmt::{debug, info, warn};
 use doggie_core::{CanBitrates, CanDevice};
 use embedded_can::{blocking::Can, Id};
+#[cfg(feature = "esp32c3")]
+use esp_hal::peripherals::{GPIO0, GPIO1};
+#[cfg(not(feature = "esp32c3"))]
+use esp_hal::peripherals::{GPIO25, GPIO26};
 use esp_hal::{
-    gpio::GpioPin,
     peripherals,
     twai::{self, filter::SingleStandardFilter, ErrorKind, Twai, TwaiMode},
     Blocking,
@@ -40,8 +43,8 @@ impl<'d> CanWrapper<'d> {
             {
                 twai::TwaiConfiguration::new(
                     peripherals::TWAI0::steal(),
-                    GpioPin::<0>::steal(),
-                    GpioPin::<1>::steal(),
+                    GPIO0::steal(),
+                    GPIO1::steal(),
                     new_bitrate,
                     mode,
                 )
@@ -50,8 +53,8 @@ impl<'d> CanWrapper<'d> {
             {
                 twai::TwaiConfiguration::new(
                     peripherals::TWAI0::steal(),
-                    GpioPin::<25>::steal(),
-                    GpioPin::<26>::steal(),
+                    GPIO25::steal(),
+                    GPIO26::steal(),
                     new_bitrate,
                     mode,
                 )

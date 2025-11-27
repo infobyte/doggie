@@ -2,6 +2,7 @@ use crate::uart_device::UartWrapper;
 use embassy_stm32::{
     bind_interrupts, peripherals,
     usart::{self, Uart},
+    Peri,
 };
 
 bind_interrupts!(struct UartIrqs {
@@ -9,11 +10,11 @@ bind_interrupts!(struct UartIrqs {
 });
 
 pub fn create_uart<'d>(
-    uart: peripherals::USART2,
-    tx: peripherals::PA2,
-    rx: peripherals::PA3,
-    dma1: peripherals::DMA1_CH7,
-    dma2: peripherals::DMA1_CH6,
+    uart: Peri<'d, peripherals::USART2>,
+    tx: Peri<'d, peripherals::PA2>,
+    rx: Peri<'d, peripherals::PA3>,
+    dma1: Peri<'d, peripherals::DMA1_CH7>,
+    dma2: Peri<'d, peripherals::DMA1_CH6>,
 ) -> UartWrapper<'d> {
     let mut uart_config = usart::Config::default();
     uart_config.baudrate = 115_200;

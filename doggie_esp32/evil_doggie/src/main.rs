@@ -11,9 +11,11 @@ use tranceiver::EspTranceiver;
 use defmt::info;
 use embassy_executor::Spawner;
 use esp_backtrace as _;
+#[cfg(target_arch = "riscv32")]
+use esp_hal::interrupt::software::SoftwareInterruptControl;
 use esp_hal::{
     clock::CpuClock,
-    gpio::{Input, Level, Output, Pull},
+    gpio::{Input, InputConfig, Level, Output, OutputConfig, Pull},
     ram,
     uart::Uart,
     Async,
@@ -26,6 +28,8 @@ use evil_core::{
 
 #[cfg(all(feature = "esp32c3", not(feature = "ble")))]
 use esp_hal::timer::timg::TimerGroup;
+
+esp_bootloader_esp_idf::esp_app_desc!();
 
 esp_serial::init_globals!();
 
@@ -46,17 +50,26 @@ fn esp32_attack(core: &mut EvilCore<TimerBasedClock, EspTranceiver<'_>>) -> bool
     res
 }
 
-#[esp_hal_embassy::main]
+#[esp_rtos::main]
 async fn main(_spawner: Spawner) {
     let mut config = esp_hal::Config::default();
     // esp32   => 240MHz
     // esp32c3 => 160MHz
-    config.cpu_clock = CpuClock::max();
+    config = config.with_cpu_clock(CpuClock::max());
 
     let p = esp_hal::init(config);
 
+    esp_alloc::heap_allocator!(size: 72 * 1024);
+
+    #[cfg(target_arch = "riscv32")]
+    let sw_int = SoftwareInterruptControl::new(p.SW_INTERRUPT);
+
     let timg0 = TimerGroup::new(p.TIMG0);
-    esp_hal_embassy::init(timg0.timer0);
+    esp_rtos::start(
+        timg0.timer0,
+        #[cfg(target_arch = "riscv32")]
+        sw_int.software_interrupt0,
+    );
 
     esp_serial::init_dbg!(p);
     // let dbg_pin = Output::new(p.GPIO2, Level::High);
@@ -93,9 +106,9 @@ async fn main(_spawner: Spawner) {
     #[cfg(feature = "esp32c3")]
     let (tx_pin, rx_pin, force_pin) = (p.GPIO1, p.GPIO0, p.GPIO10);
 
-    let tx = Output::new(tx_pin, Level::High);
-    let rx = Input::new(rx_pin, Pull::None);
-    let force = Output::new(force_pin, Level::High);
+    let tx = Output::new(tx_pin, Level::High, OutputConfig::default());
+    let rx = Input::new(rx_pin, InputConfig::default());
+    let force = Output::new(force_pin, Level::High, OutputConfig::default());
 
     let tranceiver = EspTranceiver::new(tx, rx, force);
     info!("Tranceiver init ok");
@@ -103,7 +116,7 @@ async fn main(_spawner: Spawner) {
     #[cfg(feature = "faraday")]
     {
         info!("Evil Doggie Attack Circuit Enabled");
-        let force_enable = Output::new(p.GPIO23, Level::High);
+        let force_enable = Output::new(p.GPIO23, Level::High, OutputConfig::default());
     }
 
     // Create clock
