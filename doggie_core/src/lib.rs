@@ -230,7 +230,7 @@ where
                         }
                     }
                     SlcanCommand::FilterId(id) => can.set_filter(id),
-                    SlcanCommand::FilterMask(mask) => can.set_filter(mask),
+                    SlcanCommand::FilterMask(mask) => can.set_mask(mask),
                     SlcanCommand::SetBitrate(bitrate) => {
                         can.set_bitrate(can::CanBitrates::from(bitrate as u16))
                     }
