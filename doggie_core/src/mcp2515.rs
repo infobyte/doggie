@@ -54,10 +54,6 @@ impl<SPI: SpiDevice> CanDevice for MCP2515<SPI> {
             Ok(_) => info!("Bitrate set!"),
             Err(_) => error!("Failed to set bitrate!!!"),
         };
-        match self.set_mode(OpMode::Normal) {
-            Ok(_) => info!("Switching to Normal Mode"),
-            Err(_) => error!("Failed to switch to Normal Mode"),
-        }
     }
 
     fn set_filter(&mut self, id: Id) {
@@ -69,15 +65,21 @@ impl<SPI: SpiDevice> CanDevice for MCP2515<SPI> {
     }
 
     fn open(&mut self) {
-        todo!();
+        match self.set_mode(OpMode::Normal) {
+            Ok(_) => info!("CAN device open, mode normal."),
+            Err(_) => error!("Failed to open, mode normal."),
+        }
     }
 
     fn close(&mut self) {
-        todo!();
+        info!("CAN device close, nothing to do.");
     }
 
     fn listen_only(&mut self) {
-        todo!();
+        match self.set_mode(OpMode::ListenOnly) {
+            Ok(_) => info!("CAN device open, mode listen only."),
+            Err(_) => error!("Failed to open, mode listen only."),
+        }
     }
 }
 
