@@ -2,7 +2,7 @@
 
 The branch [fix_slcan_command](https://github.com/ondrasy/fork_doggie/tree/fix_slcan_command) fixes the original repo when using on Linux with *slcand* and *ip* commands. I am not sure how the original repo was supposed to be used.
 
-The branch [add_mcp2518_support] (https://github.com/ondrasy/fork_doggie/tree/add_mcp2518_support) adds support for an MCP2518FD module, but only in CAN 2.0 mode. Tested with (https://www.waveshare.com/wiki/2-CH_CAN_FD_HAT).
+The branch [add_mcp2518_support](https://github.com/ondrasy/fork_doggie/tree/add_mcp2518_support) adds support for an MCP2518FD module, but only in CAN 2.0 mode. Tested with (https://www.waveshare.com/wiki/2-CH_CAN_FD_HAT).
 
 ## Compilation and Installation
 
